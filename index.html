@@ -37,9 +37,10 @@ header{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:20px;
 }
 .logo img{
-  height:72px;
+  height:86px;
 }
 nav a{
   margin:0 14px;
@@ -61,9 +62,11 @@ nav a{
   background:transparent;
   color:var(--blue);
   text-decoration:none;
+  transition:.25s ease;
 }
-.lang-switch{
-  font-size:14px;
+.btn-main:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(10,42,94,.25);
 }
 .lang-switch button{
   background:none;
@@ -82,12 +85,13 @@ nav a{
   content:"";
   position:absolute;
   inset:0;
-  background:rgba(6,18,40,.55);
+  backdrop-filter: blur(7px);
+  background:rgba(6,18,40,.5);
 }
 .hero-content{
   position:relative;
   max-width:760px;
-  padding:64px 24px;
+  padding:70px 24px;
   color:#fff;
 }
 .hero h1{
@@ -133,9 +137,7 @@ section{
   margin:auto;
   padding:80px 24px;
 }
-.section-soft{
-  background:var(--blue-soft);
-}
+.section-soft{background:var(--blue-soft)}
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -147,9 +149,15 @@ section{
   border-radius:var(--radius);
   padding:32px;
 }
-.card strong{
-  display:block;
-  margin-bottom:8px;
+.image-box img{
+  width:100%;
+  border-radius:var(--radius);
+}
+
+/* FAQ */
+#faq h4{
+  margin-bottom:6px;
+  margin-top:24px;
 }
 
 /* FOOTER OMS */
@@ -163,18 +171,6 @@ footer{
   color:#e6ebff;
   padding:70px 24px 40px;
 }
-footer h4{
-  margin-top:0;
-  color:#fff;
-}
-footer p{
-  font-size:14px;
-  line-height:1.7;
-}
-footer a{
-  color:#cfd8ff;
-  text-decoration:none;
-}
 .footer-grid{
   max-width:1200px;
   margin:auto;
@@ -182,9 +178,9 @@ footer a{
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:40px;
 }
+footer a{color:#cfd8ff;text-decoration:none}
 .footer-bottom{
-  max-width:1200px;
-  margin:40px auto 0;
+  margin-top:40px;
   padding-top:20px;
   border-top:1px solid rgba(255,255,255,.2);
   font-size:12px;
@@ -194,14 +190,10 @@ footer a{
 /* MOBILE */
 @media(max-width:768px){
   nav{display:none}
-  .logo img{height:56px}
+  .logo img{height:60px}
   .hero h1{font-size:28px}
-  .hero-content{padding:36px 20px}
-  .reassurance{
-    flex-direction:column;
-    gap:12px;
-    text-align:center;
-  }
+  .hero-content{padding:40px 20px}
+  .reassurance{flex-direction:column;text-align:center}
 }
 </style>
 </head>
@@ -216,14 +208,15 @@ footer a{
 
     <nav>
       <a href="#processus">Processus</a>
-      <a href="#services">Services</a>
+      <a href="#services">Consultation</a>
       <a href="#aide">Aide à domicile</a>
       <a href="#faq">FAQ</a>
     </nav>
 
     <div class="actions">
       <div class="lang-switch">
-        <button>FR</button> | <button>BI</button>
+        <button onclick="setLang('fr')">FR</button> | 
+        <button onclick="setLang('rn')">BI</button>
       </div>
       <a href="demande.html" class="btn-main">Parler à un médecin</a>
     </div>
@@ -233,9 +226,9 @@ footer a{
 <!-- HERO -->
 <div class="hero">
   <div class="hero-content">
-    <h1>Accédez à des soins structurés et responsables</h1>
-    <p>Téléconsultation médicale et assistance humaine dans un cadre sérieux et sécurisé.</p>
-    <p class="hero-clarity">
+    <h1 id="heroTitle">Accédez à des soins structurés et responsables</h1>
+    <p id="heroSub">Téléconsultation médicale et assistance humaine dans un cadre sérieux et sécurisé.</p>
+    <p class="hero-clarity" id="heroClar">
       Parlez à un médecin ou demandez une aide à domicile, en toute confidentialité.
     </p>
     <div class="hero-actions">
@@ -246,54 +239,66 @@ footer a{
 </div>
 
 <div class="reassurance">
-  <div>✔ Professionnels de santé vérifiés</div>
-  <div>✔ Données traitées en toute confidentialité</div>
-  <div>✔ Aucun engagement obligatoire</div>
+  <div id="r1">✔ Professionnels de santé vérifiés</div>
+  <div id="r2">✔ Données traitées en toute confidentialité</div>
+  <div id="r3">✔ Aucun engagement obligatoire</div>
 </div>
 
 <!-- PROCESSUS -->
 <section id="processus">
   <h2>Comment ça fonctionne</h2>
   <div class="cards">
-    <div class="card"><strong>1.</strong> Vous décrivez votre situation</div>
-    <div class="card"><strong>2.</strong> Orientation par un professionnel</div>
-    <div class="card"><strong>3.</strong> Consultation ou accompagnement</div>
-    <div class="card"><strong>4.</strong> Suivi si nécessaire</div>
+    <div class="card">1. Vous décrivez votre situation</div>
+    <div class="card">2. Orientation par un professionnel</div>
+    <div class="card">3. Consultation ou accompagnement</div>
+    <div class="card">4. Suivi si nécessaire</div>
   </div>
 </section>
 
-<!-- SERVICES -->
+<!-- CONSULTATION -->
 <section id="services" class="section-soft">
   <h2>Consultation médicale</h2>
-  <p>
-    CizaHealth+ permet d’échanger à distance avec un professionnel de santé qualifié
-    pour recevoir des conseils, une orientation ou un accompagnement adapté.
-  </p>
-  <p><em>Ce service ne remplace pas une consultation médicale physique.</em></p>
+  <div class="cards">
+    <div class="card">
+      Échange, conseils et orientation médicale à distance avec un professionnel qualifié.
+      <br><br><em>Ce service ne remplace pas une consultation médicale physique.</em>
+    </div>
+    <div class="image-box">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
+    </div>
+  </div>
 </section>
 
 <!-- AIDE DOMICILE -->
 <section id="aide">
   <h2>Aide à domicile</h2>
-  <p>
-    Service d’assistance quotidienne destiné aux personnes âgées ou nécessitant un
-    accompagnement humain à domicile, dans le respect et la dignité.
-  </p>
-  <p><em>Service non médical.</em></p>
+  <div class="cards">
+    <div class="image-box">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png">
+    </div>
+    <div class="card">
+      Assistance quotidienne respectueuse destinée aux personnes âgées ou nécessitant un accompagnement humain.
+      <br><br><em>Service non médical.</em>
+    </div>
+  </div>
 </section>
 
 <!-- FAQ -->
 <section id="faq" class="section-soft">
-  <h2>Questions fréquentes</h2>
-  <p>
-    CizaHealth+ ne prend pas en charge les urgences médicales.
-    En cas d’urgence, contactez immédiatement les services de santé locaux.
-  </p>
+  <h2>Questions fréquemment posées</h2>
+
+  <h4>CizaHealth+ est-il un service d’urgence médicale ?</h4>
+  <p>Non. CizaHealth+ ne prend pas en charge les urgences médicales.</p>
+
+  <h4>Dois-je créer un compte ?</h4>
+  <p>Non. Une demande peut être faite sans création de compte.</p>
+
+  <h4>Mes informations sont-elles confidentielles ?</h4>
+  <p>Oui. Toutes les informations sont traitées de manière confidentielle.</p>
 </section>
 
 <div class="footer-separator"></div>
 
-<!-- FOOTER OMS -->
 <footer>
   <div class="footer-grid">
     <div>
@@ -326,6 +331,21 @@ footer a{
     © 2026 CizaHealth+ — CIZA GROUP • Tous droits réservés
   </div>
 </footer>
+
+<script>
+function setLang(l){
+  if(l==="rn"){
+    document.getElementById("heroTitle").innerText="Rondera ubuvuzi mu buryo bwizewe";
+    document.getElementById("heroSub").innerText="Ikiganiro n’abanyamwuga b’ivy’ubuvuzi mu buryo bwubahirije";
+    document.getElementById("heroClar").innerText="Vugana n’umuganga canke usabe ubufasha mu rugo mu ibanga.";
+    document.getElementById("r1").innerText="✔ Abanyamwuga bemewe";
+    document.getElementById("r2").innerText="✔ Amakuru abikwa mu ibanga";
+    document.getElementById("r3").innerText="✔ Nta masezerano aguhata";
+  } else {
+    location.reload();
+  }
+}
+</script>
 
 </body>
 </html>
