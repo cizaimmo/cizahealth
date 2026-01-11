@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>CizaHealth+ | Téléconsultation & Aide à domicile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="CizaHealth+ est une plateforme de téléconsultation médicale et d’assistance à domicile au Burundi, développée par CIZA GROUP, dans un cadre éthique et responsable.">
+<meta name="description" content="CizaHealth+ est une plateforme de téléconsultation médicale et d’assistance à domicile au Burundi, développée par CIZA GROUP.">
 
 <style>
 :root{
@@ -12,7 +12,7 @@
   --blue-dark:#071733;
   --blue-soft:#f3f6fb;
   --text:#0a1a2f;
-  --radius:20px;
+  --radius:22px;
 }
 *{box-sizing:border-box}
 body{
@@ -31,16 +31,15 @@ header{
   border-bottom:1px solid #e6e9f0;
 }
 .header-inner{
-  max-width:1280px;
+  max-width:1320px;
   margin:auto;
-  padding:16px 24px;
+  padding:18px 24px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:20px;
 }
 .logo img{
-  height:86px;
+  height:110px;
 }
 nav a{
   margin:0 14px;
@@ -51,13 +50,13 @@ nav a{
 .actions{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 }
 .btn-main{
-  padding:10px 18px;
-  border-radius:12px;
+  padding:12px 22px;
+  border-radius:14px;
   font-size:14px;
-  font-weight:600;
+  font-weight:700;
   border:2px solid var(--blue);
   background:transparent;
   color:var(--blue);
@@ -68,12 +67,36 @@ nav a{
   transform:translateY(-2px);
   box-shadow:0 10px 25px rgba(10,42,94,.25);
 }
-.lang-switch button{
+.lang-switch{
+  font-weight:700;
+}
+.lang-switch span{
+  cursor:pointer;
+  margin:0 4px;
+}
+
+/* MENU MOBILE */
+.menu-toggle{
+  display:none;
+  font-size:28px;
   background:none;
   border:none;
-  font-weight:600;
-  cursor:pointer;
-  color:var(--blue);
+}
+@media(max-width:900px){
+  nav{display:none}
+  nav.show{
+    display:flex;
+    flex-direction:column;
+    background:#fff;
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    padding:20px;
+    border-bottom:1px solid #e6e9f0;
+  }
+  .menu-toggle{display:block}
+  .logo img{height:90px}
 }
 
 /* HERO */
@@ -85,38 +108,34 @@ nav a{
   content:"";
   position:absolute;
   inset:0;
-  backdrop-filter: blur(7px);
-  background:rgba(6,18,40,.5);
+  backdrop-filter: blur(8px);
+  background:rgba(6,18,40,.55);
 }
 .hero-content{
   position:relative;
-  max-width:760px;
-  padding:70px 24px;
+  max-width:820px;
+  padding:90px 24px;
   color:#fff;
 }
 .hero h1{
-  font-size:40px;
+  font-size:42px;
   line-height:1.2;
 }
 .hero p{
   font-size:17px;
   opacity:.95;
 }
-.hero-clarity{
-  margin-top:12px;
-  font-size:16px;
-}
 .hero-actions{
-  margin-top:24px;
+  margin-top:28px;
 }
 .hero-actions a{
   display:inline-block;
-  margin-right:12px;
+  margin-right:14px;
   background:#fff;
-  color:#0a2a5e;
-  padding:14px 24px;
-  border-radius:14px;
-  font-weight:600;
+  color:var(--blue);
+  padding:16px 26px;
+  border-radius:16px;
+  font-weight:700;
   text-decoration:none;
 }
 
@@ -124,47 +143,42 @@ nav a{
 .reassurance{
   display:flex;
   justify-content:center;
-  gap:32px;
-  padding:24px 20px;
+  gap:36px;
+  padding:26px 20px;
   background:#f8fafd;
-  font-size:14px;
-  color:#0a2a5e;
+  font-weight:600;
 }
 
 /* SECTIONS */
 section{
   max-width:1200px;
   margin:auto;
-  padding:80px 24px;
+  padding:90px 24px;
 }
 .section-soft{background:var(--blue-soft)}
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:28px;
+  gap:32px;
 }
 .card{
   background:#fff;
-  border:1px solid #e3e7f0;
   border-radius:var(--radius);
-  padding:32px;
+  padding:34px;
+  box-shadow:0 10px 24px rgba(0,0,0,.06);
+}
+.card:hover{
+  box-shadow:0 16px 36px rgba(0,0,0,.1);
 }
 .image-box img{
   width:100%;
   border-radius:var(--radius);
 }
 
-/* FAQ */
-#faq h4{
-  margin-bottom:6px;
-  margin-top:24px;
-}
-
-/* FOOTER OMS */
+/* FOOTER */
 .footer-separator{
   height:1px;
-  background:linear-gradient(to right,transparent,rgba(0,0,0,.25),transparent);
-  margin-top:80px;
+  background:linear-gradient(to right,transparent,rgba(0,0,0,.3),transparent);
 }
 footer{
   background:var(--blue-dark);
@@ -184,16 +198,6 @@ footer a{color:#cfd8ff;text-decoration:none}
   padding-top:20px;
   border-top:1px solid rgba(255,255,255,.2);
   font-size:12px;
-  opacity:.85;
-}
-
-/* MOBILE */
-@media(max-width:768px){
-  nav{display:none}
-  .logo img{height:60px}
-  .hero h1{font-size:28px}
-  .hero-content{padding:40px 20px}
-  .reassurance{flex-direction:column;text-align:center}
 }
 </style>
 </head>
@@ -203,65 +207,60 @@ footer a{color:#cfd8ff;text-decoration:none}
 <header>
   <div class="header-inner">
     <div class="logo">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     </div>
 
-    <nav>
-      <a href="#processus">Processus</a>
-      <a href="#services">Consultation</a>
-      <a href="#aide">Aide à domicile</a>
-      <a href="#faq">FAQ</a>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <nav id="menu">
+      <a href="#processus" id="mProcess">Processus</a>
+      <a href="#services" id="mConsult">Consultation</a>
+      <a href="#aide" id="mAide">Aide à domicile</a>
+      <a href="#faq" id="mFaq">FAQ</a>
     </nav>
 
     <div class="actions">
       <div class="lang-switch">
-        <button onclick="setLang('fr')">FR</button> | 
-        <button onclick="setLang('rn')">BI</button>
+        <span onclick="setLang('fr')">FR</span> | 
+        <span onclick="setLang('rn')">BI</span>
       </div>
-      <a href="demande.html" class="btn-main">Parler à un médecin</a>
+      <a href="demande.html" class="btn-main" id="ctaTop">Parler à un médecin</a>
     </div>
   </div>
 </header>
 
-<!-- HERO -->
 <div class="hero">
   <div class="hero-content">
     <h1 id="heroTitle">Accédez à des soins structurés et responsables</h1>
     <p id="heroSub">Téléconsultation médicale et assistance humaine dans un cadre sérieux et sécurisé.</p>
-    <p class="hero-clarity" id="heroClar">
-      Parlez à un médecin ou demandez une aide à domicile, en toute confidentialité.
-    </p>
     <div class="hero-actions">
-      <a href="demande.html">Demander une consultation</a>
-      <a href="#aide">Aide à domicile</a>
+      <a href="demande.html" id="ctaHero">Demander une consultation</a>
     </div>
   </div>
 </div>
 
 <div class="reassurance">
   <div id="r1">✔ Professionnels de santé vérifiés</div>
-  <div id="r2">✔ Données traitées en toute confidentialité</div>
-  <div id="r3">✔ Aucun engagement obligatoire</div>
+  <div id="r2">✔ Confidentialité garantie</div>
+  <div id="r3">✔ Aucun engagement</div>
 </div>
 
-<!-- PROCESSUS -->
 <section id="processus">
-  <h2>Comment ça fonctionne</h2>
+  <h2 id="pTitle">Comment ça fonctionne</h2>
   <div class="cards">
-    <div class="card">1. Vous décrivez votre situation</div>
-    <div class="card">2. Orientation par un professionnel</div>
-    <div class="card">3. Consultation ou accompagnement</div>
-    <div class="card">4. Suivi si nécessaire</div>
+    <div class="card" id="p1">1. Vous décrivez votre situation</div>
+    <div class="card" id="p2">2. Orientation professionnelle</div>
+    <div class="card" id="p3">3. Consultation ou accompagnement</div>
+    <div class="card" id="p4">4. Suivi si nécessaire</div>
   </div>
 </section>
 
-<!-- CONSULTATION -->
 <section id="services" class="section-soft">
-  <h2>Consultation médicale</h2>
+  <h2 id="cTitle">Consultation médicale</h2>
   <div class="cards">
-    <div class="card">
-      Échange, conseils et orientation médicale à distance avec un professionnel qualifié.
-      <br><br><em>Ce service ne remplace pas une consultation médicale physique.</em>
+    <div class="card" id="cText">
+      Échange, conseils et orientation médicale à distance.<br><br>
+      <em>Ce service ne remplace pas une consultation physique.</em>
     </div>
     <div class="image-box">
       <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
@@ -269,32 +268,22 @@ footer a{color:#cfd8ff;text-decoration:none}
   </div>
 </section>
 
-<!-- AIDE DOMICILE -->
 <section id="aide">
-  <h2>Aide à domicile</h2>
+  <h2 id="aTitle">Aide à domicile</h2>
   <div class="cards">
     <div class="image-box">
       <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png">
     </div>
-    <div class="card">
-      Assistance quotidienne respectueuse destinée aux personnes âgées ou nécessitant un accompagnement humain.
-      <br><br><em>Service non médical.</em>
+    <div class="card" id="aText">
+      Assistance humaine respectueuse pour personnes âgées ou dépendantes.<br><br>
+      <em>Service non médical.</em>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
 <section id="faq" class="section-soft">
-  <h2>Questions fréquemment posées</h2>
-
-  <h4>CizaHealth+ est-il un service d’urgence médicale ?</h4>
-  <p>Non. CizaHealth+ ne prend pas en charge les urgences médicales.</p>
-
-  <h4>Dois-je créer un compte ?</h4>
-  <p>Non. Une demande peut être faite sans création de compte.</p>
-
-  <h4>Mes informations sont-elles confidentielles ?</h4>
-  <p>Oui. Toutes les informations sont traitées de manière confidentielle.</p>
+  <h2>FAQ</h2>
+  <p>Ce service ne prend pas en charge les urgences médicales.</p>
 </section>
 
 <div class="footer-separator"></div>
@@ -303,45 +292,40 @@ footer a{color:#cfd8ff;text-decoration:none}
   <div class="footer-grid">
     <div>
       <h4>CizaHealth+</h4>
-      <p>
-        Plateforme numérique de santé développée par CIZA GROUP,
-        dédiée à l’orientation médicale et à l’assistance humaine,
-        dans le respect des normes éthiques et professionnelles.
-      </p>
+      <p>Plateforme de santé numérique développée par CIZA GROUP.</p>
     </div>
-
     <div>
-      <h4>Cadre & responsabilité</h4>
-      <p>
-        CizaHealth+ ne fournit pas de services d’urgence médicale
-        et ne remplace pas une consultation physique.
-      </p>
+      <h4>Cadre</h4>
+      <p>Orientation médicale – pas d’urgences.</p>
     </div>
-
     <div>
       <h4>Contact</h4>
-      <p>
-        📧 <a href="mailto:infos@cizagroup.com">infos@cizagroup.com</a><br>
-        Burundi
-      </p>
+      <p>infos@cizagroup.com<br>Burundi</p>
     </div>
   </div>
-
   <div class="footer-bottom">
-    © 2026 CizaHealth+ — CIZA GROUP • Tous droits réservés
+    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 </footer>
 
 <script>
+function toggleMenu(){
+  document.getElementById("menu").classList.toggle("show");
+}
+
 function setLang(l){
   if(l==="rn"){
-    document.getElementById("heroTitle").innerText="Rondera ubuvuzi mu buryo bwizewe";
-    document.getElementById("heroSub").innerText="Ikiganiro n’abanyamwuga b’ivy’ubuvuzi mu buryo bwubahirije";
-    document.getElementById("heroClar").innerText="Vugana n’umuganga canke usabe ubufasha mu rugo mu ibanga.";
-    document.getElementById("r1").innerText="✔ Abanyamwuga bemewe";
-    document.getElementById("r2").innerText="✔ Amakuru abikwa mu ibanga";
-    document.getElementById("r3").innerText="✔ Nta masezerano aguhata";
-  } else {
+    heroTitle.innerText="Rondera ubuvuzi mu buryo bwizewe";
+    heroSub.innerText="Ikiganiro n’abanyamwuga b’ivy’ubuvuzi mu buryo bwubahirije";
+    ctaHero.innerText="Vugana n’umuganga";
+    r1.innerText="✔ Abanyamwuga bemewe";
+    r2.innerText="✔ Amakuru abikwa mu ibanga";
+    r3.innerText="✔ Nta masezerano";
+    mProcess.innerText="Ingene bigenda";
+    mConsult.innerText="Ikiganiro n’umuganga";
+    mAide.innerText="Ubufasha mu rugo";
+    mFaq.innerText="Ibibazo";
+  }else{
     location.reload();
   }
 }
