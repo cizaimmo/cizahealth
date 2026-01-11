@@ -1,193 +1,304 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<title>CizaHealth+ | Téléconsultation médicale et aide à domicile au Burundi</title>
-<meta name="description" content="CizaHealth+ propose des téléconsultations médicales et un service d’aide à domicile pour personnes âgées au Burundi.">
-<meta name="keywords" content="téléconsultation Burundi, médecin en ligne Burundi, aide à domicile Burundi">
+<title>CizaHealth+ — Accès structuré aux soins</title>
+<meta name="description" content="CizaHealth+ est une plateforme numérique facilitant l’accès aux soins, à la téléconsultation médicale et à l’aide à domicile dans un cadre sérieux, responsable et sécurisé.">
 
-<link rel="icon" href="favicon.png">
-
-<!-- Mapbox -->
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:system-ui,sans-serif;color:#333}
-a{text-decoration:none}
-.container{max-width:1200px;margin:auto;padding:0 20px}
-img{width:100%;border-radius:14px}
+/* ================= GLOBAL ================= */
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0A1628;
+  background: #ffffff;
+}
+section { padding: 100px 0; }
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 24px;
+}
+h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+h2 { font-size: 36px; margin-bottom: 28px; }
+p { font-size: 16px; line-height: 1.7; color: #4F5D6B; }
+img { width: 100%; border-radius: 20px; }
 
-/* Header */
-header{position:fixed;top:0;width:100%;background:#fff;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
-nav a{margin-left:16px;color:#0A3D91;font-weight:500}
-.cta{background:#0A3D91;color:#fff;padding:10px 18px;border-radius:6px;font-weight:600}
+/* ================= HEADER ================= */
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(248,250,253,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.header-inner {
+  max-width: 1400px;
+  margin: auto;
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo img { height: 46px; }
+nav a {
+  margin: 0 14px;
+  text-decoration: none;
+  font-size: 14px;
+  color: #0A1628;
+  opacity: 0.85;
+}
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.btn-primary {
+  background: #0A1628;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-decoration: none;
+}
+.btn-secondary {
+  border: 1px solid #0A1628;
+  color: #0A1628;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-decoration: none;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
 
-.lang-switch{display:flex;gap:6px}
-.lang-switch button{border:1px solid #0A3D91;background:transparent;color:#0A3D91;padding:5px 9px;border-radius:4px;font-weight:600;cursor:pointer}
-.lang-switch .active{background:#0A3D91;color:#fff}
+/* ================= HERO ================= */
+.hero {
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(to bottom, rgba(248,250,253,0.92), rgba(248,250,253,0.75)),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png")
+    center/cover no-repeat;
+}
+.hero-content {
+  max-width: 760px;
+  margin-left: 8%;
+}
+.hero h1 {
+  font-size: 52px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+.hero-actions {
+  margin-top: 36px;
+  display: flex;
+  gap: 16px;
+}
 
-/* Hero */
-.hero{margin-top:80px;background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),
-url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png") center/cover no-repeat;
-color:#fff;padding:120px 20px}
-.hero h1{font-size:42px;max-width:700px}
-.hero p{font-size:18px;max-width:600px}
+/* ================= SECTIONS ================= */
+.section-soft { background: #F7F9FC; }
 
-/* Sections */
-section{padding:80px 0}
-h2{color:#0A3D91;font-size:32px;margin-bottom:15px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: #0A1F44;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+}
+.card p { color: #DDE6F2; }
+.card-light {
+  background: #E9EEF6;
+  color: #0A1628;
+}
 
-#burundiMap{height:420px;border-radius:14px}
+/* ================= FOOTER ================= */
+.site-footer {
+  background: #0A1628;
+  color: #E0E6F0;
+  padding: 80px 24px 40px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.site-footer a {
+  color: #ffffff;
+  text-decoration: none;
+}
+.footer-bottom {
+  margin-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.9;
+}
 
-/* Urgence */
-.urgence{background:#f5f5f5;font-weight:600}
-
-/* Footer */
-footer{background:#0A3D91;color:#fff;text-align:center;padding:40px 20px}
-
-/* Responsive */
-@media(max-width:900px){
-.grid{grid-template-columns:1fr}
-.hero h1{font-size:32px}
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  section { padding: 70px 0; }
+  .hero { padding: 160px 24px 80px; }
+  .hero-content { margin-left: 0; }
+  .hero h1 { font-size: 36px; }
+  nav, .btn-secondary { display: none; }
 }
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <header>
-  <div class="header-inner container">
-    <strong>CizaHealth+</strong>
-    <nav>
-      <a href="#" data-lang="fr">Accueil</a>
-      <a href="#" data-lang="ki">Ahabanza</a>
+  <div class="header-inner">
+    <div class="logo">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    </div>
 
+    <nav>
       <a href="#services" data-lang="fr">Services</a>
       <a href="#services" data-lang="ki">Serivisi</a>
-
-      <a href="#faq" data-lang="fr">FAQ</a>
-      <a href="#faq" data-lang="ki">Ibibazo</a>
-
-      <a href="#contact" class="cta" data-lang="fr">Commencer</a>
-      <a href="#contact" class="cta" data-lang="ki">Tangura</a>
+      <a href="#contact" data-lang="fr">Contact</a>
+      <a href="#contact" data-lang="ki">Twandikire</a>
     </nav>
 
-    <div class="lang-switch">
-      <button id="btn-fr" onclick="setLanguage('fr')">FRA</button>
-      <button id="btn-ki" onclick="setLanguage('ki')">KIRUNDI</button>
+    <div class="header-actions">
+      <button class="lang-btn" onclick="setLang('fr')">🇫🇷</button>
+      <button class="lang-btn" onclick="setLang('ki')">🇧🇮</button>
+      <a href="demande.html" class="btn-primary" data-lang="fr">Parler à un médecin</a>
+      <a href="demande.html" class="btn-primary" data-lang="ki">Vugana n’umuganga</a>
     </div>
   </div>
 </header>
 
+<!-- HERO -->
 <section class="hero">
-  <div class="container">
-    <h1 data-lang="fr">Consultez un professionnel de santé maintenant</h1>
-    <h1 data-lang="ki">Vugana n’umunyamwuga w’ivy’ubuvuzi ubu nyene</h1>
+  <div class="hero-content">
+    <h1 data-lang="fr">Un accès structuré aux soins<br>et à l’accompagnement humain</h1>
+    <h1 data-lang="ki">Uburyo bwubahirije bwo kuronka<br>ubuvuzi n’ugufashwa mu buzima</h1>
 
-    <p data-lang="fr">Diagnostic médical à distance • Ordonnance si nécessaire</p>
-    <p data-lang="ki">Isuzuma hakoreshejwe ikiganiro • Inama iyo bikenewe</p>
+    <p data-lang="fr">
+      CizaHealth+ facilite la communication à distance avec des professionnels
+      de santé et propose des services d’assistance dans un cadre responsable.
+    </p>
+    <p data-lang="ki">
+      CizaHealth+ yorohereza ikiganiro n’abanyamwuga b’ivy’ubuvuzi
+      no gutanga ubufasha mu buryo bwizewe.
+    </p>
 
-    <a href="#contact" class="cta" data-lang="fr">Commencer une consultation</a>
-    <a href="#contact" class="cta" data-lang="ki">Tangura ikiganiro</a>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2 data-lang="fr">Trouver un médecin au Burundi</h2>
-    <h2 data-lang="ki">Rondera umunyamwuga w’ivy’ubuvuzi mu Burundi</h2>
-    <div id="burundiMap"></div>
-  </div>
-</section>
-
-<section id="services">
-  <div class="container grid">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
-    <div>
-      <h2 data-lang="fr">Téléconsultation médicale</h2>
-      <h2 data-lang="ki">Ikiganiro n’umunyamwuga w’ivy’ubuvuzi</h2>
-
-      <p data-lang="fr">Parlez directement à un professionnel de santé par appel vidéo ou audio.</p>
-      <p data-lang="ki">Vugana n’umunyamwuga ukoresheje video canke amajwi.</p>
+    <div class="hero-actions">
+      <a href="demande.html" class="btn-primary" data-lang="fr">Parler à un médecin</a>
+      <a href="demande.html" class="btn-primary" data-lang="ki">Vugana n’umuganga</a>
+      <a href="#aide" class="btn-secondary" data-lang="fr">Aide à domicile</a>
+      <a href="#aide" class="btn-secondary" data-lang="ki">Ubufasha mu rugo</a>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="container grid">
-    <div>
-      <h2 data-lang="fr">Aide à domicile pour personnes âgées</h2>
-      <h2 data-lang="ki">Ubufasha mu rugo ku bantu bakuze</h2>
+<!-- TELECONSULTATION -->
+<section id="services" class="section-soft">
+  <div class="container">
+    <h2 data-lang="fr">Téléconsultation médicale</h2>
+    <h2 data-lang="ki">Ikiganiro n’umunyamwuga w’ivy’ubuvuzi</h2>
 
-      <p data-lang="fr">
-        Service d’assistance à domicile incluant un <strong>frotter professionnel</strong>,
-        des soins de confort et un accompagnement au quotidien.
-      </p>
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png" alt="Téléconsultation médicale">
 
-      <p data-lang="ki">
-        Serivisi yo gufasha abantu bakuze mu kwitaho neza n’ubuzima bwa buri musi.
-      </p>
+    <div class="cards">
+      <div class="card">
+        <h3 data-lang="fr">Orientation et accompagnement</h3>
+        <h3 data-lang="ki">Inama n’ukuyoborwa</h3>
+        <p data-lang="fr">Échange, conseils et orientation médicale à distance.</p>
+        <p data-lang="ki">Ikiganiro, inama n’ukuyoborwa mu buryo bwizewe.</p>
+      </div>
 
-      <p data-lang="fr">⚠️ Service non médical.</p>
-      <p data-lang="ki">⚠️ Iyi serivisi si iya gikorwa c’ubuvuzi.</p>
+      <div class="card card-light">
+        <h3 data-lang="fr">Limitations</h3>
+        <h3 data-lang="ki">Ivyo idashobora gukora</h3>
+        <p data-lang="fr">Ne remplace pas une consultation médicale physique.</p>
+        <p data-lang="ki">Ntisubirira ukuganira kwa muganga imbonankubone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AIDE A DOMICILE -->
+<section id="aide">
+  <div class="container">
+    <h2 data-lang="fr">Aide à domicile</h2>
+    <h2 data-lang="ki">Ubufasha mu rugo</h2>
+
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png" alt="Aide à domicile">
+
+    <p data-lang="fr">
+      Service non médical destiné aux personnes nécessitant une assistance
+      quotidienne dans le respect, la dignité et la confidentialité.
+    </p>
+    <p data-lang="ki">
+      Serivisi itari iy’ubuvuzi igenewe abantu bakeneye gufashwa mu rugo,
+      mu bwubahane no mu mutekano.
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER FINAL VALIDÉ -->
+<footer class="site-footer" id="contact">
+  <div class="container">
+
+    <p data-lang="fr">
+      <strong>CizaHealth+</strong> est une plateforme numérique de santé offrant
+      des services de téléconsultation médicale et d’assistance à domicile,
+      dans un cadre responsable, sécurisé et respectueux des normes éthiques.
+    </p>
+
+    <p data-lang="ki">
+      <strong>CizaHealth+</strong> ni urubuga rwa digitale mu vy’ubuvuzi rutanga
+      serivisi zo kuganira n’abanyamwuga b’ivy’ubuvuzi no gufasha abantu mu rugo,
+      mu buryo bwubahirije amategeko n’ukwubaha ikiremwa muntu.
+    </p>
+
+    <p data-lang="fr">
+      ⚠️ CizaHealth+ ne fournit pas de services d’urgence médicale.
+      En cas de situation critique, veuillez contacter les services de santé locaux
+      ou vous rendre à l’établissement médical le plus proche.
+    </p>
+
+    <p data-lang="ki">
+      ⚠️ CizaHealth+ ntifasha mu bihe vy’ihutirirwa.
+      Mu gihe c’akaga gakomeye, rondera ubufasha kwa muganga canke kwa hopital iri hafi yawe.
+    </p>
+
+    <p>
+      📧 <a href="mailto:infos@cizagroup.com">infos@cizagroup.com</a>
+    </p>
+
+    <div class="footer-bottom">
+      <p data-lang="fr">© 2026 CizaHealth+ — Une initiative de CIZA GROUP. Tous droits réservés.</p>
+      <p data-lang="ki">© 2026 CizaHealth+ — Igikorwa ca CIZA GROUP. Uburenganzira bwose burakingiwe.</p>
     </div>
 
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png">
   </div>
-</section>
-
-<section id="faq">
-  <div class="container">
-    <h2 data-lang="fr">Questions fréquentes</h2>
-    <h2 data-lang="ki">Ibibazo vyibazwa kenshi</h2>
-  </div>
-</section>
-
-<section class="urgence">
-  <div class="container">
-    <p data-lang="fr">⚠️ Ce service ne prend pas en charge les urgences médicales.</p>
-    <p data-lang="ki">⚠️ Iyi serivisi ntifasha mu bihe vy’ihutirirwa.</p>
-  </div>
-</section>
-
-<footer id="contact">
-  <p data-lang="fr">
-    CizaHealth+ by CIZA GROUP<br>
-    infos@cizagroup.com
-  </p>
-  <p data-lang="ki">
-    CizaHealth+ – CIZA GROUP<br>
-    infos@cizagroup.com
-  </p>
 </footer>
 
 <script>
-function setLanguage(lang){
-  localStorage.setItem("lang",lang);
-  document.querySelectorAll("[data-lang]").forEach(el=>{
-    el.style.display=el.getAttribute("data-lang")===lang?"":"none";
+function setLang(lang) {
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    el.style.display = el.getAttribute('data-lang') === lang ? 'block' : 'none';
   });
-  btn-fr.classList.toggle("active",lang==="fr");
-  btn-ki.classList.toggle("active",lang==="ki");
 }
-document.addEventListener("DOMContentLoaded",()=>{
-  setLanguage(localStorage.getItem("lang")||"fr");
-});
-</script>
-
-<script>
-mapboxgl.accessToken = 'TA_CLE_MAPBOX';
-const map = new mapboxgl.Map({
-  container:'burundiMap',
-  style:'mapbox://styles/mapbox/streets-v12',
-  center:[29.9189,-3.3731],
-  zoom:6.8
-});
+setLang('fr');
 </script>
 
 </body>
