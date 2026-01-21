@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Mise en relation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  text-align:center;
+}
+
+.header{
+  padding:30px 20px 10px;
+}
+.header img{
+  height:104px;
+}
+
+.content{
+  padding:20px;
+  flex:1;
+}
+h1{
+  font-size:20px;
+  margin-bottom:12px;
+}
+p{
+  font-size:14.5px;
+  line-height:1.6;
+  opacity:.9;
+}
+
+/* LOADER */
+.loader{
+  margin:30px auto;
+  width:60px;
+  height:60px;
+  border:6px solid #e6ebf5;
+  border-top:6px solid var(--blue);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* INFO BOX */
+.info-box{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  margin-top:24px;
+  font-size:13.5px;
+}
+
+/* FOOTER */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+}
+.footer{
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  // Sécurité : si pas de paiement validé (simulation)
+  // plus tard : vérifier status Firestore
+  setTimeout(()=>{
+    // Simulation : redirection vers appel
+    // window.location.href = "appel.html";
+  }, 6000);
+});
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Mise en relation en cours</h1>
+
+    <p>
+      Nous recherchons actuellement un professionnel de santé disponible
+      correspondant à votre demande.
+    </p>
+
+    <div class="loader"></div>
+
+    <div class="info-box">
+      ✔ Appel audio ou vidéo sécurisé<br>
+      ✔ Aucun numéro partagé<br>
+      ✔ Données traitées de manière confidentielle<br>
+      ✔ Service disponible 24h/24
+    </div>
+
+    <p style="margin-top:20px;font-size:13px;opacity:.8">
+      Dès qu’un professionnel accepte votre demande,
+      l’appel démarrera automatiquement dans l’application.
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
