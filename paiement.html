@@ -6,196 +6,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#0a2a5e;
-  --bg:#f4f7fb;
-  --text:#0a1a2f;
-  --radius:22px;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-  color:var(--text);
+  background:#f4f7fb;
 }
-
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
-}
-
-/* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
-/* HEADER */
-.header{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.header img{
-  height:104px;
-}
-
-/* CONTENT */
-.content{
-  padding:24px 20px;
+  padding:24px;
 }
 h1{
   font-size:20px;
-  margin-bottom:16px;
+  margin-bottom:20px;
 }
-
-/* CARD */
-.card{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:18px;
-}
-.card strong{
-  display:block;
-  margin-bottom:6px;
-}
-.card span{
-  font-size:14px;
-  opacity:.9;
-}
-
-/* AMOUNT */
-.amount{
-  text-align:center;
-  font-size:26px;
-  font-weight:700;
-  color:var(--blue);
-  margin:18px 0 24px;
-}
-
-/* PAYMENT OPTIONS */
-.methods{
-  display:grid;
-  gap:14px;
-}
-.method{
+.option{
   border:2px solid #e6ebf5;
   border-radius:18px;
-  padding:16px;
-  font-size:15px;
+  padding:18px;
+  margin-bottom:14px;
+  cursor:pointer;
 }
-.method input{
-  margin-right:8px;
+.option strong{
+  display:block;
 }
-
-/* CTA */
-.cta{
-  margin-top:24px;
+.pay{
+  margin-top:30px;
 }
-.cta button{
+.pay button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#0a2a5e;
   color:#fff;
   font-weight:600;
-  font-size:15px;
-}
-
-/* INFO */
-.info{
-  margin-top:18px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
-}
-
-/* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
-.footer{
-  text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.65;
 }
 </style>
+
+<script>
+function pay(){
+  localStorage.setItem("paymentStatus","paid");
+  window.location.href="appel.html";
+}
+</script>
 </head>
 
 <body>
 
 <div class="app">
+  <h1>Choisir un moyen de paiement</h1>
 
-  <!-- TOP -->
-  <div class="topbar">
-    <a href="confirmation.html" class="back">← Retour</a>
+  <div class="option">
+    <strong>📱 Mobile Money</strong>
+    EcoCash • Lumicash • Inoti
   </div>
 
-  <!-- LOGO -->
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <div class="option">
+    <strong>💼 Wallet CizaHealth+</strong>
+    Solde interne sécurisé
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
-    <h1>Paiement</h1>
-
-    <div class="card">
-      <strong>Service</strong>
-      <span>Téléconsultation médicale</span>
-    </div>
-
-    <div class="card">
-      <strong>Mode</strong>
-      <span>Consultation immédiate</span>
-    </div>
-
-    <div class="amount">
-      12 000 BIF
-    </div>
-
-    <div class="methods">
-      <label class="method">
-        <input type="radio" name="pay" checked>
-        Mobile Money (EcoCash / Lumicash)
-      </label>
-
-      <label class="method">
-        <input type="radio" name="pay">
-        Wallet CizaHealth+ (bientôt disponible)
-      </label>
-    </div>
-
-    <div class="cta">
-      <button>Payer maintenant</button>
-    </div>
-
-    <div class="info">
-      Le paiement est sécurisé et traité par la plateforme.<br>
-      Une fois le paiement confirmé, votre demande sera transmise à un professionnel disponible.
-    </div>
+  <div class="pay">
+    <button onclick="pay()">Payer et commencer l’appel</button>
   </div>
-
-  <!-- FOOTER -->
-  <div class="footer-separator"></div>
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
-
 </div>
 
 </body>
