@@ -70,15 +70,18 @@ input, textarea, select{
 textarea{min-height:110px}
 .hidden{display:none}
 
+/* Checkbox alignée proprement */
 .checkbox{
   margin-top:18px;
   font-size:13px;
   display:flex;
-  gap:8px;
   align-items:flex-start;
+  gap:10px;
 }
-.checkbox input{
-  margin-top:3px;
+.checkbox label{
+  margin:0;
+  font-weight:400;
+  line-height:1.4;
 }
 
 .cta{
@@ -120,33 +123,39 @@ textarea{min-height:110px}
 
 <script>
 function toggleRdv(){
-  const type = document.getElementById("serviceType").value;
-  document.getElementById("rdvFields").style.display =
-    (type === "rdv") ? "block" : "none";
+  const type = serviceType.value;
+  rdvFields.style.display = (type === "rdv") ? "block" : "none";
   validateForm();
+}
+
+function calculateAge(){
+  const dob = new Date(birthDate.value);
+  if(!birthDate.value) return "";
+  const diff = Date.now() - dob.getTime();
+  const age = new Date(diff).getUTCFullYear() - 1970;
+  return age;
 }
 
 function validateForm(){
   const required = [
-    "fullName","serviceType","description","location","phone"
+    fullName.value,
+    serviceType.value,
+    description.value,
+    province.value,
+    phone.value,
+    birthDate.value
   ];
-  let valid = required.every(id =>
-    document.getElementById(id).value.trim() !== ""
-  );
 
-  const rdvVisible = document.getElementById("serviceType").value === "rdv";
-  if(rdvVisible){
-    if(
-      document.getElementById("date").value === "" ||
-      document.getElementById("time").value === ""
-    ) valid = false;
+  let valid = required.every(v => v.trim() !== "");
+
+  if(serviceType.value === "rdv"){
+    if(date.value === "" || time.value === "") valid = false;
   }
 
-  if(!document.getElementById("privacy").checked) valid = false;
+  if(!privacy.checked) valid = false;
 
-  const btn = document.getElementById("continueBtn");
-  btn.disabled = !valid;
-  btn.classList.toggle("active", valid);
+  continueBtn.disabled = !valid;
+  continueBtn.classList.toggle("active", valid);
 }
 
 function saveAndContinue(){
@@ -156,8 +165,10 @@ function saveAndContinue(){
     date: date.value,
     time: time.value,
     description: description.value,
-    location: location.value,
-    phone: phone.value
+    province: province.value,
+    phone: phone.value,
+    birthDate: birthDate.value,
+    age: calculateAge()
   };
   localStorage.setItem("cizaRequest", JSON.stringify(data));
   window.location.href = "confirmation.html";
@@ -183,6 +194,9 @@ function saveAndContinue(){
     <label>Nom complet</label>
     <input id="fullName" oninput="validateForm()">
 
+    <label>Date de naissance</label>
+    <input type="date" id="birthDate" onchange="validateForm()">
+
     <label>Type de service</label>
     <select id="serviceType" onchange="toggleRdv()">
       <option value="">Sélectionner</option>
@@ -201,11 +215,18 @@ function saveAndContinue(){
     <label>Description</label>
     <textarea id="description" oninput="validateForm()"></textarea>
 
-    <label>Province / Ville</label>
-    <input id="location" oninput="validateForm()">
+    <label>Province</label>
+    <select id="province" onchange="validateForm()">
+      <option value="">Choisir une province</option>
+      <option>Bujumbura</option>
+      <option>Gitega</option>
+      <option>Ngozi</option>
+      <option>Muyinga</option>
+      <option>Kayanza</option>
+    </select>
 
     <label>Numéro de téléphone</label>
-    <input id="phone" oninput="validateForm()">
+    <input id="phone" oninput="validateForm()" placeholder="+257 …">
 
     <div class="checkbox">
       <input type="checkbox" id="privacy" onchange="validateForm()">
