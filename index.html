@@ -6,127 +6,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#0a2a5e;
+  --blue-dark:#071733;
+  --soft:#f3f6fb;
+  --text:#0a1a2f;
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#ffffff;
-  color:#0a1a2f;
+  color:var(--text);
+  background:#fff;
 }
 
 /* HEADER */
 header{
-  position:sticky;
-  top:0;
-  background:#fff;
-  border-bottom:1px solid #e6e9f0;
-  z-index:100;
+  position:sticky; top:0; z-index:100;
+  background:#fff; border-bottom:1px solid #e6e9f0;
 }
 .header{
-  max-width:1200px;
-  margin:auto;
-  padding:16px 24px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  max-width:1200px; margin:auto; padding:16px 24px;
+  display:flex; align-items:center; justify-content:space-between;
 }
-.logo img{
-  height:72px;
-}
+.logo img{height:72px}
 .nav a{
-  margin:0 12px;
-  text-decoration:none;
-  color:#0a2a5e;
-  font-weight:500;
+  margin:0 10px; text-decoration:none; color:var(--blue); font-weight:500;
 }
 .btn{
-  padding:10px 18px;
-  border-radius:12px;
-  border:2px solid #0a2a5e;
-  background:#0a2a5e;
-  color:#fff;
-  text-decoration:none;
-  font-weight:600;
+  padding:10px 16px; border-radius:12px; border:2px solid var(--blue);
+  background:var(--blue); color:#fff; text-decoration:none; font-weight:600;
 }
 
 /* HERO */
 .hero{
-  background:url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png") center/cover no-repeat;
   position:relative;
+  background:url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png") center/cover no-repeat;
 }
 .hero::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:rgba(10,30,60,.55);
+  content:""; position:absolute; inset:0;
+  background:rgba(7,23,51,.72);
 }
 .hero-content{
-  position:relative;
-  max-width:900px;
-  padding:90px 24px;
-  margin:auto;
-  color:#fff;
+  position:relative; max-width:900px; margin:auto; padding:90px 24px; color:#fff;
 }
-.hero h1{
-  font-size:42px;
-  margin-bottom:12px;
-}
-.hero p{
-  font-size:18px;
-  max-width:600px;
-}
-.hero .actions{
-  margin-top:28px;
-}
+.hero h1{font-size:42px; margin:0 0 12px}
+.hero p{font-size:18px; max-width:620px}
+.hero .actions{margin-top:26px}
 .hero .actions a{
-  margin-right:14px;
-  background:#fff;
-  color:#0a2a5e;
-  padding:14px 24px;
-  border-radius:14px;
-  font-weight:600;
-  text-decoration:none;
+  background:#fff; color:var(--blue); padding:14px 22px;
+  border-radius:14px; text-decoration:none; font-weight:600; margin-right:10px;
 }
 
 /* SECTIONS */
-section{
-  max-width:1100px;
-  margin:auto;
-  padding:80px 24px;
-}
+section{max-width:1100px; margin:auto; padding:80px 24px}
+.section-soft{background:var(--soft)}
 .cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:28px;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:28px;
 }
 .card{
-  background:#fff;
-  border-radius:18px;
-  padding:28px;
+  background:#fff; border-radius:var(--radius); padding:26px;
+  border:1px solid #0a2a5e20;
   box-shadow:0 8px 30px rgba(0,0,0,.06);
+  transition:.25s ease;
+}
+.card:hover{transform:translateY(-6px); box-shadow:0 14px 40px rgba(10,42,94,.15)}
+.card img{
+  width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:14px;
 }
 
-/* FOOTER */
-footer{
-  background:#071733;
-  color:#e6ebff;
-  padding:60px 24px;
+/* FOOTER PREMIUM SANTÉ */
+.footer-health{
+  background:var(--blue-dark); color:#e6ebff; padding:70px 24px 30px;
 }
-.footer{
-  max-width:1200px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:40px;
+.footer-container{
+  max-width:1200px; margin:auto;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:40px;
 }
-footer a{
-  color:#cfd8ff;
-  text-decoration:none;
-}
+.footer-logo{height:52px; margin-bottom:14px}
+.footer-col h4{margin-bottom:12px; color:#fff}
+.footer-col ul{list-style:none; padding:0; margin:0}
+.footer-col li{margin-bottom:8px; font-size:14px; opacity:.9}
+.footer-col a{color:#cfd8ff; text-decoration:none}
 .footer-bottom{
-  margin-top:40px;
-  padding-top:20px;
-  border-top:1px solid rgba(255,255,255,.2);
-  font-size:13px;
+  margin-top:40px; padding-top:20px;
+  border-top:1px solid rgba(255,255,255,.15);
+  text-align:center; font-size:13px; opacity:.85;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .logo img{height:56px}
+  .hero h1{font-size:28px}
+  .hero p{font-size:16px}
+  .hero-content{padding:60px 20px}
 }
 </style>
 </head>
@@ -136,13 +111,13 @@ footer a{
 <header>
   <div class="header">
     <div class="logo">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
     </div>
     <div class="nav">
       <a href="#fonctionnement">Fonctionnement</a>
-      <a href="#consultation">Consultation</a>
+      <a href="#teleconsultation">Téléconsultation</a>
       <a href="#aide">Aide à domicile</a>
-      <a href="#faq">FAQ</a>
+      <a href="#pharmacie">Pharmacie</a>
     </div>
     <a class="btn" href="#">Parler à un médecin</a>
   </div>
@@ -151,10 +126,7 @@ footer a{
 <section class="hero">
   <div class="hero-content">
     <h1>Accédez à des soins médicaux fiables</h1>
-    <p>
-      Téléconsultation médicale sécurisée et accompagnement à domicile,
-      conçus pour le Burundi.
-    </p>
+    <p>Téléconsultation sécurisée et accompagnement à domicile, conçus pour le Burundi.</p>
     <div class="actions">
       <a href="#">Commencer une consultation</a>
       <a href="#aide">Aide à domicile</a>
@@ -168,52 +140,79 @@ footer a{
     <div class="card">1. Décrivez votre situation</div>
     <div class="card">2. Orientation médicale</div>
     <div class="card">3. Consultation sécurisée</div>
-    <div class="card">4. Suivi si nécessaire</div>
+    <div class="card">4. Suivi & accompagnement</div>
   </div>
 </section>
 
-<section id="consultation">
-  <h2>Consultation médicale</h2>
-  <p>
-    Échangez avec un médecin ou un infirmier via appel vidéo sécurisé.
-  </p>
+<section id="teleconsultation" class="section-soft">
+  <h2>Téléconsultations médicales</h2>
+  <div class="cards">
+    <div class="card">
+      <p>Échangez avec un médecin ou infirmier qualifié via appel sécurisé.</p>
+      <em>Ne remplace pas une consultation physique si nécessaire.</em>
+    </div>
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png" alt="">
+    </div>
+  </div>
 </section>
 
 <section id="aide">
   <h2>Aide à domicile</h2>
-  <p>
-    Assistance humaine respectueuse pour personnes âgées ou en difficulté.
-    <br><em>Service non médical.</em>
-  </p>
+  <div class="cards">
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png" alt="">
+    </div>
+    <div class="card">
+      <p>Assistance humaine respectueuse pour personnes âgées ou fragilisées.</p>
+      <em>Service non médical.</em>
+    </div>
+  </div>
 </section>
 
-<section id="faq">
-  <h2>Questions fréquentes</h2>
-  <p><strong>Urgences ?</strong> CizaHealth+ ne gère pas les urgences.</p>
-  <p><strong>Confidentialité ?</strong> Données traitées de manière sécurisée.</p>
+<section id="pharmacie" class="section-soft">
+  <h2>Pharmacie & médicaments</h2>
+  <div class="cards">
+    <div class="card">
+      <p>Orientation vers des pharmacies partenaires agréées après consultation.</p>
+      <em>Aucune délivrance sans orientation appropriée.</em>
+    </div>
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png" alt="">
+    </div>
+  </div>
 </section>
 
-<footer>
-  <div class="footer">
-    <div>
-      <h4>CizaHealth+</h4>
-      <p>Plateforme de santé numérique par CIZA GROUP.</p>
+<footer class="footer-health">
+  <div class="footer-container">
+    <div class="footer-col">
+      <img class="footer-logo" src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="">
+      <p>CizaHealth+ est une plateforme numérique de santé développée par <strong>CIZA GROUP</strong>.</p>
     </div>
-    <div>
-      <h4>Informations</h4>
-      <a href="#">À propos</a><br>
-      <a href="#">Confidentialité</a><br>
-      <a href="#">Conditions d’utilisation</a>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li>Téléconsultation</li>
+        <li>Aide à domicile</li>
+        <li>Pharmacie partenaire</li>
+        <li>Déplacement soignant</li>
+      </ul>
     </div>
-    <div>
+    <div class="footer-col">
+      <h4>Cadre & conformité</h4>
+      <ul>
+        <li><a href="#">Confidentialité</a></li>
+        <li><a href="#">Conditions d’utilisation</a></li>
+        <li><a href="#">Éthique & responsabilité</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
       <h4>Contact</h4>
-      infos@cizagroup.com<br>
-      Burundi
+      <p>📍 Burundi<br>📧 infos@cizagroup.com</p>
+      <p><small>Ce service ne gère pas les urgences médicales.</small></p>
     </div>
   </div>
-  <div class="footer-bottom">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
+  <div class="footer-bottom">© 2026 CizaHealth+ — CIZA GROUP</div>
 </footer>
 
 </body>
