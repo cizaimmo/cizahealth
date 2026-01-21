@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Plateforme de santé numérique</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CizaHealth+ – Téléconsultation médicale, aide à domicile et orientation santé dans un cadre professionnel, sécurisé et responsable.">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --blue-dark:#071733;
+  --blue-soft:#f3f6fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#fff;
+  color:var(--text);
+}
+
+/* HEADER */
+header{
+  position:sticky;
+  top:0;
+  background:#fff;
+  border-bottom:1px solid #e6e9f0;
+  z-index:100;
+}
+.header{
+  max-width:1200px;
+  margin:auto;
+  padding:18px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.logo img{
+  height:72px;
+}
+.nav a{
+  margin:0 14px;
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+.btn-main{
+  padding:12px 22px;
+  border-radius:14px;
+  background:var(--blue);
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+}
+
+/* HERO */
+.hero{
+  background:url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png") center/cover no-repeat;
+  position:relative;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(7,23,51,.65);
+}
+.hero-content{
+  position:relative;
+  max-width:900px;
+  margin:auto;
+  padding:100px 24px;
+  color:#fff;
+}
+.hero h1{
+  font-size:44px;
+  line-height:1.2;
+}
+.hero p{
+  font-size:18px;
+  max-width:620px;
+  opacity:.95;
+}
+.hero-actions{
+  margin-top:28px;
+}
+.hero-actions a{
+  display:inline-block;
+  margin-right:14px;
+  background:#fff;
+  color:var(--blue);
+  padding:14px 26px;
+  border-radius:16px;
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* SECTIONS */
+section{
+  max-width:1100px;
+  margin:auto;
+  padding:90px 24px;
+}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:28px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:34px;
+  box-shadow:0 10px 35px rgba(0,0,0,.07);
+}
+.card img{
+  width:54px;
+  margin-bottom:14px;
+}
+
+/* SEPARATOR */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,rgba(10,42,94,.35),transparent);
+  margin-top:80px;
+}
+
+/* FOOTER ULTRA PREMIUM */
+.footer-health{
+  background:var(--blue-dark);
+  color:#e6ebff;
+  padding:70px 24px 40px;
+}
+.footer-grid{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:42px;
+}
+.footer-brand img{
+  height:58px;
+  margin-bottom:14px;
+}
+.footer-health h4{
+  margin-bottom:12px;
+  font-size:15px;
+}
+.footer-health a{
+  color:#cfd8ff;
+  text-decoration:none;
+  font-size:14px;
+  line-height:2;
+}
+.footer-health a:hover{ text-decoration:underline }
+.footer-health .danger{ color:#ffb3b3 }
+
+.footer-disclaimer{
+  max-width:900px;
+  margin:40px auto 0;
+  padding-top:24px;
+  border-top:1px solid rgba(255,255,255,.15);
+  font-size:13px;
+  opacity:.85;
+  text-align:center;
+}
+.footer-bottom{
+  margin-top:28px;
+  text-align:center;
+  font-size:12px;
+  opacity:.75;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav{display:none}
+  .logo img{height:60px}
+  .hero h1{font-size:30px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header">
+    <div class="logo">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    </div>
+    <div class="nav">
+      <a href="#">Accueil</a>
+      <a href="#">À propos</a>
+      <a href="#">FAQ</a>
+      <a href="#">Connexion</a>
+    </div>
+    <a href="#" class="btn-main">Parler à un médecin</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Des soins médicaux fiables et accessibles</h1>
+    <p>
+      Téléconsultation, assistance humaine et orientation médicale,
+      dans un cadre professionnel, sécurisé et responsable.
+    </p>
+    <div class="hero-actions">
+      <a href="#">Commencer une consultation</a>
+      <a href="#">Aide à domicile</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="cards">
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
+      <h3>Téléconsultation médicale</h3>
+      <p>Parlez à un médecin ou infirmier qualifié via appel sécurisé.</p>
+    </div>
+
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png">
+      <h3>Aide à domicile</h3>
+      <p>Assistance humaine organisée et respectueuse.</p>
+    </div>
+
+    <div class="card">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png">
+      <h3>Pharmacies partenaires</h3>
+      <p>Orientation vers des pharmacies proches et fiables.</p>
+    </div>
+  </div>
+</section>
+
+<div class="footer-separator"></div>
+
+<footer class="footer-health">
+  <div class="footer-grid">
+
+    <div class="footer-brand">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+      <p>
+        Plateforme de santé numérique développée par <strong>CIZA GROUP</strong>,
+        dédiée à l’orientation médicale et à l’assistance humaine responsable.
+      </p>
+    </div>
+
+    <div>
+      <h4>Services</h4>
+      <a href="#">Téléconsultation</a><br>
+      <a href="#">Aide à domicile</a><br>
+      <a href="#">Pharmacies</a>
+    </div>
+
+    <div>
+      <h4>Informations</h4>
+      <a href="#">À propos</a><br>
+      <a href="#">Confidentialité</a><br>
+      <a href="#">Conditions</a><br>
+      <a href="#">FAQ</a>
+    </div>
+
+    <div>
+      <h4>Compte</h4>
+      <a href="#">Connexion</a><br>
+      <a href="#">Déconnexion</a><br>
+      <a href="#" class="danger">Supprimer mon compte</a>
+    </div>
+
+  </div>
+
+  <div class="footer-disclaimer">
+    CizaHealth+ ne prend pas en charge les urgences médicales.
+    En cas d’urgence, contactez immédiatement les services de secours locaux.
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 CizaHealth+ — CIZA GROUP • Plateforme de santé numérique à usage responsable
+  </div>
+</footer>
+
+</body>
+</html>
