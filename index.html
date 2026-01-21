@@ -2,89 +2,83 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Téléconsultation & Aide à domicile</title>
+<title>CizaHealth+ | Téléconsultation médicale au Burundi</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#0a2a5e;
-  --blue-dark:#071733;
-  --blue-soft:#f3f6fb;
-  --text:#0a1a2f;
-  --radius:26px;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#fff;
-  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#ffffff;
+  color:#0a1a2f;
 }
 
 /* HEADER */
 header{
   position:sticky;
   top:0;
-  z-index:100;
   background:#fff;
   border-bottom:1px solid #e6e9f0;
+  z-index:100;
 }
-.header-inner{
-  max-width:1280px;
+.header{
+  max-width:1200px;
   margin:auto;
   padding:16px 24px;
   display:flex;
   align-items:center;
   justify-content:space-between;
 }
-.logo img{height:86px}
-nav a{
-  margin:0 14px;
+.logo img{
+  height:72px;
+}
+.nav a{
+  margin:0 12px;
   text-decoration:none;
-  color:var(--blue);
+  color:#0a2a5e;
   font-weight:500;
 }
-.actions{display:flex;align-items:center;gap:14px}
-.btn-main{
+.btn{
   padding:10px 18px;
   border-radius:12px;
-  border:2px solid var(--blue);
-  background:transparent;
-  color:var(--blue);
-  font-weight:600;
+  border:2px solid #0a2a5e;
+  background:#0a2a5e;
+  color:#fff;
   text-decoration:none;
-}
-.lang-switch button{
-  background:none;
-  border:none;
   font-weight:600;
-  cursor:pointer;
-  color:var(--blue);
 }
 
 /* HERO */
 .hero{
-  position:relative;
   background:url("https://raw.githubusercontent.com/cizaimmo/cizahealth/6ca6d12da879625d4b0571331b604e205b8e3266/6FFDA59F-20D4-44C0-AD0D-744192C3CB13.png") center/cover no-repeat;
+  position:relative;
 }
 .hero::after{
   content:"";
   position:absolute;
   inset:0;
-  background:rgba(6,18,40,.55);
+  background:rgba(10,30,60,.55);
 }
 .hero-content{
   position:relative;
-  max-width:760px;
-  padding:70px 24px;
+  max-width:900px;
+  padding:90px 24px;
+  margin:auto;
   color:#fff;
 }
-.hero h1{font-size:40px}
-.hero p{font-size:17px}
-.hero-actions a{
-  display:inline-block;
-  margin-top:20px;
-  margin-right:12px;
+.hero h1{
+  font-size:42px;
+  margin-bottom:12px;
+}
+.hero p{
+  font-size:18px;
+  max-width:600px;
+}
+.hero .actions{
+  margin-top:28px;
+}
+.hero .actions a{
+  margin-right:14px;
   background:#fff;
   color:#0a2a5e;
   padding:14px 24px;
@@ -93,24 +87,12 @@ nav a{
   text-decoration:none;
 }
 
-/* REASSURANCE */
-.reassurance{
-  display:flex;
-  justify-content:center;
-  gap:32px;
-  padding:24px 20px;
-  background:#f8fafd;
-  font-size:14px;
-  color:#0a2a5e;
-}
-
 /* SECTIONS */
 section{
-  max-width:1200px;
+  max-width:1100px;
   margin:auto;
   padding:80px 24px;
 }
-.section-soft{background:var(--blue-soft)}
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -118,49 +100,33 @@ section{
 }
 .card{
   background:#fff;
-  border-radius:var(--radius);
-  padding:32px;
-  border:1.5px solid rgba(10,42,94,.3);
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
-  transition:.25s ease;
-}
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 14px 30px rgba(0,0,0,.12);
-}
-.image-box img{
-  width:100%;
-  border-radius:var(--radius);
+  border-radius:18px;
+  padding:28px;
+  box-shadow:0 8px 30px rgba(0,0,0,.06);
 }
 
 /* FOOTER */
 footer{
-  background:var(--blue-dark);
+  background:#071733;
   color:#e6ebff;
-  padding:70px 24px 40px;
+  padding:60px 24px;
 }
-.footer-grid{
+.footer{
   max-width:1200px;
   margin:auto;
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:40px;
 }
-footer a{color:#cfd8ff;text-decoration:none;font-size:14px}
+footer a{
+  color:#cfd8ff;
+  text-decoration:none;
+}
 .footer-bottom{
   margin-top:40px;
   padding-top:20px;
   border-top:1px solid rgba(255,255,255,.2);
-  font-size:12px;
-}
-
-/* MOBILE */
-@media(max-width:768px){
-  nav{display:none}
-  .logo img{height:60px}
-  .hero h1{font-size:28px}
-  .hero-content{padding:40px 20px}
-  .reassurance{flex-direction:column;text-align:center}
+  font-size:13px;
 }
 </style>
 </head>
@@ -168,136 +134,87 @@ footer a{color:#cfd8ff;text-decoration:none;font-size:14px}
 <body>
 
 <header>
-  <div class="header-inner">
+  <div class="header">
     <div class="logo">
       <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     </div>
-
-    <nav>
-      <a href="#processus" id="m1">Processus</a>
-      <a href="#services" id="m2">Consultation</a>
-      <a href="#aide" id="m3">Aide à domicile</a>
-      <a href="#faq" id="m4">FAQ</a>
-    </nav>
-
-    <div class="actions">
-      <div class="lang-switch">
-        <button onclick="setLang('fr')">FR</button> |
-        <button onclick="setLang('rn')">BI</button>
-      </div>
-      <a href="demande.html" class="btn-main" id="cta">Parler à un médecin</a>
+    <div class="nav">
+      <a href="#fonctionnement">Fonctionnement</a>
+      <a href="#consultation">Consultation</a>
+      <a href="#aide">Aide à domicile</a>
+      <a href="#faq">FAQ</a>
     </div>
+    <a class="btn" href="#">Parler à un médecin</a>
   </div>
 </header>
 
-<div class="hero">
+<section class="hero">
   <div class="hero-content">
-    <h1 id="h1">Accédez à des soins structurés et responsables</h1>
-    <p id="h2">Téléconsultation médicale et assistance humaine dans un cadre sérieux et sécurisé.</p>
-    <p id="h3">Parlez à un médecin ou demandez une aide à domicile, en toute confidentialité.</p>
-    <div class="hero-actions">
-      <a href="demande.html" id="cta2">Demander une consultation</a>
+    <h1>Accédez à des soins médicaux fiables</h1>
+    <p>
+      Téléconsultation médicale sécurisée et accompagnement à domicile,
+      conçus pour le Burundi.
+    </p>
+    <div class="actions">
+      <a href="#">Commencer une consultation</a>
+      <a href="#aide">Aide à domicile</a>
     </div>
-  </div>
-</div>
-
-<div class="reassurance">
-  <div id="r1">✔ Professionnels de santé vérifiés</div>
-  <div id="r2">✔ Données traitées en toute confidentialité</div>
-  <div id="r3">✔ Aucun engagement obligatoire</div>
-</div>
-
-<section id="processus">
-  <h2 id="p0">Comment ça fonctionne</h2>
-  <div class="cards">
-    <div class="card" id="p1">Vous décrivez votre situation</div>
-    <div class="card" id="p2">Orientation par un professionnel</div>
-    <div class="card" id="p3">Consultation ou accompagnement</div>
-    <div class="card" id="p4">Suivi si nécessaire</div>
   </div>
 </section>
 
-<section id="services" class="section-soft">
-  <h2 id="c0">Consultation médicale</h2>
+<section id="fonctionnement">
+  <h2>Comment fonctionne CizaHealth+</h2>
   <div class="cards">
-    <div class="card" id="c1">
-      Échange, conseils et orientation médicale à distance.<br><br>
-      <em>Ne remplace pas une consultation physique.</em>
-    </div>
-    <div class="image-box">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
-    </div>
+    <div class="card">1. Décrivez votre situation</div>
+    <div class="card">2. Orientation médicale</div>
+    <div class="card">3. Consultation sécurisée</div>
+    <div class="card">4. Suivi si nécessaire</div>
   </div>
+</section>
+
+<section id="consultation">
+  <h2>Consultation médicale</h2>
+  <p>
+    Échangez avec un médecin ou un infirmier via appel vidéo sécurisé.
+  </p>
 </section>
 
 <section id="aide">
-  <h2 id="a0">Aide à domicile</h2>
-  <div class="cards">
-    <div class="image-box">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png">
-    </div>
-    <div class="card" id="a1">
-      Assistance quotidienne respectueuse destinée aux personnes âgées.<br><br>
-      <em>Service non médical.</em>
-    </div>
-  </div>
+  <h2>Aide à domicile</h2>
+  <p>
+    Assistance humaine respectueuse pour personnes âgées ou en difficulté.
+    <br><em>Service non médical.</em>
+  </p>
 </section>
 
-<section id="faq" class="section-soft">
-  <h2 id="f0">Questions fréquemment posées</h2>
-  <p id="f1">Ce service ne prend pas en charge les urgences médicales.</p>
+<section id="faq">
+  <h2>Questions fréquentes</h2>
+  <p><strong>Urgences ?</strong> CizaHealth+ ne gère pas les urgences.</p>
+  <p><strong>Confidentialité ?</strong> Données traitées de manière sécurisée.</p>
 </section>
 
 <footer>
-  <div class="footer-grid">
+  <div class="footer">
     <div>
-      <h4>À propos</h4>
-      <p>CizaHealth+ est une plateforme de santé développée par CIZA GROUP.</p>
+      <h4>CizaHealth+</h4>
+      <p>Plateforme de santé numérique par CIZA GROUP.</p>
     </div>
     <div>
-      <h4>Informations légales</h4>
+      <h4>Informations</h4>
+      <a href="#">À propos</a><br>
       <a href="#">Confidentialité</a><br>
-      <a href="#">CGU</a>
-    </div>
-    <div>
-      <h4>Aide</h4>
-      <a href="#faq">FAQ</a><br>
-      <a href="#">Créer un compte</a>
+      <a href="#">Conditions d’utilisation</a>
     </div>
     <div>
       <h4>Contact</h4>
-      infos@cizagroup.com<br>Burundi
+      infos@cizagroup.com<br>
+      Burundi
     </div>
   </div>
   <div class="footer-bottom">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
 </footer>
-
-<script>
-const t={
-  rn:{
-    m1:"Ingene bigenda",m2:"Ikiganiro n’umuganga",m3:"Ubufasha mu rugo",m4:"Ibibazo",
-    h1:"Rondera ubuvuzi mu buryo bwizewe",
-    h2:"Ikiganiro n’abanyamwuga bemewe mu ibanga",
-    h3:"Vugana n’umuganga canke usabe ubufasha mu rugo",
-    cta:"Vugana n’umuganga",cta2:"Tangira",
-    r1:"✔ Abanyamwuga bemewe",r2:"✔ Amakuru abikwa mu ibanga",r3:"✔ Nta masezerano",
-    p0:"Ingene bigenda",p1:"Sigura ikibazo cawe",p2:"Ukwerekezwa n’umunyamwuga",
-    p3:"Ikiganiro canke ubufasha",p4:"Gukurikirana",
-    c0:"Ikiganiro n’umuganga",c1:"Inama n’ukuyoborwa kure",
-    a0:"Ubufasha mu rugo",a1:"Ubufasha ku bantu bageze mu zabukuru",
-    f0:"Ibibazo bikunda kubazwa",f1:"Iyi serivisi ntifasha mu bihe vy’ihutirirwa"
-  }
-};
-function setLang(l){
-  if(!t[l]) return;
-  Object.keys(t[l]).forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.innerText=t[l][id];
-  });
-}
-</script>
 
 </body>
 </html>
