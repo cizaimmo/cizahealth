@@ -70,18 +70,19 @@ input, textarea, select{
 textarea{min-height:110px}
 .hidden{display:none}
 
-/* Checkbox alignée proprement */
+/* Checkbox PRO alignée */
 .checkbox{
   margin-top:18px;
-  font-size:13px;
   display:flex;
   align-items:flex-start;
   gap:10px;
+  font-size:13px;
 }
-.checkbox label{
-  margin:0;
-  font-weight:400;
-  line-height:1.4;
+.checkbox input{
+  margin-top:2px;
+}
+.checkbox span{
+  line-height:1.45;
 }
 
 .cta{
@@ -122,54 +123,65 @@ textarea{min-height:110px}
 </style>
 
 <script>
+function generateCaseNumber(){
+  const year = new Date().getFullYear();
+  let counter = localStorage.getItem("cizaCounter") || 0;
+  counter++;
+  localStorage.setItem("cizaCounter", counter);
+  return `CH-${year}-${String(counter).padStart(6,"0")}`;
+}
+
 function toggleRdv(){
-  const type = serviceType.value;
-  rdvFields.style.display = (type === "rdv") ? "block" : "none";
+  rdvFields.style.display = (serviceType.value === "rdv") ? "block" : "none";
   validateForm();
 }
 
 function calculateAge(){
-  const dob = new Date(birthDate.value);
   if(!birthDate.value) return "";
+  const dob = new Date(birthDate.value);
   const diff = Date.now() - dob.getTime();
-  const age = new Date(diff).getUTCFullYear() - 1970;
-  return age;
+  return new Date(diff).getUTCFullYear() - 1970;
+}
+
+function isValidPhone(phone){
+  return /^[0-9+]{8,15}$/.test(phone);
 }
 
 function validateForm(){
-  const required = [
-    fullName.value,
-    serviceType.value,
-    description.value,
-    province.value,
-    phone.value,
-    birthDate.value
-  ];
-
-  let valid = required.every(v => v.trim() !== "");
+  let valid =
+    fullName.value.trim() !== "" &&
+    birthDate.value !== "" &&
+    serviceType.value !== "" &&
+    description.value.trim() !== "" &&
+    province.value !== "" &&
+    phone.value.trim() !== "" &&
+    isValidPhone(phone.value) &&
+    privacy.checked;
 
   if(serviceType.value === "rdv"){
     if(date.value === "" || time.value === "") valid = false;
   }
-
-  if(!privacy.checked) valid = false;
 
   continueBtn.disabled = !valid;
   continueBtn.classList.toggle("active", valid);
 }
 
 function saveAndContinue(){
+  if(continueBtn.disabled) return;
+
   const data = {
-    fullName: fullName.value,
+    caseNumber: generateCaseNumber(),
+    fullName: fullName.value.trim(),
+    birthDate: birthDate.value,
+    age: calculateAge(),
     serviceType: serviceType.value,
     date: date.value,
     time: time.value,
-    description: description.value,
+    description: description.value.trim(),
     province: province.value,
-    phone: phone.value,
-    birthDate: birthDate.value,
-    age: calculateAge()
+    phone: phone.value.trim()
   };
+
   localStorage.setItem("cizaRequest", JSON.stringify(data));
   window.location.href = "confirmation.html";
 }
@@ -226,14 +238,15 @@ function saveAndContinue(){
     </select>
 
     <label>Numéro de téléphone</label>
-    <input id="phone" oninput="validateForm()" placeholder="+257 …">
+    <input id="phone" type="tel" inputmode="numeric" pattern="[0-9+]*"
+           placeholder="+257…" oninput="validateForm()">
 
     <div class="checkbox">
       <input type="checkbox" id="privacy" onchange="validateForm()">
-      <label for="privacy">
+      <span>
         J’accepte que mes informations soient traitées de manière confidentielle
         conformément à la politique de confidentialité de CizaHealth+.
-      </label>
+      </span>
     </div>
 
     <div class="cta">
