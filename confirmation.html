@@ -51,45 +51,51 @@ body{
 }
 h1{
   font-size:20px;
-  margin-bottom:16px;
+  margin-bottom:8px;
+}
+.dossier{
+  font-size:13px;
+  color:#fff;
+  background:linear-gradient(135deg,#0a2a5e,#123c8a);
+  padding:10px 14px;
+  border-radius:14px;
+  display:inline-block;
+  margin-bottom:18px;
 }
 
-.summary{
-  display:grid;
-  gap:14px;
-}
-.item{
+.card{
   border:1.8px solid #e6ebf5;
-  border-radius:18px;
-  padding:14px 16px;
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:14px;
   font-size:14px;
 }
-.item strong{
+.card strong{
   display:block;
   font-size:12px;
-  opacity:.7;
+  opacity:.65;
   margin-bottom:4px;
 }
 
-.actions{
-  margin-top:28px;
-  display:grid;
-  gap:14px;
+.cta{
+  margin-top:24px;
 }
-.actions button{
+.cta button{
+  width:100%;
   padding:16px;
-  border-radius:18px;
   border:none;
+  border-radius:18px;
   font-weight:600;
   font-size:15px;
 }
-.confirm{
+.pay{
   background:var(--blue);
   color:#fff;
 }
 .edit{
-  background:#e6ebf5;
-  color:var(--text);
+  margin-top:12px;
+  background:#e9eef6;
+  color:var(--blue);
 }
 
 .info{
@@ -113,41 +119,45 @@ h1{
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", ()=>{
+function generateDossier(){
+  const key = "cizaDossierCounter";
+  let count = localStorage.getItem(key);
+  count = count ? parseInt(count) + 1 : 1;
+  localStorage.setItem(key, count);
+  return "CH-2026-" + String(count).padStart(6,"0");
+}
+
+function loadData(){
   const data = JSON.parse(localStorage.getItem("cizaRequest"));
   if(!data){
     window.location.href = "demande.html";
     return;
   }
 
-  fullName.innerText = data.fullName;
-  birthDate.innerText = data.birthDate;
-  age.innerText = data.age + " ans";
-  province.innerText = data.province;
-  phone.innerText = data.phone;
-  description.innerText = data.description;
-
-  serviceType.innerText =
-    data.serviceType === "immediat" ? "Téléconsultation immédiate" :
-    data.serviceType === "rdv" ? "Rendez-vous médical" :
-    "Aide à domicile";
-
-  if(data.serviceType === "rdv"){
-    rdv.style.display = "block";
-    rdvDate.innerText = data.date;
-    rdvTime.innerText = data.time;
+  let dossier = localStorage.getItem("cizaDossier");
+  if(!dossier){
+    dossier = generateDossier();
+    localStorage.setItem("cizaDossier", dossier);
   }
-});
 
-function confirmRequest(){
-  alert("Demande envoyée avec succès.\nUn professionnel vous contactera.");
-  localStorage.removeItem("cizaRequest");
-  window.location.href = "index.html";
+  document.getElementById("dossier").innerText = dossier;
+  document.getElementById("name").innerText = data.fullName;
+  document.getElementById("birth").innerText = data.birthDate + " ("+data.age+" ans)";
+  document.getElementById("province").innerText = data.province;
+  document.getElementById("phone").innerText = data.phone;
+  document.getElementById("service").innerText = data.serviceType;
+  document.getElementById("description").innerText = data.description;
+}
+
+function goToPayment(){
+  // étape suivante (à brancher plus tard)
+  alert("Paiement à intégrer (Mobile Money / Wallet)");
+  // window.location.href = "paiement.html";
 }
 </script>
 </head>
 
-<body>
+<body onload="loadData()">
 
 <div class="app">
 
@@ -161,33 +171,22 @@ function confirmRequest(){
 
   <div class="content">
     <h1>Confirmation de la demande</h1>
+    <div class="dossier">Dossier : <span id="dossier"></span></div>
 
-    <div class="summary">
-      <div class="item"><strong>Nom complet</strong><span id="fullName"></span></div>
-      <div class="item"><strong>Date de naissance</strong><span id="birthDate"></span></div>
-      <div class="item"><strong>Âge</strong><span id="age"></span></div>
-      <div class="item"><strong>Province</strong><span id="province"></span></div>
-      <div class="item"><strong>Numéro de téléphone</strong><span id="phone"></span></div>
-      <div class="item"><strong>Type de service</strong><span id="serviceType"></span></div>
+    <div class="card"><strong>Nom complet</strong><span id="name"></span></div>
+    <div class="card"><strong>Date de naissance</strong><span id="birth"></span></div>
+    <div class="card"><strong>Province</strong><span id="province"></span></div>
+    <div class="card"><strong>Téléphone</strong><span id="phone"></span></div>
+    <div class="card"><strong>Type de service</strong><span id="service"></span></div>
+    <div class="card"><strong>Description</strong><span id="description"></span></div>
 
-      <div class="item" id="rdv" style="display:none">
-        <strong>Rendez-vous souhaité</strong>
-        <span><span id="rdvDate"></span> à <span id="rdvTime"></span></span>
-      </div>
-
-      <div class="item">
-        <strong>Description</strong>
-        <span id="description"></span>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="confirm" onclick="confirmRequest()">Confirmer et envoyer</button>
-      <button class="edit" onclick="history.back()">Modifier</button>
+    <div class="cta">
+      <button class="pay" onclick="goToPayment()">Procéder au paiement</button>
+      <button class="edit" onclick="window.location.href='demande.html'">Modifier</button>
     </div>
 
     <div class="info">
-      Vos informations sont traitées de manière confidentielle.
+      Après paiement, vous serez mis en relation avec un professionnel de santé.
     </div>
   </div>
 
