@@ -10,6 +10,7 @@ body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:#f4f7fb;
+  color:#0a1a2f;
 }
 .app{
   max-width:430px;
@@ -18,61 +19,78 @@ body{
   background:#fff;
   padding:24px;
 }
-h1{
-  font-size:20px;
-  margin-bottom:20px;
-}
-.option{
-  border:2px solid #e6ebf5;
+.card{
+  border:1.8px solid #e6ebf5;
   border-radius:18px;
   padding:18px;
-  margin-bottom:14px;
-  cursor:pointer;
+  margin-bottom:18px;
 }
-.option strong{
+.primary{
+  background:#f0f4ff;
+  border-color:#0a2a5e;
+}
+h1{font-size:20px;margin-bottom:16px}
+strong{display:block;font-size:13px;opacity:.7}
+span{font-size:15px}
+
+.btn{
   display:block;
-}
-.pay{
-  margin-top:30px;
-}
-.pay button{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:18px;
+  text-align:center;
   background:#0a2a5e;
   color:#fff;
+  padding:16px;
+  border-radius:18px;
+  text-decoration:none;
   font-weight:600;
+  margin-top:20px;
+}
+
+.note{
+  font-size:12.5px;
+  opacity:.7;
+  text-align:center;
+  margin-top:16px;
 }
 </style>
-
-<script>
-function pay(){
-  localStorage.setItem("paymentStatus","paid");
-  window.location.href="appel.html";
-}
-</script>
 </head>
 
 <body>
-
 <div class="app">
-  <h1>Choisir un moyen de paiement</h1>
 
-  <div class="option">
-    <strong>📱 Mobile Money</strong>
-    EcoCash • Lumicash • Inoti
-  </div>
+<h1>Paiement</h1>
 
-  <div class="option">
-    <strong>💼 Wallet CizaHealth+</strong>
-    Solde interne sécurisé
-  </div>
-
-  <div class="pay">
-    <button onclick="pay()">Payer et commencer l’appel</button>
-  </div>
+<div class="card primary">
+  <strong>Numéro de dossier</strong>
+  <span id="dossier"></span>
 </div>
+
+<div class="card">
+  <strong>Service</strong>
+  <span id="service"></span>
+</div>
+
+<div class="card">
+  <strong>Montant estimé</strong>
+  <span>À définir (Mobile Money / Wallet)</span>
+</div>
+
+<a href="mise-en-relation.html" class="btn">
+  Confirmer le paiement
+</a>
+
+<div class="note">
+  Paiement sécurisé • Données protégées
+</div>
+
+</div>
+
+<script>
+const data = JSON.parse(localStorage.getItem("cizaRequest"));
+if(!data){ location.href="demande.html"; }
+
+document.getElementById("dossier").innerText = data.dossierNumber;
+document.getElementById("service").innerText = data.serviceType;
+</script>
 
 </body>
 </html>
