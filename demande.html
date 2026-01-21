@@ -59,7 +59,7 @@ label{
   font-size:14px;
   font-weight:600;
 }
-select, textarea, input{
+input, textarea, select{
   width:100%;
   margin-top:8px;
   padding:14px;
@@ -68,8 +68,18 @@ select, textarea, input{
   font-size:14px;
 }
 textarea{min-height:110px}
-
 .hidden{display:none}
+
+.checkbox{
+  margin-top:18px;
+  font-size:13px;
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+}
+.checkbox input{
+  margin-top:3px;
+}
 
 .cta{
   margin-top:28px;
@@ -79,10 +89,13 @@ textarea{min-height:110px}
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#b7c3dd;
   color:#fff;
   font-weight:600;
   font-size:15px;
+}
+.cta button.active{
+  background:var(--blue);
 }
 
 .info{
@@ -107,11 +120,46 @@ textarea{min-height:110px}
 
 <script>
 function toggleRdv(){
-  const type = document.getElementById("typeConsultation").value;
-  const rdv = document.getElementById("rdvFields");
-  rdv.style.display = (type === "rdv") ? "block" : "none";
+  const type = document.getElementById("serviceType").value;
+  document.getElementById("rdvFields").style.display =
+    (type === "rdv") ? "block" : "none";
+  validateForm();
 }
-function goNext(){
+
+function validateForm(){
+  const required = [
+    "fullName","serviceType","description","location","phone"
+  ];
+  let valid = required.every(id =>
+    document.getElementById(id).value.trim() !== ""
+  );
+
+  const rdvVisible = document.getElementById("serviceType").value === "rdv";
+  if(rdvVisible){
+    if(
+      document.getElementById("date").value === "" ||
+      document.getElementById("time").value === ""
+    ) valid = false;
+  }
+
+  if(!document.getElementById("privacy").checked) valid = false;
+
+  const btn = document.getElementById("continueBtn");
+  btn.disabled = !valid;
+  btn.classList.toggle("active", valid);
+}
+
+function saveAndContinue(){
+  const data = {
+    fullName: fullName.value,
+    serviceType: serviceType.value,
+    date: date.value,
+    time: time.value,
+    description: description.value,
+    location: location.value,
+    phone: phone.value
+  };
+  localStorage.setItem("cizaRequest", JSON.stringify(data));
   window.location.href = "confirmation.html";
 }
 </script>
@@ -126,17 +174,18 @@ function goNext(){
   </div>
 
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <div class="content">
     <h1>Faire une demande</h1>
 
     <label>Nom complet</label>
-    <input type="text" placeholder="Nom et prénom">
+    <input id="fullName" oninput="validateForm()">
 
     <label>Type de service</label>
-    <select id="typeConsultation" onchange="toggleRdv()">
+    <select id="serviceType" onchange="toggleRdv()">
+      <option value="">Sélectionner</option>
       <option value="immediat">Téléconsultation immédiate</option>
       <option value="rdv">Demande de rendez-vous</option>
       <option value="domicile">Aide à domicile</option>
@@ -144,27 +193,36 @@ function goNext(){
 
     <div id="rdvFields" class="hidden">
       <label>Date souhaitée</label>
-      <input type="date">
+      <input type="date" id="date" onchange="validateForm()">
       <label>Heure souhaitée</label>
-      <input type="time">
+      <input type="time" id="time" onchange="validateForm()">
     </div>
 
-    <label>Décrivez brièvement votre situation</label>
-    <textarea placeholder="Expliquez votre situation..."></textarea>
+    <label>Description</label>
+    <textarea id="description" oninput="validateForm()"></textarea>
 
     <label>Province / Ville</label>
-    <input type="text" placeholder="Ex : Bujumbura, Gitega">
+    <input id="location" oninput="validateForm()">
 
     <label>Numéro de téléphone</label>
-    <input type="tel" placeholder="+257 …">
+    <input id="phone" oninput="validateForm()">
+
+    <div class="checkbox">
+      <input type="checkbox" id="privacy" onchange="validateForm()">
+      <label for="privacy">
+        J’accepte que mes informations soient traitées de manière confidentielle
+        conformément à la politique de confidentialité de CizaHealth+.
+      </label>
+    </div>
 
     <div class="cta">
-      <button onclick="goNext()">Continuer</button>
+      <button id="continueBtn" disabled onclick="saveAndContinue()">
+        Continuer
+      </button>
     </div>
 
     <div class="info">
-      Ce service ne prend pas en charge les urgences.<br>
-      Vos informations sont traitées de manière confidentielle.
+      Ce service ne prend pas en charge les urgences médicales.
     </div>
   </div>
 
