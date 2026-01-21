@@ -54,39 +54,42 @@ h1{
   margin-bottom:16px;
 }
 
-.card{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:14px;
+.summary{
+  display:grid;
+  gap:14px;
 }
-.card strong{
-  display:block;
-  margin-bottom:6px;
-}
-.card span{
+.item{
+  border:1.8px solid #e6ebf5;
+  border-radius:18px;
+  padding:14px 16px;
   font-size:14px;
-  opacity:.9;
 }
-
-.price{
-  font-size:22px;
-  font-weight:700;
-  color:var(--blue);
-  text-align:center;
-  margin:22px 0;
-}
-
-.cta a{
+.item strong{
   display:block;
-  text-align:center;
-  background:var(--blue);
-  color:#fff;
+  font-size:12px;
+  opacity:.7;
+  margin-bottom:4px;
+}
+
+.actions{
+  margin-top:28px;
+  display:grid;
+  gap:14px;
+}
+.actions button{
   padding:16px;
   border-radius:18px;
+  border:none;
   font-weight:600;
-  text-decoration:none;
   font-size:15px;
+}
+.confirm{
+  background:var(--blue);
+  color:#fff;
+}
+.edit{
+  background:#e6ebf5;
+  color:var(--text);
 }
 
 .info{
@@ -110,34 +113,37 @@ h1{
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", ()=>{
   const data = JSON.parse(localStorage.getItem("cizaRequest"));
   if(!data){
     window.location.href = "demande.html";
     return;
   }
 
-  document.getElementById("name").innerText = data.fullName;
-  document.getElementById("service").innerText =
+  fullName.innerText = data.fullName;
+  birthDate.innerText = data.birthDate;
+  age.innerText = data.age + " ans";
+  province.innerText = data.province;
+  phone.innerText = data.phone;
+  description.innerText = data.description;
+
+  serviceType.innerText =
     data.serviceType === "immediat" ? "Téléconsultation immédiate" :
-    data.serviceType === "rdv" ? "Consultation sur rendez-vous" :
+    data.serviceType === "rdv" ? "Rendez-vous médical" :
     "Aide à domicile";
 
-  document.getElementById("location").innerText = data.location;
-  document.getElementById("phone").innerText = data.phone;
-  document.getElementById("description").innerText = data.description;
-
   if(data.serviceType === "rdv"){
-    document.getElementById("rdv").innerText =
-      data.date + " à " + data.time;
-  } else {
-    document.getElementById("rdv").innerText = "Non applicable";
+    rdv.style.display = "block";
+    rdvDate.innerText = data.date;
+    rdvTime.innerText = data.time;
   }
-
-  // Prix simple (modifiable plus tard)
-  document.getElementById("price").innerText =
-    data.serviceType === "domicile" ? "20 000 BIF" : "12 000 BIF";
 });
+
+function confirmRequest(){
+  alert("Demande envoyée avec succès.\nUn professionnel vous contactera.");
+  localStorage.removeItem("cizaRequest");
+  window.location.href = "index.html";
+}
 </script>
 </head>
 
@@ -146,54 +152,42 @@ document.addEventListener("DOMContentLoaded", () => {
 <div class="app">
 
   <div class="topbar">
-    <a href="demande.html" class="back">← Modifier la demande</a>
+    <a href="demande.html" class="back">← Modifier</a>
   </div>
 
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <div class="content">
-    <h1>Confirmation de votre demande</h1>
+    <h1>Confirmation de la demande</h1>
 
-    <div class="card">
-      <strong>Nom du patient</strong>
-      <span id="name"></span>
+    <div class="summary">
+      <div class="item"><strong>Nom complet</strong><span id="fullName"></span></div>
+      <div class="item"><strong>Date de naissance</strong><span id="birthDate"></span></div>
+      <div class="item"><strong>Âge</strong><span id="age"></span></div>
+      <div class="item"><strong>Province</strong><span id="province"></span></div>
+      <div class="item"><strong>Numéro de téléphone</strong><span id="phone"></span></div>
+      <div class="item"><strong>Type de service</strong><span id="serviceType"></span></div>
+
+      <div class="item" id="rdv" style="display:none">
+        <strong>Rendez-vous souhaité</strong>
+        <span><span id="rdvDate"></span> à <span id="rdvTime"></span></span>
+      </div>
+
+      <div class="item">
+        <strong>Description</strong>
+        <span id="description"></span>
+      </div>
     </div>
 
-    <div class="card">
-      <strong>Type de service</strong>
-      <span id="service"></span>
-    </div>
-
-    <div class="card">
-      <strong>Rendez-vous</strong>
-      <span id="rdv"></span>
-    </div>
-
-    <div class="card">
-      <strong>Localisation</strong>
-      <span id="location"></span>
-    </div>
-
-    <div class="card">
-      <strong>Téléphone</strong>
-      <span id="phone"></span>
-    </div>
-
-    <div class="card">
-      <strong>Description</strong>
-      <span id="description"></span>
-    </div>
-
-    <div class="price" id="price"></div>
-
-    <div class="cta">
-      <a href="paiement.html">Procéder au paiement</a>
+    <div class="actions">
+      <button class="confirm" onclick="confirmRequest()">Confirmer et envoyer</button>
+      <button class="edit" onclick="history.back()">Modifier</button>
     </div>
 
     <div class="info">
-      Le paiement est requis avant la mise en relation avec un professionnel.
+      Vos informations sont traitées de manière confidentielle.
     </div>
   </div>
 
