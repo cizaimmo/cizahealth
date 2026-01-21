@@ -45,11 +45,11 @@ body{
 
 /* HEADER */
 .header{
-  padding:10px 20px 0;
+  padding:14px 20px 0;
   text-align:center;
 }
 .header img{
-  height:90px;
+  height:120px; /* agrandi comme index */
 }
 
 /* HERO IMAGE */
@@ -114,9 +114,21 @@ body{
   text-align:center;
 }
 
+/* FOOTER SEPARATOR */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(
+    to right,
+    transparent,
+    rgba(10,42,94,.35),
+    transparent
+  );
+  margin-top:32px;
+}
+
 /* FOOTER */
 .footer{
-  margin-top:auto;
+  margin-top:0;
   text-align:center;
   padding:20px;
   font-size:12px;
@@ -173,6 +185,7 @@ body{
   </div>
 
   <!-- FOOTER -->
+  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
