@@ -20,7 +20,6 @@ body{
   color:var(--text);
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -30,7 +29,6 @@ body{
   flex-direction:column;
 }
 
-/* TOP BAR */
 .topbar{
   padding:18px 20px;
 }
@@ -40,7 +38,6 @@ body{
   font-weight:600;
 }
 
-/* HEADER */
 .header{
   text-align:center;
   padding:10px 20px 0;
@@ -49,7 +46,6 @@ body{
   height:104px;
 }
 
-/* CONTENT */
 .content{
   padding:24px 20px;
 }
@@ -57,11 +53,12 @@ h1{
   font-size:20px;
   margin-bottom:16px;
 }
+
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
-  margin-bottom:18px;
+  margin-bottom:14px;
 }
 .card strong{
   display:block;
@@ -72,19 +69,14 @@ h1{
   opacity:.9;
 }
 
-/* PRICE */
 .price{
   font-size:22px;
   font-weight:700;
   color:var(--blue);
   text-align:center;
-  margin:20px 0;
+  margin:22px 0;
 }
 
-/* CTA */
-.cta{
-  margin-top:10px;
-}
 .cta a{
   display:block;
   text-align:center;
@@ -97,7 +89,6 @@ h1{
   font-size:15px;
 }
 
-/* INFO */
 .info{
   margin-top:18px;
   font-size:12.5px;
@@ -105,7 +96,6 @@ h1{
   text-align:center;
 }
 
-/* FOOTER */
 .footer-separator{
   height:1px;
   background:linear-gradient(to right,transparent,#d0d7e5,transparent);
@@ -118,61 +108,95 @@ h1{
   opacity:.65;
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(!data){
+    window.location.href = "demande.html";
+    return;
+  }
+
+  document.getElementById("name").innerText = data.fullName;
+  document.getElementById("service").innerText =
+    data.serviceType === "immediat" ? "Téléconsultation immédiate" :
+    data.serviceType === "rdv" ? "Consultation sur rendez-vous" :
+    "Aide à domicile";
+
+  document.getElementById("location").innerText = data.location;
+  document.getElementById("phone").innerText = data.phone;
+  document.getElementById("description").innerText = data.description;
+
+  if(data.serviceType === "rdv"){
+    document.getElementById("rdv").innerText =
+      data.date + " à " + data.time;
+  } else {
+    document.getElementById("rdv").innerText = "Non applicable";
+  }
+
+  // Prix simple (modifiable plus tard)
+  document.getElementById("price").innerText =
+    data.serviceType === "domicile" ? "20 000 BIF" : "12 000 BIF";
+});
+</script>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- TOP -->
   <div class="topbar">
     <a href="demande.html" class="back">← Modifier la demande</a>
   </div>
 
-  <!-- LOGO -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <h1>Confirmation de votre demande</h1>
 
     <div class="card">
-      <strong>Type de service</strong>
-      <span>Téléconsultation médicale</span>
+      <strong>Nom du patient</strong>
+      <span id="name"></span>
     </div>
 
     <div class="card">
-      <strong>Mode</strong>
-      <span>Consultation immédiate</span>
+      <strong>Type de service</strong>
+      <span id="service"></span>
+    </div>
+
+    <div class="card">
+      <strong>Rendez-vous</strong>
+      <span id="rdv"></span>
     </div>
 
     <div class="card">
       <strong>Localisation</strong>
-      <span>Bujumbura</span>
+      <span id="location"></span>
     </div>
 
     <div class="card">
-      <strong>Résumé</strong>
-      <span>Votre demande sera transmise à un professionnel de santé disponible.</span>
+      <strong>Téléphone</strong>
+      <span id="phone"></span>
     </div>
 
-    <div class="price">
-      12 000 BIF
+    <div class="card">
+      <strong>Description</strong>
+      <span id="description"></span>
     </div>
+
+    <div class="price" id="price"></div>
 
     <div class="cta">
       <a href="paiement.html">Procéder au paiement</a>
     </div>
 
     <div class="info">
-      Le paiement est requis avant la mise en relation.<br>
-      Ce service ne prend pas en charge les urgences médicales.
+      Le paiement est requis avant la mise en relation avec un professionnel.
     </div>
   </div>
 
-  <!-- FOOTER -->
   <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
