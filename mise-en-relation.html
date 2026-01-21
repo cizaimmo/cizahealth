@@ -27,59 +27,62 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-  text-align:center;
 }
 
 .header{
-  padding:30px 20px 10px;
+  text-align:center;
+  padding:20px;
 }
 .header img{
   height:104px;
 }
 
 .content{
-  padding:20px;
-  flex:1;
+  padding:24px 20px;
+  text-align:center;
 }
+
 h1{
   font-size:20px;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
-p{
-  font-size:14.5px;
-  line-height:1.6;
-  opacity:.9;
-}
-
-/* LOADER */
-.loader{
-  margin:30px auto;
-  width:60px;
-  height:60px;
-  border:6px solid #e6ebf5;
-  border-top:6px solid var(--blue);
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
-@keyframes spin{
-  to{transform:rotate(360deg)}
+.ref{
+  font-size:13px;
+  margin-bottom:20px;
+  opacity:.8;
 }
 
-/* INFO BOX */
-.info-box{
+.status{
   border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-top:24px;
-  font-size:13.5px;
+  border-radius:18px;
+  padding:20px;
+  font-size:14px;
+  margin-bottom:24px;
 }
 
-/* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+.pay{
+  margin-top:10px;
 }
+.pay button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+}
+
+.note{
+  margin-top:18px;
+  font-size:12.5px;
+  opacity:.7;
+}
+
 .footer{
+  margin-top:auto;
+  text-align:center;
   padding:18px;
   font-size:12px;
   opacity:.65;
@@ -87,13 +90,22 @@ p{
 </style>
 
 <script>
+function generateRef(){
+  const ref = "CH-2026-" + Math.floor(100000 + Math.random()*900000);
+  localStorage.setItem("cizaRef", ref);
+  return ref;
+}
+
+function startPayment(){
+  // ⚠️ Simulation paiement (Mobile Money plus tard)
+  localStorage.setItem("paymentStatus", "paid");
+  window.location.href = "appel.html";
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
-  // Sécurité : si pas de paiement validé (simulation)
-  // plus tard : vérifier status Firestore
-  setTimeout(()=>{
-    // Simulation : redirection vers appel
-    // window.location.href = "appel.html";
-  }, 6000);
+  let ref = localStorage.getItem("cizaRef");
+  if(!ref) ref = generateRef();
+  document.getElementById("ref").innerText = ref;
 });
 </script>
 </head>
@@ -102,37 +114,34 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Mise en relation en cours</h1>
+    <h1>Mise en relation</h1>
 
-    <p>
-      Nous recherchons actuellement un professionnel de santé disponible
-      correspondant à votre demande.
-    </p>
-
-    <div class="loader"></div>
-
-    <div class="info-box">
-      ✔ Appel audio ou vidéo sécurisé<br>
-      ✔ Aucun numéro partagé<br>
-      ✔ Données traitées de manière confidentielle<br>
-      ✔ Service disponible 24h/24
+    <div class="ref">
+      Numéro de dossier : <strong id="ref"></strong>
     </div>
 
-    <p style="margin-top:20px;font-size:13px;opacity:.8">
-      Dès qu’un professionnel accepte votre demande,
-      l’appel démarrera automatiquement dans l’application.
-    </p>
+    <div class="status">
+      ✔ Votre demande a été transmise<br><br>
+      ⏳ Un professionnel de santé est en cours d’assignation<br><br>
+      🔒 L’appel démarrera après validation du paiement
+    </div>
+
+    <div class="pay">
+      <button onclick="startPayment()">
+        Procéder au paiement
+      </button>
+    </div>
+
+    <div class="note">
+      Paiement requis pour garantir la disponibilité du professionnel.
+    </div>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
