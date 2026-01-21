@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Téléconsultation médicale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* APP */
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-size:16px;
+  font-weight:600;
+}
+
+/* HEADER */
+.header{
+  padding:10px 20px 0;
+  text-align:center;
+}
+.header img{
+  height:90px;
+}
+
+/* HERO IMAGE */
+.hero-image{
+  margin:16px 20px 0;
+  border-radius:22px;
+  overflow:hidden;
+  border:1.8px solid #e6ebf5;
+}
+.hero-image img{
+  width:100%;
+  display:block;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
+}
+.content h1{
+  font-size:20px;
+  margin-bottom:12px;
+}
+.content p{
+  font-size:14.5px;
+  line-height:1.6;
+  opacity:.9;
+}
+
+/* STEPS */
+.steps{
+  margin-top:24px;
+  display:grid;
+  gap:14px;
+}
+.step{
+  border:1.8px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  font-size:14px;
+}
+
+/* CTA */
+.cta{
+  margin-top:28px;
+}
+.cta a{
+  display:block;
+  text-align:center;
+  background:var(--blue);
+  color:#fff;
+  padding:16px;
+  border-radius:18px;
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  margin-top:24px;
+  font-size:12.5px;
+  opacity:.75;
+  text-align:center;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:20px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html" class="back">← Retour</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- HERO IMAGE -->
+  <div class="hero-image">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png"
+         alt="Téléconsultation médicale CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Téléconsultation médicale</h1>
+
+    <p>
+      La téléconsultation CizaHealth+ vous permet d’échanger à distance
+      avec un médecin ou un infirmier qualifié, dans un cadre sécurisé
+      et confidentiel.
+    </p>
+
+    <div class="steps">
+      <div class="step">1. Vous décrivez brièvement votre situation</div>
+      <div class="step">2. Un professionnel examine votre demande</div>
+      <div class="step">3. Un échange vidéo ou audio est organisé</div>
+      <div class="step">4. Orientation ou suivi si nécessaire</div>
+    </div>
+
+    <div class="cta">
+      <a href="demande.html">Commencer une consultation</a>
+    </div>
+
+    <div class="disclaimer">
+      Ce service ne prend pas en charge les urgences médicales.<br>
+      En cas d’urgence, contactez les services de secours locaux.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
