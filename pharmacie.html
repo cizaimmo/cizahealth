@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Pharmacies partenaires</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* APP */
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-size:16px;
+  font-weight:600;
+}
+
+/* HEADER */
+.header{
+  padding:14px 20px 0;
+  text-align:center;
+}
+.header img{
+  height:120px; /* même taille que index / téléconsultation / aide */
+}
+
+/* HERO IMAGE */
+.hero-image{
+  margin:16px 20px 0;
+  border-radius:22px;
+  overflow:hidden;
+  border:1.8px solid #e6ebf5;
+}
+.hero-image img{
+  width:100%;
+  display:block;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
+}
+.content h1{
+  font-size:20px;
+  margin-bottom:10px;
+}
+.content p{
+  font-size:14.5px;
+  line-height:1.6;
+  opacity:.9;
+}
+
+/* PROVINCES */
+.provinces{
+  margin-top:24px;
+  display:grid;
+  gap:12px;
+}
+.province{
+  border:1.8px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:16px;
+  font-size:15px;
+  font-weight:600;
+  color:var(--blue);
+  text-decoration:none;
+  background:#fff;
+  transition:.2s ease;
+}
+.province:hover{
+  border-color:var(--blue);
+  transform:translateY(-1px);
+}
+
+/* FOOTER SEPARATOR */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(
+    to right,
+    transparent,
+    rgba(10,42,94,.35),
+    transparent
+  );
+  margin-top:32px;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  padding:20px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html" class="back">← Retour</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- HERO IMAGE -->
+  <div class="hero-image">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png"
+         alt="Pharmacies partenaires CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Pharmacies partenaires</h1>
+
+    <p>
+      Sélectionnez votre province afin de transmettre votre ordonnance
+      à une pharmacie partenaire proche de vous.
+    </p>
+
+    <div class="provinces">
+      <a href="#" class="province">Bujumbura</a>
+      <a href="#" class="province">Gitega</a>
+      <a href="#" class="province">Ngozi</a>
+      <a href="#" class="province">Kayanza</a>
+      <a href="#" class="province">Muyinga</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
