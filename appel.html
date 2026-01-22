@@ -2,15 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Appel en cours</title>
+<title>CizaHealth+ | Appel médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
   --red:#c0392b;
-  --bg:#0a1a2f;
-  --card:#12284a;
+  --green:#27ae60;
+  --bg:#f4f7fb;
   --radius:22px;
 }
 *{box-sizing:border-box}
@@ -18,125 +18,140 @@ body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
-  color:#fff;
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
+  background:#000;
+  color:#fff;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
 }
 
 /* HEADER */
 .header{
+  padding:16px;
   text-align:center;
-  padding:30px 20px 10px;
+  background:#000;
 }
-.header img{
-  height:86px;
+.ref{
+  font-size:13px;
+  opacity:.7;
 }
 
-/* CONTENT */
-.content{
-  text-align:center;
-  padding:20px;
-}
-.avatar{
-  width:96px;
-  height:96px;
-  border-radius:50%;
-  background:#1e3d75;
+/* VIDEO ZONE */
+.video{
+  flex:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:42px;
-  margin:20px auto;
+  font-size:14px;
+  opacity:.7;
 }
-h1{
-  font-size:20px;
-  margin:12px 0 6px;
-}
+
+/* STATUS */
 .status{
+  text-align:center;
+  padding:10px;
   font-size:14px;
-  opacity:.85;
-}
-
-/* VIDEO PLACEHOLDER */
-.video-box{
-  margin:24px auto;
-  width:100%;
-  max-width:340px;
-  height:220px;
-  background:#0d2345;
-  border-radius:var(--radius);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:14px;
-  opacity:.8;
 }
 
 /* CONTROLS */
 .controls{
   display:flex;
-  justify-content:center;
-  gap:18px;
-  margin-bottom:30px;
+  justify-content:space-around;
+  padding:18px;
+  background:#111;
 }
-.control{
-  width:60px;
-  height:60px;
+.controls button{
+  border:none;
   border-radius:50%;
-  background:#1e3d75;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
+  width:56px;
+  height:56px;
+  font-size:14px;
+  font-weight:600;
+  color:#fff;
 }
-.control.end{
-  background:var(--red);
-}
-.control.disabled{
-  opacity:.6;
-}
+.mic{background:#333}
+.mic.off{background:var(--red)}
+.cam{background:#333}
+.cam.off{background:var(--red)}
+.end{background:var(--red)}
+.start{background:var(--green)}
 </style>
+
+<script>
+let micOn = true;
+let camOn = true;
+let callStarted = false;
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const data = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(!data){
+    location.href="index.html";
+    return;
+  }
+  document.getElementById("ref").innerText =
+    "Dossier n° " + data.dossierNumber;
+
+  // simulation connexion
+  setTimeout(()=>{
+    document.getElementById("status").innerText =
+      "✔ Médecin connecté";
+    startCall();
+  }, 2000);
+});
+
+function startCall(){
+  callStarted = true;
+  document.getElementById("status").innerText =
+    "🟢 Appel en cours";
+  document.getElementById("startBtn").style.display="none";
+}
+
+function toggleMic(){
+  micOn = !micOn;
+  micBtn.classList.toggle("off", !micOn);
+}
+
+function toggleCam(){
+  camOn = !camOn;
+  camBtn.classList.toggle("off", !camOn);
+}
+
+function endCall(){
+  document.getElementById("status").innerText =
+    "🔴 Appel terminé";
+  setTimeout(()=>{
+    location.href="index.html";
+  },1500);
+}
+</script>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <div class="ref" id="ref"></div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
-
-    <div class="avatar">👨‍⚕️</div>
-
-    <h1>Appel en cours</h1>
-    <div class="status">
-      Connexion sécurisée avec un professionnel de santé
-    </div>
-
-    <div class="video-box">
-      Flux vidéo sécurisé (en préparation)
-    </div>
-
+  <div class="video">
+    Flux vidéo sécurisé (WebRTC à intégrer)
   </div>
 
-  <!-- CONTROLS -->
+  <div class="status" id="status">
+    ⏳ Connexion au professionnel…
+  </div>
+
   <div class="controls">
-    <div class="control">🎤</div>
-    <div class="control">🎥</div>
-    <div class="control disabled">🔊</div>
-    <div class="control end">⛔</div>
+    <button id="micBtn" class="mic" onclick="toggleMic()">🎤</button>
+    <button id="camBtn" class="cam" onclick="toggleCam()">📷</button>
+    <button id="startBtn" class="start" onclick="startCall()">▶</button>
+    <button class="end" onclick="endCall()">⛔</button>
   </div>
 
 </div>
