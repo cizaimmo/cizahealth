@@ -2,132 +2,135 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Appel médical</title>
+<title>CizaHealth+ | Appel sécurisé</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#0a2a5e;
-  --red:#c0392b;
-  --green:#27ae60;
-  --bg:#f4f7fb;
-  --radius:22px;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-}
-
-.app{
-  max-width:430px;
-  margin:auto;
-  min-height:100vh;
   background:#000;
   color:#fff;
+}
+.app{
+  height:100vh;
   display:flex;
   flex-direction:column;
 }
-
-/* HEADER */
 .header{
-  padding:16px;
+  padding:14px;
   text-align:center;
-  background:#000;
+  font-size:14px;
+  background:#0a2a5e;
 }
-.ref{
-  font-size:13px;
-  opacity:.7;
-}
-
-/* VIDEO ZONE */
-.video{
+.videos{
   flex:1;
   display:flex;
-  align-items:center;
   justify-content:center;
-  font-size:14px;
-  opacity:.7;
+  align-items:center;
+  position:relative;
 }
-
-/* STATUS */
-.status{
-  text-align:center;
-  padding:10px;
-  font-size:14px;
+video{
+  background:#000;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
-
-/* CONTROLS */
+#local{
+  position:absolute;
+  width:120px;
+  height:160px;
+  bottom:16px;
+  right:16px;
+  border-radius:12px;
+  border:2px solid #fff;
+}
 .controls{
+  padding:16px;
   display:flex;
-  justify-content:space-around;
-  padding:18px;
+  justify-content:center;
+  gap:20px;
   background:#111;
 }
 .controls button{
+  padding:14px 18px;
   border:none;
   border-radius:50%;
-  width:56px;
-  height:56px;
-  font-size:14px;
-  font-weight:600;
+  font-size:18px;
   color:#fff;
 }
-.mic{background:#333}
-.mic.off{background:var(--red)}
-.cam{background:#333}
-.cam.off{background:var(--red)}
-.end{background:var(--red)}
-.start{background:var(--green)}
+.end{background:#c0392b}
+.mute{background:#444}
+.video{background:#0a2a5e}
 </style>
 
 <script>
-let micOn = true;
-let camOn = true;
-let callStarted = false;
+let localStream;
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  const data = JSON.parse(localStorage.getItem("cizaRequest"));
-  if(!data){
-    location.href="index.html";
-    return;
+function securityCheck(){
+  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+  const session = JSON.parse(localStorage.getItem("cizaSession"));
+  const payment = localStorage.getItem("paymentStatus");
+  const callStatus = localStorage.getItem("callStatus");
+
+  if(!request || !session){
+    alert("Session invalide");
+    window.location.href = "index.html";
+    return false;
   }
-  document.getElementById("ref").innerText =
-    "Dossier n° " + data.dossierNumber;
 
-  // simulation connexion
-  setTimeout(()=>{
-    document.getElementById("status").innerText =
-      "✔ Médecin connecté";
-    startCall();
-  }, 2000);
-});
+  if(payment !== "paid"){
+    alert("Paiement requis");
+    window.location.href = "paiement.html";
+    return false;
+  }
 
-function startCall(){
-  callStarted = true;
-  document.getElementById("status").innerText =
-    "🟢 Appel en cours";
-  document.getElementById("startBtn").style.display="none";
+  if(callStatus !== "accepted"){
+    alert("En attente de confirmation du professionnel");
+    window.location.href = "matching.html";
+    return false;
+  }
+
+  return true;
 }
 
-function toggleMic(){
-  micOn = !micOn;
-  micBtn.classList.toggle("off", !micOn);
-}
+async function startCall(){
+  if(!securityCheck()) return;
 
-function toggleCam(){
-  camOn = !camOn;
-  camBtn.classList.toggle("off", !camOn);
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio:true,
+      video:true
+    });
+
+    document.getElementById("local").srcObject = localStream;
+    document.getElementById("remote").srcObject = localStream;
+
+  }catch(e){
+    alert("Accès caméra/micro refusé");
+  }
 }
 
 function endCall(){
-  document.getElementById("status").innerText =
-    "🔴 Appel terminé";
-  setTimeout(()=>{
-    location.href="index.html";
-  },1500);
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+  }
+  localStorage.removeItem("callStatus");
+  alert("Appel terminé");
+  window.location.href = "index.html";
 }
+
+function toggleMute(){
+  localStream.getAudioTracks()[0].enabled =
+    !localStream.getAudioTracks()[0].enabled;
+}
+
+function toggleVideo(){
+  localStream.getVideoTracks()[0].enabled =
+    !localStream.getVideoTracks()[0].enabled;
+}
+
+document.addEventListener("DOMContentLoaded", startCall);
 </script>
 </head>
 
@@ -136,21 +139,17 @@ function endCall(){
 <div class="app">
 
   <div class="header">
-    <div class="ref" id="ref"></div>
+    🔒 Appel chiffré — CizaHealth+
   </div>
 
-  <div class="video">
-    Flux vidéo sécurisé (WebRTC à intégrer)
-  </div>
-
-  <div class="status" id="status">
-    ⏳ Connexion au professionnel…
+  <div class="videos">
+    <video id="remote" autoplay playsinline></video>
+    <video id="local" autoplay muted playsinline></video>
   </div>
 
   <div class="controls">
-    <button id="micBtn" class="mic" onclick="toggleMic()">🎤</button>
-    <button id="camBtn" class="cam" onclick="toggleCam()">📷</button>
-    <button id="startBtn" class="start" onclick="startCall()">▶</button>
+    <button class="mute" onclick="toggleMute()">🎤</button>
+    <button class="video" onclick="toggleVideo()">🎥</button>
     <button class="end" onclick="endCall()">⛔</button>
   </div>
 
