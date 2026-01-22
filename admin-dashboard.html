@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  padding:20px;
+}
+
+.header{
+  text-align:center;
+  margin-bottom:20px;
+}
+.header img{
+  height:90px;
+}
+.role{
+  font-size:13px;
+  opacity:.7;
+}
+
+.section{
+  margin-bottom:22px;
+}
+.section h2{
+  font-size:16px;
+  margin-bottom:12px;
+}
+
+.card{
+  border:1.8px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.card strong{
+  display:block;
+  font-size:12px;
+  opacity:.6;
+}
+
+input, select{
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1.6px solid #e6ebf5;
+  margin-top:6px;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  margin-top:10px;
+}
+
+.footer{
+  margin-top:24px;
+  text-align:center;
+  font-size:12px;
+  opacity:.6;
+}
+</style>
+
+<script>
+let request = null;
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const raw = localStorage.getItem("cizaRequest");
+  if(!raw){
+    alert("Aucun dossier trouvé");
+    return;
+  }
+  request = JSON.parse(raw);
+
+  set("ref", request.dossierNumber);
+  set("patient", request.fullName);
+  set("province", request.province);
+  set("service", request.serviceType);
+  set("status", request.status || "en cours");
+});
+
+function set(id,val){
+  document.getElementById(id).innerText = val || "-";
+}
+
+function saveSettings(){
+  request.commissions = {
+    medecin: medecin.value,
+    infirmier: infirmier.value,
+    pharmacie: pharmacie.value
+  };
+  request.priority24 = priority.checked;
+  localStorage.setItem("cizaRequest", JSON.stringify(request));
+  alert("Paramètres enregistrés");
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="role">Administration — CIZA GROUP</div>
+  </div>
+
+  <!-- DOSSIER -->
+  <div class="section">
+    <h2>Dossier patient</h2>
+
+    <div class="card"><strong>Référence</strong><span id="ref"></span></div>
+    <div class="card"><strong>Patient</strong><span id="patient"></span></div>
+    <div class="card"><strong>Province</strong><span id="province"></span></div>
+    <div class="card"><strong>Service</strong><span id="service"></span></div>
+    <div class="card"><strong>Statut</strong><span id="status"></span></div>
+  </div>
+
+  <!-- COMMISSIONS -->
+  <div class="section">
+    <h2>Commissions (%)</h2>
+
+    <label>Médecin</label>
+    <input id="medecin" type="number" value="60">
+
+    <label>Infirmier</label>
+    <input id="infirmier" type="number" value="50">
+
+    <label>Pharmacie</label>
+    <input id="pharmacie" type="number" value="10">
+  </div>
+
+  <!-- PRIORITÉ -->
+  <div class="section">
+    <h2>Options avancées</h2>
+    <label>
+      <input type="checkbox" id="priority">
+      Service prioritaire 24/24
+    </label>
+  </div>
+
+  <button class="btn" onclick="saveSettings()">
+    Enregistrer les paramètres
+  </button>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
