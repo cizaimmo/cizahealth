@@ -2,15 +2,18 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Admin Dashboard</title>
+<title>CizaHealth+ | Admin – Validation professionnels</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --green:#1a8f4d;
+  --red:#c0392b;
+  --orange:#d35400;
   --bg:#f4f7fb;
   --text:#0a1a2f;
-  --radius:18px;
+  --radius:20px;
 }
 *{box-sizing:border-box}
 body{
@@ -25,102 +28,120 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  padding:20px;
 }
 
 .header{
   text-align:center;
-  margin-bottom:20px;
+  padding:18px;
+  border-bottom:1px solid #eef1f6;
 }
 .header img{
   height:90px;
 }
-.role{
-  font-size:13px;
-  opacity:.7;
-}
 
-.section{
-  margin-bottom:22px;
-}
-.section h2{
-  font-size:16px;
-  margin-bottom:12px;
+.content{
+  padding:20px;
 }
 
 .card{
-  border:1.8px solid #e6ebf5;
+  border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:14px;
-  margin-bottom:10px;
-  font-size:14px;
+  padding:18px;
+  margin-bottom:18px;
 }
 
-.card strong{
-  display:block;
+.ref{
+  font-size:13px;
+  opacity:.75;
+  margin-bottom:6px;
+}
+
+.name{
+  font-weight:600;
+  font-size:16px;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
   font-size:12px;
-  opacity:.6;
-}
-
-input, select{
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:1.6px solid #e6ebf5;
   margin-top:6px;
 }
+.pending{background:#fef3c7;color:#92400e}
+.valid{background:#d1fae5;color:#065f46}
+.refused{background:#fee2e2;color:#7f1d1d}
 
-.btn{
-  width:100%;
-  padding:14px;
+.actions{
+  display:grid;
+  gap:10px;
+  margin-top:14px;
+}
+.actions button{
+  padding:12px;
   border:none;
-  border-radius:16px;
-  background:var(--blue);
-  color:#fff;
+  border-radius:14px;
   font-weight:600;
-  margin-top:10px;
+  font-size:14px;
+  color:#fff;
 }
 
-.footer{
-  margin-top:24px;
-  text-align:center;
-  font-size:12px;
-  opacity:.6;
+.validate{background:var(--green)}
+.refuse{background:var(--red)}
+.suspend{background:var(--orange)}
+.priority{
+  background:#0a2a5e;
 }
 </style>
 
 <script>
-let request = null;
+function loadPros(){
+  const container = document.getElementById("list");
+  container.innerHTML = "";
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  const raw = localStorage.getItem("cizaRequest");
-  if(!raw){
-    alert("Aucun dossier trouvé");
+  const pro = JSON.parse(localStorage.getItem("cizaPro"));
+  if(!pro){
+    container.innerHTML = "<p>Aucun dossier professionnel.</p>";
     return;
   }
-  request = JSON.parse(raw);
 
-  set("ref", request.dossierNumber);
-  set("patient", request.fullName);
-  set("province", request.province);
-  set("service", request.serviceType);
-  set("status", request.status || "en cours");
-});
+  const card = document.createElement("div");
+  card.className = "card";
 
-function set(id,val){
-  document.getElementById(id).innerText = val || "-";
+  card.innerHTML = `
+    <div class="ref">Dossier : ${pro.dossierPro}</div>
+    <div class="name">${pro.fullName}</div>
+    <div>${pro.role} — ${pro.specialty}</div>
+    <div>Province : ${pro.province}</div>
+    <div class="badge pending" id="status">En attente</div>
+
+    <div class="actions">
+      <button class="validate" onclick="setStatus('validated')">Valider</button>
+      <button class="priority" onclick="setPriority()">Activer priorité 24/24</button>
+      <button class="suspend" onclick="setStatus('suspended')">Suspendre</button>
+      <button class="refuse" onclick="setStatus('refused')">Refuser</button>
+    </div>
+  `;
+
+  container.appendChild(card);
 }
 
-function saveSettings(){
-  request.commissions = {
-    medecin: medecin.value,
-    infirmier: infirmier.value,
-    pharmacie: pharmacie.value
-  };
-  request.priority24 = priority.checked;
-  localStorage.setItem("cizaRequest", JSON.stringify(request));
-  alert("Paramètres enregistrés");
+function setStatus(status){
+  const pro = JSON.parse(localStorage.getItem("cizaPro"));
+  pro.status = status;
+  localStorage.setItem("cizaPro", JSON.stringify(pro));
+  alert("Statut mis à jour : " + status);
+  loadPros();
 }
+
+function setPriority(){
+  const pro = JSON.parse(localStorage.getItem("cizaPro"));
+  pro.priority = true;
+  localStorage.setItem("cizaPro", JSON.stringify(pro));
+  alert("Priorité 24/24 activée");
+}
+
+document.addEventListener("DOMContentLoaded", loadPros);
 </script>
 </head>
 
@@ -130,49 +151,11 @@ function saveSettings(){
 
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div class="role">Administration — CIZA GROUP</div>
+    <h3>Admin — Validation des professionnels</h3>
   </div>
 
-  <!-- DOSSIER -->
-  <div class="section">
-    <h2>Dossier patient</h2>
-
-    <div class="card"><strong>Référence</strong><span id="ref"></span></div>
-    <div class="card"><strong>Patient</strong><span id="patient"></span></div>
-    <div class="card"><strong>Province</strong><span id="province"></span></div>
-    <div class="card"><strong>Service</strong><span id="service"></span></div>
-    <div class="card"><strong>Statut</strong><span id="status"></span></div>
-  </div>
-
-  <!-- COMMISSIONS -->
-  <div class="section">
-    <h2>Commissions (%)</h2>
-
-    <label>Médecin</label>
-    <input id="medecin" type="number" value="60">
-
-    <label>Infirmier</label>
-    <input id="infirmier" type="number" value="50">
-
-    <label>Pharmacie</label>
-    <input id="pharmacie" type="number" value="10">
-  </div>
-
-  <!-- PRIORITÉ -->
-  <div class="section">
-    <h2>Options avancées</h2>
-    <label>
-      <input type="checkbox" id="priority">
-      Service prioritaire 24/24
-    </label>
-  </div>
-
-  <button class="btn" onclick="saveSettings()">
-    Enregistrer les paramètres
-  </button>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+  <div class="content" id="list">
+    <!-- Dossiers pros -->
   </div>
 
 </div>
