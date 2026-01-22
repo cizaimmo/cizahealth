@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Tableau de bord professionnel</title>
+<title>CizaHealth+ | Administration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --danger:#8a1f1f;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -43,7 +44,7 @@ body{
 .logout{
   text-decoration:none;
   font-size:13px;
-  color:#8a1f1f;
+  color:var(--danger);
 }
 
 /* CONTENT */
@@ -55,52 +56,66 @@ h1{
   margin-bottom:14px;
 }
 
-/* REQUEST CARD */
-.request{
+/* CARD */
+.card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
-.request.pending{
+.card.pending{
   border-left:5px solid #f2a900;
 }
-.request.assigned{
+.card.validated{
   border-left:5px solid #1b9c4a;
 }
-.request.done{
-  border-left:5px solid #6c757d;
+.card.refused{
+  border-left:5px solid #8a1f1f;
 }
 
-.request h3{
+.card h3{
   font-size:15px;
   margin:0 0 6px;
 }
-.request p{
+.card p{
   font-size:13px;
   margin:4px 0;
   opacity:.85;
 }
 
-.request .meta{
-  font-size:12px;
-  opacity:.7;
+/* DOCS */
+.docs{
+  margin-top:10px;
+}
+.docs a{
+  display:block;
+  font-size:13px;
+  color:var(--blue);
+  text-decoration:none;
   margin-top:6px;
 }
 
-/* ACTION */
-.action{
-  margin-top:12px;
+/* ACTIONS */
+.actions{
+  margin-top:14px;
+  display:grid;
+  gap:10px;
 }
-.action button{
-  width:100%;
+.actions button{
   padding:14px;
   border:none;
   border-radius:16px;
-  background:var(--blue);
-  color:#fff;
   font-weight:600;
   font-size:14px;
+  cursor:pointer;
+}
+.actions .approve{
+  background:#1b9c4a;
+  color:#fff;
+}
+.actions .reject{
+  background:var(--danger);
+  color:#fff;
 }
 
 /* FOOTER */
@@ -120,49 +135,45 @@ h1{
 
   <!-- HEADER -->
   <div class="header">
-    <strong>Espace professionnel</strong>
-    <a href="pro-login.html" class="logout">Déconnexion</a>
+    <strong>Administration</strong>
+    <a href="admin-login.html" class="logout">Déconnexion</a>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
-    <h1>Demandes patients</h1>
+    <h1>Inscriptions professionnelles</h1>
 
     <!-- DEMANDE EN ATTENTE -->
-    <div class="request pending">
-      <h3>Demande #CH-2026-834291</h3>
-      <p><strong>Service :</strong> Téléconsultation immédiate</p>
+    <div class="card pending">
+      <h3>Dr Jean N.</h3>
+      <p><strong>Profession :</strong> Médecin</p>
       <p><strong>Province :</strong> Bujumbura</p>
-      <p><strong>Patient :</strong> Homme, 42 ans</p>
-      <div class="meta">
-        Statut : En attente d’assignation
+      <p><strong>Email :</strong> jean@hopital.bi</p>
+
+      <div class="docs">
+        <strong>Documents :</strong>
+        <a href="#">📄 Diplôme professionnel</a>
+        <a href="#">🪪 Pièce d’identité</a>
+      </div>
+
+      <div class="actions">
+        <button class="approve">Valider le compte</button>
+        <button class="reject">Refuser</button>
       </div>
     </div>
 
-    <!-- DEMANDE ASSIGNÉE -->
-    <div class="request assigned">
-      <h3>Demande #CH-2026-834102</h3>
-      <p><strong>Service :</strong> Rendez-vous médical</p>
-      <p><strong>Date :</strong> 18 février • 15h30</p>
+    <!-- DEMANDE VALIDÉE -->
+    <div class="card validated">
+      <h3>Infirmière Alice M.</h3>
       <p><strong>Province :</strong> Gitega</p>
-      <div class="meta">
-        Statut : Assignée à vous
-      </div>
-      <div class="action">
-        <button>
-          Accéder à la consultation
-        </button>
-      </div>
+      <p><strong>Statut :</strong> Compte activé</p>
     </div>
 
-    <!-- DEMANDE TERMINÉE -->
-    <div class="request done">
-      <h3>Demande #CH-2026-833887</h3>
-      <p><strong>Service :</strong> Aide à domicile</p>
-      <p><strong>Province :</strong> Ngozi</p>
-      <div class="meta">
-        Statut : Terminée
-      </div>
+    <!-- DEMANDE REFUSÉE -->
+    <div class="card refused">
+      <h3>Mr X.</h3>
+      <p><strong>Raison :</strong> Documents non conformes</p>
+      <p><strong>Statut :</strong> Refusé</p>
     </div>
 
   </div>
