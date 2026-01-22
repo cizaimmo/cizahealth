@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Accès professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#f4f7fb;
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  padding:24px;
+}
+.logo{text-align:center;margin-bottom:20px}
+.logo img{height:90px}
+h1{font-size:20px;text-align:center}
+input,select{
+  width:100%;
+  padding:14px;
+  margin-top:16px;
+  border-radius:14px;
+  border:1.8px solid #e6ebf5;
+}
+button{
+  width:100%;
+  margin-top:24px;
+  padding:16px;
+  background:#0a2a5e;
+  color:#fff;
+  border:none;
+  border-radius:18px;
+  font-weight:600;
+}
+</style>
+
+<script>
+function loginPro(){
+  const role = roleSelect.value;
+  localStorage.setItem("proRole", role);
+  window.location.href = "pro-dashboard.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <h1>Accès professionnel</h1>
+
+  <select id="roleSelect">
+    <option value="medecin">Médecin / Infirmier</option>
+    <option value="pharmacie">Pharmacie partenaire</option>
+  </select>
+
+  <input placeholder="Identifiant professionnel">
+  <input type="password" placeholder="Mot de passe">
+
+  <button onclick="loginPro()">Se connecter</button>
+</div>
+
+</body>
+</html>
