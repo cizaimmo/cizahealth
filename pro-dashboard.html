@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Tableau professionnel</title>
+<title>CizaHealth+ | Tableau de bord professionnel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,7 +10,7 @@
   --blue:#0a2a5e;
   --bg:#f4f7fb;
   --text:#0a1a2f;
-  --radius:20px;
+  --radius:22px;
 }
 *{box-sizing:border-box}
 body{
@@ -25,181 +25,149 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #eef1f6;
+}
+.header strong{
+  font-size:16px;
+}
+.logout{
+  text-decoration:none;
+  font-size:13px;
+  color:#8a1f1f;
+}
+
+/* CONTENT */
+.content{
   padding:20px;
 }
-
-.header{
-  text-align:center;
-  margin-bottom:18px;
-}
-.header img{
-  height:90px;
-}
-.role{
-  font-size:13px;
-  opacity:.7;
-}
-
-.card{
-  border:1.8px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:16px;
+h1{
+  font-size:18px;
   margin-bottom:14px;
 }
-.card strong{
-  display:block;
-  font-size:13px;
-  opacity:.7;
+
+/* REQUEST CARD */
+.request{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
 }
-.card span{
-  font-size:15px;
+.request.pending{
+  border-left:5px solid #f2a900;
+}
+.request.assigned{
+  border-left:5px solid #1b9c4a;
+}
+.request.done{
+  border-left:5px solid #6c757d;
 }
 
-.actions{
-  display:grid;
-  gap:12px;
-  margin-top:20px;
+.request h3{
+  font-size:15px;
+  margin:0 0 6px;
 }
-.actions button{
+.request p{
+  font-size:13px;
+  margin:4px 0;
+  opacity:.85;
+}
+
+.request .meta{
+  font-size:12px;
+  opacity:.7;
+  margin-top:6px;
+}
+
+/* ACTION */
+.action{
+  margin-top:12px;
+}
+.action button{
+  width:100%;
   padding:14px;
   border:none;
   border-radius:16px;
+  background:var(--blue);
+  color:#fff;
   font-weight:600;
   font-size:14px;
 }
-.primary{
-  background:var(--blue);
-  color:#fff;
-}
-.secondary{
-  background:#e9eef6;
-  color:var(--blue);
-}
 
+/* FOOTER */
 .footer{
-  margin-top:24px;
+  margin-top:auto;
   text-align:center;
+  padding:16px;
   font-size:12px;
   opacity:.6;
 }
 </style>
-
-<script>
-let role = null;
-let request = null;
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  role = localStorage.getItem("proRole");
-  if(!role){
-    location.href="pro-login.html";
-    return;
-  }
-
-  document.getElementById("role").innerText =
-    role === "pharmacie"
-    ? "Pharmacie partenaire"
-    : "Médecin / Infirmier";
-
-  const raw = localStorage.getItem("cizaRequest");
-  if(!raw){
-    document.getElementById("empty").style.display="block";
-    return;
-  }
-
-  request = JSON.parse(raw);
-
-  fill("ref", request.dossierNumber);
-  fill("patient", request.fullName);
-  fill("age", request.age + " ans");
-  fill("gender", request.gender);
-  fill("province", request.province);
-  fill("service", request.serviceType);
-  fill("desc", request.description);
-
-  if(role === "pharmacie"){
-    document.getElementById("medActions").style.display="none";
-    document.getElementById("pharmaActions").style.display="block";
-  }
-});
-
-function fill(id,value){
-  document.getElementById(id).innerText = value || "-";
-}
-
-function acceptCase(){
-  request.status = "accepté_pro";
-  localStorage.setItem("cizaRequest", JSON.stringify(request));
-  location.href="appel.html";
-}
-
-function refuseCase(){
-  request.status = "refusé_pro";
-  localStorage.setItem("cizaRequest", JSON.stringify(request));
-  alert("Dossier refusé (simulation)");
-}
-
-function confirmPrescription(){
-  request.pharmacyStatus = "ordonnance_reçue";
-  localStorage.setItem("cizaRequest", JSON.stringify(request));
-  alert("Ordonnance reçue par la pharmacie");
-}
-</script>
 </head>
 
 <body>
 
 <div class="app">
 
+  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div class="role" id="role"></div>
+    <strong>Espace professionnel</strong>
+    <a href="pro-login.html" class="logout">Déconnexion</a>
   </div>
 
-  <div id="empty" style="display:none;text-align:center;opacity:.7">
-    Aucun dossier en attente
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Demandes patients</h1>
+
+    <!-- DEMANDE EN ATTENTE -->
+    <div class="request pending">
+      <h3>Demande #CH-2026-834291</h3>
+      <p><strong>Service :</strong> Téléconsultation immédiate</p>
+      <p><strong>Province :</strong> Bujumbura</p>
+      <p><strong>Patient :</strong> Homme, 42 ans</p>
+      <div class="meta">
+        Statut : En attente d’assignation
+      </div>
+    </div>
+
+    <!-- DEMANDE ASSIGNÉE -->
+    <div class="request assigned">
+      <h3>Demande #CH-2026-834102</h3>
+      <p><strong>Service :</strong> Rendez-vous médical</p>
+      <p><strong>Date :</strong> 18 février • 15h30</p>
+      <p><strong>Province :</strong> Gitega</p>
+      <div class="meta">
+        Statut : Assignée à vous
+      </div>
+      <div class="action">
+        <button>
+          Accéder à la consultation
+        </button>
+      </div>
+    </div>
+
+    <!-- DEMANDE TERMINÉE -->
+    <div class="request done">
+      <h3>Demande #CH-2026-833887</h3>
+      <p><strong>Service :</strong> Aide à domicile</p>
+      <p><strong>Province :</strong> Ngozi</p>
+      <div class="meta">
+        Statut : Terminée
+      </div>
+    </div>
+
   </div>
 
-  <div class="card">
-    <strong>Dossier</strong>
-    <span id="ref"></span>
-  </div>
-
-  <div class="card">
-    <strong>Patient</strong>
-    <span id="patient"></span>
-  </div>
-
-  <div class="card">
-    <strong>Âge / Sexe</strong>
-    <span id="age"></span> • <span id="gender"></span>
-  </div>
-
-  <div class="card">
-    <strong>Province</strong>
-    <span id="province"></span>
-  </div>
-
-  <div class="card">
-    <strong>Service</strong>
-    <span id="service"></span>
-  </div>
-
-  <div class="card">
-    <strong>Description</strong>
-    <span id="desc"></span>
-  </div>
-
-  <!-- ACTIONS MEDECIN -->
-  <div class="actions" id="medActions">
-    <button class="primary" onclick="acceptCase()">Accepter et démarrer l’appel</button>
-    <button class="secondary" onclick="refuseCase()">Refuser</button>
-  </div>
-
-  <!-- ACTIONS PHARMACIE -->
-  <div class="actions" id="pharmaActions" style="display:none">
-    <button class="primary" onclick="confirmPrescription()">Ordonnance reçue</button>
-  </div>
-
+  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
