@@ -60,9 +60,6 @@ h1{
   margin-bottom:24px;
 }
 
-.pay{
-  margin-top:10px;
-}
 .pay button{
   width:100%;
   padding:16px;
@@ -90,23 +87,28 @@ h1{
 </style>
 
 <script>
-function generateRef(){
-  const ref = "CH-2026-" + Math.floor(100000 + Math.random()*900000);
-  localStorage.setItem("cizaRef", ref);
-  return ref;
-}
+let request = null;
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const raw = localStorage.getItem("cizaRequest");
+
+  if(!raw){
+    // Sécurité : on ne recrée PAS de dossier
+    window.location.href = "demande.html";
+    return;
+  }
+
+  request = JSON.parse(raw);
+
+  // ✅ ON LIT LE NUMÉRO EXISTANT — POINT FINAL
+  document.getElementById("ref").innerText = request.dossierNumber;
+});
 
 function startPayment(){
-  // ⚠️ Simulation paiement (Mobile Money plus tard)
+  // Simulation paiement (Mobile Money / Wallet plus tard)
   localStorage.setItem("paymentStatus", "paid");
   window.location.href = "appel.html";
 }
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  let ref = localStorage.getItem("cizaRef");
-  if(!ref) ref = generateRef();
-  document.getElementById("ref").innerText = ref;
-});
 </script>
 </head>
 
@@ -115,7 +117,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 <div class="app">
 
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
   <div class="content">
