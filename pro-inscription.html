@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Inscription Professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{
+  padding:18px 20px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+.header{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.header img{
+  height:104px;
+}
+
+.content{
+  padding:24px 20px;
+}
+h1{
+  font-size:20px;
+  margin-bottom:16px;
+}
+
+label{
+  display:block;
+  margin-top:18px;
+  font-size:14px;
+  font-weight:600;
+}
+
+input, select{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.8px solid #e6ebf5;
+  font-size:14px;
+}
+
+.checkbox{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  font-size:13px;
+  align-items:flex-start;
+}
+
+.cta{
+  margin-top:28px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:#b7c3dd;
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+}
+.cta button.active{
+  background:var(--blue);
+}
+
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+  margin-top:auto;
+}
+.footer{
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+function validateForm(){
+  const required = [
+    fullName.value,
+    birthDate.value,
+    role.value,
+    specialty.value,
+    province.value,
+    phone.value,
+    email.value,
+    password.value
+  ];
+
+  let valid = required.every(v => v.trim() !== "");
+
+  if(!terms.checked) valid = false;
+
+  submitBtn.disabled = !valid;
+  submitBtn.classList.toggle("active", valid);
+}
+
+function generateProRef(){
+  return "PRO-2026-" + Math.floor(100000 + Math.random()*900000);
+}
+
+function continueRegistration(){
+  const proData = {
+    dossierPro: generateProRef(),
+    fullName: fullName.value,
+    birthDate: birthDate.value,
+    role: role.value,
+    specialty: specialty.value,
+    province: province.value,
+    phone: phone.value,
+    email: email.value,
+    availableTele: tele.checked,
+    availableHome: home.checked,
+    status: "pending_validation"
+  };
+
+  localStorage.setItem("cizaPro", JSON.stringify(proData));
+  window.location.href = "upload-documents.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Retour</a>
+  </div>
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <div class="content">
+    <h1>Inscription professionnelle</h1>
+
+    <label>Nom complet</label>
+    <input id="fullName" oninput="validateForm()">
+
+    <label>Date de naissance</label>
+    <input type="date" id="birthDate" onchange="validateForm()">
+
+    <label>Profession</label>
+    <select id="role" onchange="validateForm()">
+      <option value="">Sélectionner</option>
+      <option>Médecin</option>
+      <option>Infirmier</option>
+    </select>
+
+    <label>Spécialité</label>
+    <input id="specialty" placeholder="Ex : Médecine générale" oninput="validateForm()">
+
+    <label>Province</label>
+    <select id="province" onchange="validateForm()">
+      <option value="">Choisir</option>
+      <option>Bujumbura</option>
+      <option>Gitega</option>
+      <option>Ngozi</option>
+      <option>Muyinga</option>
+      <option>Kayanza</option>
+    </select>
+
+    <label>Disponibilité</label>
+    <div class="checkbox">
+      <input type="checkbox" id="tele">
+      <label for="tele">Téléconsultation</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" id="home">
+      <label for="home">Déplacement à domicile (coût additionnel)</label>
+    </div>
+
+    <label>Numéro de téléphone</label>
+    <input id="phone" type="tel" inputmode="numeric" placeholder="+257…" oninput="this.value=this.value.replace(/[^0-9+]/g,''); validateForm();">
+
+    <label>Email</label>
+    <input id="email" type="email" oninput="validateForm()">
+
+    <label>Mot de passe</label>
+    <input id="password" type="password" oninput="validateForm()">
+
+    <div class="checkbox">
+      <input type="checkbox" id="terms" onchange="validateForm()">
+      <label for="terms">
+        Je certifie être un professionnel de santé qualifié et accepte la vérification de mes documents.
+      </label>
+    </div>
+
+    <div class="cta">
+      <button id="submitBtn" disabled onclick="continueRegistration()">
+        Continuer
+      </button>
+    </div>
+  </div>
+
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
