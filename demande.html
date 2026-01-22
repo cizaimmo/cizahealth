@@ -250,17 +250,18 @@ function saveAndContinue(){
       placeholder="+257…"
       oninput="validatePhone(); validateForm()"
     >
-
-    <div class="checkbox">
-      <input type="checkbox" id="privacy" onchange="validateForm()">
-      <label for="privacy">
-        J’accepte que mes informations soient traitées de manière confidentielle
-        conformément à la politique de confidentialité de CizaHealth+.
-      </label>
+<label class="checkbox">
+  <input type="checkbox" id="privacy">
+  <span>
+    J’accepte que mes informations soient traitées de manière confidentielle
+    conformément à la politique de confidentialité de CizaHealth+.
+  </span>
+</label>
+  
     </div>
 
     <div class="cta">
-      <button id="continueBtn" disabled onclick="saveAndContinue()">
+      <button id="continueBtn" disabled onclick="saveAndContinue()">re
         Continuer
       </button>
     </div>
