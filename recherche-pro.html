@@ -2,36 +2,115 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Recherche de professionnel</title>
+<title>CizaHealth+ | Professionnel disponible</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
   background:#fff;
-  color:#0a1a2f;
   display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  padding:24px 20px 10px;
+}
+.header img{
+  height:120px;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
   text-align:center;
 }
-.logo img{
-  height:110px;
-  margin-bottom:30px;
+
+h1{
+  font-size:20px;
+  margin-bottom:10px;
 }
-.loader{
-  font-size:42px;
-  animation:spin 1.2s linear infinite;
-  margin-bottom:20px;
+
+.status{
+  margin-top:18px;
+  padding:18px;
+  border-radius:18px;
+  background:#e8f4ed;
+  color:#1b7f46;
+  font-weight:700;
 }
-@keyframes spin{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
+
+.desc{
+  margin-top:14px;
+  font-size:14px;
+  opacity:.85;
 }
-h1{font-size:20px;margin-bottom:10px}
-p{font-size:14px;opacity:.8}
+
+.pro-card{
+  margin-top:22px;
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+}
+
+.pro-name{
+  font-weight:700;
+  font-size:16px;
+}
+.pro-role{
+  font-size:14px;
+  opacity:.85;
+}
+.pro-province{
+  font-size:13px;
+  margin-top:6px;
+  opacity:.75;
+}
+
+/* CTA */
+.cta{
+  margin-top:28px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
 </style>
 
 <script>
@@ -40,36 +119,81 @@ document.addEventListener("DOMContentLoaded", () => {
   const request = JSON.parse(localStorage.getItem("activeRequest"));
 
   if(!request){
+    // sécurité : pas de demande → dashboard
     window.location.href = "dashboard-client.html";
     return;
   }
 
-  // ✅ SIMULATION PRO TROUVÉ IMMÉDIATE
+  // ✅ SIMULATION PRO TOUJOURS DISPONIBLE
+  const pro = {
+    name: "Dr Alice M.",
+    role: "Médecin généraliste",
+    province: request.province
+  };
+
+  // 🔒 Mise à jour de la demande
   request.status = "pro_found";
-  request.proName = "Dr Alice M.";
-  request.proRole = "Médecin généraliste";
+  request.proName = pro.name;
+  request.proRole = pro.role;
+  request.provinceMatched = pro.province;
 
   localStorage.setItem("activeRequest", JSON.stringify(request));
 
-  // ⏳ Affichage court (UX)
-  setTimeout(() => {
-    window.location.href = "paiement.html";
-  }, 1500);
-
+  // Affichage dynamique
+  document.getElementById("proName").innerText = pro.name;
+  document.getElementById("proRole").innerText = pro.role;
+  document.getElementById("proProvince").innerText =
+    "Province : " + pro.province;
 });
+
+function goToPayment(){
+  window.location.href = "paiement.html";
+}
 </script>
 </head>
 
 <body>
 
-<div>
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <div class="loader">🔄</div>
-  <h1>Recherche d’un professionnel disponible</h1>
-  <p>Veuillez patienter…</p>
+  <!-- CONTENT -->
+  <div class="content">
+
+    <h1>Professionnel disponible</h1>
+
+    <div class="status">
+      ✅ Un professionnel est disponible
+    </div>
+
+    <div class="desc">
+      Un professionnel de santé a été trouvé et est
+      <strong>réservé temporairement</strong> pour votre demande.
+    </div>
+
+    <div class="pro-card">
+      <div class="pro-name" id="proName">—</div>
+      <div class="pro-role" id="proRole">—</div>
+      <div class="pro-province" id="proProvince">—</div>
+    </div>
+
+    <div class="cta">
+      <button onclick="goToPayment()">
+        Continuer vers le paiement
+      </button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
 </div>
 
 </body>
