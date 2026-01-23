@@ -43,7 +43,7 @@ body{
   padding:10px 20px 0;
 }
 .header img{
-  height:104px;
+  height:120px;
 }
 
 .content{
@@ -70,10 +70,14 @@ input, textarea, select{
   font-size:14px;
 }
 
+input[readonly]{
+  background:#f1f4fa;
+}
+
 textarea{min-height:110px}
 .hidden{display:none}
 
-/* Checkbox propre et alignée */
+/* Checkbox alignée PRO */
 .checkbox{
   margin-top:18px;
   display:flex;
@@ -82,12 +86,11 @@ textarea{min-height:110px}
   font-size:13px;
 }
 .checkbox input{
-  margin-top:2px;
+  margin-top:3px;
 }
 .checkbox label{
   margin:0;
-  font-weight:400;
-  line-height:1.4;
+  line-height:1.45;
 }
 
 /* CTA */
@@ -123,16 +126,28 @@ textarea{min-height:110px}
 </style>
 
 <script>
+let dossierNumber = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+
+  if(!profile){
+    window.location.href = "login.html";
+    return;
+  }
+
+  fullName.value = profile.fullName;
+  province.value = profile.province;
+  patientId.value = profile.patientId;
+
+  // Génération UNIQUE du numéro de dossier
+  dossierNumber = "CH-2026-" + Math.floor(100000 + Math.random()*900000);
+  dossier.innerText = dossierNumber;
+});
+
 function toggleRdv(){
   rdvFields.style.display = (serviceType.value === "rdv") ? "block" : "none";
   validateForm();
-}
-
-function calculateAge(){
-  if(!birthDate.value) return "";
-  const dob = new Date(birthDate.value);
-  const diff = Date.now() - dob.getTime();
-  return new Date(diff).getUTCFullYear() - 1970;
 }
 
 function validatePhone(){
@@ -141,13 +156,10 @@ function validatePhone(){
 
 function validateForm(){
   const required = [
-    fullName.value,
-    birthDate.value,
-    gender.value,
     serviceType.value,
     description.value,
-    province.value,
-    phone.value
+    phone.value,
+    ordonnance.value
   ];
 
   let valid = required.every(v => v.trim() !== "");
@@ -163,23 +175,21 @@ function validateForm(){
 }
 
 function saveAndContinue(){
-  const dossierNumber = "CH-" + Date.now();
-
-  const data = {
+  const request = {
     dossierNumber,
+    patientId: patientId.value,
     fullName: fullName.value,
-    birthDate: birthDate.value,
-    age: calculateAge(),
-    gender: gender.value,
+    province: province.value,
     serviceType: serviceType.value,
     date: date.value,
     time: time.value,
     description: description.value,
-    province: province.value,
-    phone: phone.value
+    phone: phone.value,
+    ordonnanceDestination: ordonnance.value,
+    status: "created"
   };
 
-  localStorage.setItem("cizaRequest", JSON.stringify(data));
+  localStorage.setItem("activeRequest", JSON.stringify(request));
   window.location.href = "confirmation.html";
 }
 </script>
@@ -190,35 +200,33 @@ function saveAndContinue(){
 <div class="app">
 
   <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
+    <a href="dashboard-client.html" class="back">← Retour</a>
   </div>
 
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <div class="content">
-    <h1>Faire une demande</h1>
+    <h1>Demande de service</h1>
 
     <label>Nom complet</label>
-    <input id="fullName" oninput="validateForm()">
+    <input id="fullName" readonly>
 
-    <label>Date de naissance</label>
-    <input type="date" id="birthDate" onchange="validateForm()">
+    <label>ID patient</label>
+    <input id="patientId" readonly>
 
-    <label>Sexe / Genre</label>
-    <select id="gender" onchange="validateForm()">
-      <option value="">Sélectionner</option>
-      <option value="Homme">Homme</option>
-      <option value="Femme">Femme</option>
-      <option value="Autre">Autre / Préfère ne pas dire</option>
-    </select>
+    <label>Numéro de dossier</label>
+    <div id="dossier" style="margin-top:8px;font-weight:700;"></div>
+
+    <label>Province</label>
+    <input id="province" readonly>
 
     <label>Type de service</label>
     <select id="serviceType" onchange="toggleRdv()">
       <option value="">Sélectionner</option>
       <option value="immediat">Téléconsultation immédiate</option>
-      <option value="rdv">Demande de rendez-vous</option>
+      <option value="rdv">Rendez-vous</option>
       <option value="domicile">Aide à domicile</option>
     </select>
 
@@ -229,39 +237,30 @@ function saveAndContinue(){
       <input type="time" id="time" onchange="validateForm()">
     </div>
 
-    <label>Description</label>
+    <label>Description médicale</label>
     <textarea id="description" oninput="validateForm()"></textarea>
 
-    <label>Province</label>
-    <select id="province" onchange="validateForm()">
-      <option value="">Choisir une province</option>
-      <option>Bujumbura</option>
-      <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
-      <option>Kayanza</option>
+    <label>Numéro de contact (confidentiel)</label>
+    <input id="phone" inputmode="tel" placeholder="+257…" oninput="validatePhone();validateForm()">
+
+    <label>Si une ordonnance est nécessaire</label>
+    <select id="ordonnance" onchange="validateForm()">
+      <option value="">Choisir une option</option>
+      <option value="pharmacie_province">Pharmacie partenaire (ma province)</option>
+      <option value="pharmacie_autre">Pharmacie partenaire (autre province)</option>
+      <option value="decider_medecin">À décider avec le médecin</option>
     </select>
 
-    <label>Numéro de téléphone</label>
-    <input
-      id="phone"
-      inputmode="tel"
-      pattern="[0-9+]*"
-      placeholder="+257…"
-      oninput="validatePhone(); validateForm()"
-    >
-<label class="checkbox">
-  <input type="checkbox" id="privacy">
-  <span>
-    J’accepte que mes informations soient traitées de manière confidentielle
-    conformément à la politique de confidentialité de CizaHealth+.
-  </span>
-</label>
-  
+    <div class="checkbox">
+      <input type="checkbox" id="privacy" onchange="validateForm()">
+      <label for="privacy">
+        J’accepte que mes informations soient traitées de manière strictement confidentielle,
+        conformément aux normes médicales et à la politique de confidentialité CizaHealth+.
+      </label>
     </div>
 
     <div class="cta">
-      <button id="continueBtn" disabled onclick="saveAndContinue()">re
+      <button id="continueBtn" disabled onclick="saveAndContinue()">
         Continuer
       </button>
     </div>
