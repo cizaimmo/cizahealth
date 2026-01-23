@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Tableau de bord</title>
+<title>CizaHealth+ | Espace patient</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --danger:#8a1f1f;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -20,7 +21,6 @@ body{
   color:var(--text);
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -36,107 +36,85 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  border-bottom:1px solid #eef1f6;
 }
-.header h1{
-  font-size:18px;
-  margin:0;
+.header strong{
+  font-size:17px;
 }
 .logout{
+  color:var(--danger);
   font-size:13px;
-  color:#c00;
-  cursor:pointer;
+  text-decoration:none;
 }
 
-/* CARD */
+/* CONTENT */
+.content{
+  padding:22px 20px;
+}
 .card{
-  margin:16px 20px;
-  padding:18px;
+  border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  border:1.8px solid #e6ebf5;
+  padding:18px;
+  margin-bottom:18px;
+}
+.card h3{
+  margin:0 0 8px;
+  font-size:15px;
+}
+.card p{
+  font-size:13.5px;
+  margin:6px 0;
+  opacity:.85;
 }
 
-/* USER */
-.user{
-  font-size:14px;
-  opacity:.9;
+/* CTA */
+.cta{
+  margin-top:14px;
 }
-
-/* ACTIONS */
-.actions{
-  margin:20px;
-  display:grid;
-  gap:14px;
-}
-.action{
+.cta a{
+  display:block;
+  text-align:center;
   padding:16px;
   border-radius:18px;
-  border:none;
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-}
-.primary{
   background:var(--blue);
   color:#fff;
+  font-weight:600;
+  text-decoration:none;
+  margin-bottom:14px;
 }
-.secondary{
-  background:#eef2fa;
+.cta.secondary a{
+  background:#edf1fa;
   color:var(--blue);
 }
 
-/* DOSSIER */
-.dossier{
-  font-size:14px;
-}
-.dossier strong{
-  display:block;
-  margin-bottom:6px;
-}
-
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
-  padding:18px;
+  padding:16px;
   font-size:12px;
   opacity:.65;
 }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", ()=>{
-  const user = JSON.parse(localStorage.getItem("cizaUser"));
-  if(!user){
+document.addEventListener("DOMContentLoaded", () => {
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+  if(!profile){
     window.location.href = "login.html";
     return;
   }
-  document.getElementById("email").innerText = user.email;
 
-  const request = JSON.parse(localStorage.getItem("cizaRequest"));
-  if(request){
-    document.getElementById("dossier").innerHTML = `
-      <strong>Dossier actif</strong>
-      Numéro : ${request.dossierNumber}<br>
-      Service : ${request.serviceType}<br>
-      Province : ${request.province}
-    `;
-  } else {
-    document.getElementById("dossier").innerHTML =
-      "Aucune demande en cours.";
-  }
+  document.getElementById("patientName").innerText =
+    profile.firstName + " " + profile.lastName;
+
+  document.getElementById("patientId").innerText =
+    profile.patientId;
 });
 
-function newRequest(){
-  window.location.href = "demande.html";
-}
-
 function logout(){
-  localStorage.clear();
-  window.location.href = "index.html";
+  localStorage.removeItem("patientAuth");
+  window.location.href = "login.html";
 }
 </script>
 </head>
@@ -147,33 +125,40 @@ function logout(){
 
   <!-- HEADER -->
   <div class="header">
-    <h1>Espace patient</h1>
-    <div class="logout" onclick="logout()">Déconnexion</div>
+    <strong>Espace patient</strong>
+    <a href="#" class="logout" onclick="logout()">Déconnexion</a>
   </div>
 
-  <!-- USER CARD -->
-  <div class="card user">
-    Connecté en tant que :<br>
-    <strong id="email"></strong>
-  </div>
+  <!-- CONTENT -->
+  <div class="content">
 
-  <!-- DOSSIER -->
-  <div class="card dossier" id="dossier">
-    Chargement...
-  </div>
+    <!-- IDENTITÉ -->
+    <div class="card">
+      <h3>Identité patient</h3>
+      <p><strong>Nom :</strong> <span id="patientName"></span></p>
+      <p><strong>ID patient :</strong> <span id="patientId"></span></p>
+    </div>
 
-  <!-- ACTIONS -->
-  <div class="actions">
-    <button class="action primary" onclick="newRequest()">
-      Nouvelle demande médicale
-    </button>
-    <button class="action secondary">
-      Historique des consultations (bientôt)
-    </button>
+    <!-- DOSSIER -->
+    <div class="card">
+      <h3>Dossier médical</h3>
+      <p>✔ Dernière consultation : en cours ou à venir</p>
+      <p>✔ Ordonnances : visibles après consultation</p>
+      <p>✔ Historique sécurisé (PDF bientôt)</p>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="cta">
+      <a href="demande.html">Nouvelle demande médicale</a>
+    </div>
+
+    <div class="cta secondary">
+      <a href="#">Historique des consultations (bientôt)</a>
+    </div>
+
   </div>
 
   <!-- FOOTER -->
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
