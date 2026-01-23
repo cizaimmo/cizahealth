@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Connexion</title>
+<title>CizaHealth+ | Connexion patient</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -19,8 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -30,23 +28,13 @@ body{
   flex-direction:column;
 }
 
-/* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
 /* HEADER */
 .header{
   text-align:center;
-  padding:10px 20px 0;
+  padding:26px 20px 10px;
 }
 .header img{
-  height:110px;
+  height:120px;
 }
 
 /* CONTENT */
@@ -55,12 +43,14 @@ body{
 }
 h1{
   font-size:20px;
+  text-align:center;
   margin-bottom:6px;
 }
 .subtitle{
+  text-align:center;
   font-size:14px;
   opacity:.8;
-  margin-bottom:22px;
+  margin-bottom:26px;
 }
 
 /* FORM */
@@ -81,7 +71,7 @@ input{
 
 /* CTA */
 .cta{
-  margin-top:30px;
+  margin-top:28px;
 }
 .cta button{
   width:100%;
@@ -101,23 +91,18 @@ input{
 .links{
   margin-top:18px;
   text-align:center;
-  font-size:13px;
 }
 .links a{
+  display:block;
+  margin-top:10px;
+  font-size:13px;
   color:var(--blue);
   text-decoration:none;
-  font-weight:500;
-  display:block;
-  margin-top:8px;
 }
 
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
@@ -127,25 +112,31 @@ input{
 
 <script>
 function validateLogin(){
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const btn = document.getElementById("loginBtn");
-
-  const validEmail = email.includes("@") && email.includes(".");
-  const valid = validEmail && password.length >= 6;
-
-  btn.disabled = !valid;
-  btn.classList.toggle("active", valid);
+  const valid = email.value.trim() !== "" && password.value.trim() !== "";
+  loginBtn.disabled = !valid;
+  loginBtn.classList.toggle("active", valid);
 }
 
 function login(){
-  // ⚠️ Simulation login (Firebase plus tard)
-  localStorage.setItem("cizaUser", JSON.stringify({
-    email: email.value,
-    role: "patient"
+  const patient = JSON.parse(localStorage.getItem("cizaPatient"));
+
+  if(!patient){
+    alert("Aucun compte trouvé. Veuillez créer un compte.");
+    return;
+  }
+
+  if(email.value !== patient.email){
+    alert("Email incorrect.");
+    return;
+  }
+
+  // Mot de passe simulé (Firebase plus tard)
+  localStorage.setItem("cizaSession", JSON.stringify({
+    patientId: patient.patientId,
+    fullName: patient.fullName
   }));
 
-  window.location.href = "dashboard.html";
+  window.location.href = "dashboard-client.html";
 }
 </script>
 </head>
@@ -154,38 +145,21 @@ function login(){
 
 <div class="app">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
-  </div>
-
-  <!-- LOGO -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Connexion</h1>
+    <h1>Connexion patient</h1>
     <div class="subtitle">
-      Accédez à votre espace patient sécurisé
+      Accédez à votre espace santé personnel
     </div>
 
     <label>Email</label>
-    <input
-      id="email"
-      type="email"
-      placeholder="exemple@email.com"
-      oninput="validateLogin()"
-    >
+    <input type="email" id="email" oninput="validateLogin()">
 
     <label>Mot de passe</label>
-    <input
-      id="password"
-      type="password"
-      placeholder="••••••••"
-      oninput="validateLogin()"
-    >
+    <input type="password" id="password" oninput="validateLogin()">
 
     <div class="cta">
       <button id="loginBtn" disabled onclick="login()">
@@ -194,13 +168,12 @@ function login(){
     </div>
 
     <div class="links">
-      <a href="signup.html">Créer un compte</a>
-      <a href="reset-password.html">Mot de passe oublié ?</a>
+      <a href="signup.html">Créer un compte patient</a>
+      <a href="#">Mot de passe oublié</a>
     </div>
+
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
