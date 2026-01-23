@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Tableau de bord</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* APP */
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header h1{
+  font-size:18px;
+  margin:0;
+}
+.logout{
+  font-size:13px;
+  color:#c00;
+  cursor:pointer;
+}
+
+/* CARD */
+.card{
+  margin:16px 20px;
+  padding:18px;
+  border-radius:var(--radius);
+  border:1.8px solid #e6ebf5;
+}
+
+/* USER */
+.user{
+  font-size:14px;
+  opacity:.9;
+}
+
+/* ACTIONS */
+.actions{
+  margin:20px;
+  display:grid;
+  gap:14px;
+}
+.action{
+  padding:16px;
+  border-radius:18px;
+  border:none;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+.primary{
+  background:var(--blue);
+  color:#fff;
+}
+.secondary{
+  background:#eef2fa;
+  color:var(--blue);
+}
+
+/* DOSSIER */
+.dossier{
+  font-size:14px;
+}
+.dossier strong{
+  display:block;
+  margin-bottom:6px;
+}
+
+/* FOOTER */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+  margin-top:auto;
+}
+.footer{
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  const user = JSON.parse(localStorage.getItem("cizaUser"));
+  if(!user){
+    window.location.href = "login.html";
+    return;
+  }
+  document.getElementById("email").innerText = user.email;
+
+  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(request){
+    document.getElementById("dossier").innerHTML = `
+      <strong>Dossier actif</strong>
+      Numéro : ${request.dossierNumber}<br>
+      Service : ${request.serviceType}<br>
+      Province : ${request.province}
+    `;
+  } else {
+    document.getElementById("dossier").innerHTML =
+      "Aucune demande en cours.";
+  }
+});
+
+function newRequest(){
+  window.location.href = "demande.html";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Espace patient</h1>
+    <div class="logout" onclick="logout()">Déconnexion</div>
+  </div>
+
+  <!-- USER CARD -->
+  <div class="card user">
+    Connecté en tant que :<br>
+    <strong id="email"></strong>
+  </div>
+
+  <!-- DOSSIER -->
+  <div class="card dossier" id="dossier">
+    Chargement...
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="action primary" onclick="newRequest()">
+      Nouvelle demande médicale
+    </button>
+    <button class="action secondary">
+      Historique des consultations (bientôt)
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
