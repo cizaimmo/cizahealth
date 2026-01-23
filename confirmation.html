@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Confirmation de la demande</title>
+<title>CizaHealth+ | Confirmation de votre demande</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -29,93 +29,102 @@ body{
   flex-direction:column;
 }
 
-/* HEADER */
 .header{
   text-align:center;
-  padding:18px 20px 10px;
+  padding:30px 20px 10px;
 }
 .header img{
-  height:120px;
+  height:110px;
 }
 
-/* CONTENT */
 .content{
   padding:24px 20px;
-}
-h1{
-  font-size:20px;
-  margin-bottom:10px;
   text-align:center;
-}
-.ref{
-  text-align:center;
-  font-size:13px;
-  opacity:.75;
-  margin-bottom:24px;
 }
 
-/* CARD */
+h1{
+  font-size:22px;
+  margin-bottom:8px;
+}
+
+.ref{
+  font-size:14px;
+  opacity:.8;
+  margin-bottom:22px;
+}
+
 .card{
   border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:18px;
-}
-.card p{
-  font-size:14px;
-  margin:6px 0;
+  border-radius:22px;
+  padding:20px;
+  text-align:left;
+  margin-bottom:28px;
 }
 
-/* CTA */
+.card p{
+  margin:10px 0;
+  font-size:14px;
+}
+
 .cta{
-  margin-top:28px;
+  margin-top:10px;
 }
 .cta button{
   width:100%;
-  padding:16px;
+  padding:18px;
   border:none;
-  border-radius:18px;
+  border-radius:20px;
   background:var(--blue);
   color:#fff;
+  font-size:16px;
   font-weight:600;
-  font-size:15px;
 }
 
-/* INFO */
-.info{
-  margin-top:18px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
+.note{
+  margin-top:16px;
+  font-size:13px;
+  opacity:.7;
 }
 
-/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const req = JSON.parse(localStorage.getItem("cizaRequest"));
+  const request = JSON.parse(localStorage.getItem("activeRequest"));
 
-  if(!req){
+  if(!request){
     window.location.href = "dashboard-client.html";
     return;
   }
 
-  document.getElementById("ref").innerText = req.dossier;
-  document.getElementById("service").innerText = req.service;
-  document.getElementById("province").innerText = req.province;
-  document.getElementById("pharmacy").innerText = req.pharmacy || "—";
+  document.getElementById("dossier").innerText = request.dossierNumber;
+  document.getElementById("service").innerText = request.serviceType;
+  document.getElementById("province").innerText = request.province;
+
+  let pharmacie = "—";
+  if(request.ordonnanceDestination === "pharmacie_province"){
+    pharmacie = "Pharmacie partenaire (province)";
+  }
+  if(request.ordonnanceDestination === "pharmacie_autre"){
+    pharmacie = "Pharmacie partenaire (autre province)";
+  }
+  if(request.ordonnanceDestination === "decider_medecin"){
+    pharmacie = "À décider avec le médecin";
+  }
+
+  document.getElementById("pharmacie").innerText = pharmacie;
 });
 
-function startSearch(){
-  window.location.href = "recherche-pro.html";
+function searchProfessional(){
+  localStorage.setItem("searchStatus", "searching");
+  window.location.href = "matching.html";
 }
 </script>
 </head>
@@ -124,40 +133,36 @@ function startSearch(){
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Confirmation de votre demande</h1>
 
+    <h1>Confirmation de votre demande</h1>
     <div class="ref">
-      Numéro de dossier : <strong id="ref">—</strong>
+      Numéro de dossier : <strong id="dossier">—</strong>
     </div>
 
     <div class="card">
-      <p><strong>Type de service :</strong> <span id="service"></span></p>
-      <p><strong>Province :</strong> <span id="province"></span></p>
-      <p><strong>Pharmacie partenaire :</strong> <span id="pharmacy"></span></p>
+      <p><strong>Type de service :</strong> <span id="service">—</span></p>
+      <p><strong>Province :</strong> <span id="province">—</span></p>
+      <p><strong>Pharmacie partenaire :</strong> <span id="pharmacie">—</span></p>
     </div>
 
     <div class="cta">
-      <button onclick="startSearch()">
+      <button onclick="searchProfessional()">
         🔍 Rechercher un professionnel disponible
       </button>
     </div>
 
-    <div class="info">
-      La recherche se fait uniquement dans la province sélectionnée.
-      <br>
-      Le paiement ne sera possible qu’après confirmation
-      de la disponibilité d’un professionnel.
+    <div class="note">
+      La recherche se fait uniquement dans la province sélectionnée.<br>
+      Le paiement sera activé après confirmation de disponibilité.
     </div>
+
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
