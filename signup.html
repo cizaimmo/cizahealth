@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Créer un compte patient</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  text-align:center;
+  padding:24px 20px 10px;
+}
+.header img{
+  height:120px;
+}
+
+.content{
+  padding:24px 20px;
+}
+
+h1{
+  font-size:20px;
+  margin-bottom:6px;
+}
+.subtitle{
+  font-size:14px;
+  opacity:.8;
+  margin-bottom:22px;
+}
+
+label{
+  display:block;
+  margin-top:16px;
+  font-size:14px;
+  font-weight:600;
+}
+
+input, select{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.8px solid #e6ebf5;
+  font-size:14px;
+}
+
+.checkbox{
+  margin-top:20px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:13px;
+}
+.checkbox input{
+  margin-top:3px;
+}
+.checkbox label{
+  margin:0;
+  line-height:1.4;
+  font-weight:400;
+}
+
+.cta{
+  margin-top:26px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:#b7c3dd;
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+}
+.cta button.active{
+  background:var(--blue);
+}
+
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+function generatePatientId(){
+  return "PT-" + Date.now().toString().slice(-6);
+}
+
+function validateForm(){
+  const fields = [
+    firstName.value,
+    lastName.value,
+    birthDate.value,
+    gender.value,
+    email.value,
+    password.value,
+    confirmPassword.value
+  ];
+
+  let valid = fields.every(v => v.trim() !== "");
+  if(password.value !== confirmPassword.value) valid = false;
+  if(!privacy.checked) valid = false;
+
+  submitBtn.disabled = !valid;
+  submitBtn.classList.toggle("active", valid);
+}
+
+function createAccount(){
+  const patientProfile = {
+    patientId: generatePatientId(),
+    firstName: firstName.value,
+    lastName: lastName.value,
+    birthDate: birthDate.value,
+    gender: gender.value,
+    email: email.value
+  };
+
+  localStorage.setItem("patientProfile", JSON.stringify(patientProfile));
+
+  // Auth simulée (Firebase plus tard)
+  localStorage.setItem("patientAuth", "connected");
+
+  window.location.href = "dashboard-client.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <div class="content">
+    <h1>Créer un compte patient</h1>
+    <div class="subtitle">
+      Accès sécurisé à votre espace médical personnel
+    </div>
+
+    <label>Prénom</label>
+    <input id="firstName" oninput="validateForm()">
+
+    <label>Nom</label>
+    <input id="lastName" oninput="validateForm()">
+
+    <label>Date de naissance</label>
+    <input type="date" id="birthDate" onchange="validateForm()">
+
+    <label>Sexe / Genre</label>
+    <select id="gender" onchange="validateForm()">
+      <option value="">Sélectionner</option>
+      <option>Homme</option>
+      <option>Femme</option>
+      <option>Autre / Préfère ne pas dire</option>
+    </select>
+
+    <label>Email</label>
+    <input type="email" id="email" oninput="validateForm()" placeholder="ex: nom@email.com">
+
+    <label>Mot de passe</label>
+    <input type="password" id="password" oninput="validateForm()">
+
+    <label>Confirmer le mot de passe</label>
+    <input type="password" id="confirmPassword" oninput="validateForm()">
+
+    <div class="checkbox">
+      <input type="checkbox" id="privacy" onchange="validateForm()">
+      <label for="privacy">
+        J’accepte que mes informations médicales soient traitées
+        de manière strictement confidentielle conformément à la
+        politique de confidentialité CizaHealth+.
+      </label>
+    </div>
+
+    <div class="cta">
+      <button id="submitBtn" disabled onclick="createAccount()">
+        Créer mon compte
+      </button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
