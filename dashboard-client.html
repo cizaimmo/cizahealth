@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Espace patient</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --danger:#8a1f1f;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #eef1f6;
+}
+.header strong{
+  font-size:17px;
+}
+.logout{
+  color:var(--danger);
+  font-size:13px;
+  text-decoration:none;
+}
+
+/* CONTENT */
+.content{
+  padding:22px 20px;
+}
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:18px;
+}
+.card h3{
+  margin:0 0 8px;
+  font-size:15px;
+}
+.card p{
+  font-size:13.5px;
+  margin:6px 0;
+  opacity:.85;
+}
+
+/* CTA */
+.cta{
+  margin-top:14px;
+}
+.cta a{
+  display:block;
+  text-align:center;
+  padding:16px;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  text-decoration:none;
+  margin-bottom:14px;
+}
+.cta.secondary a{
+  background:#edf1fa;
+  color:var(--blue);
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+  if(!profile){
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("patientName").innerText =
+    profile.firstName + " " + profile.lastName;
+
+  document.getElementById("patientId").innerText =
+    profile.patientId;
+});
+
+function logout(){
+  localStorage.removeItem("patientAuth");
+  window.location.href = "login.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <strong>Espace patient</strong>
+    <a href="#" class="logout" onclick="logout()">Déconnexion</a>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- IDENTITÉ -->
+    <div class="card">
+      <h3>Identité patient</h3>
+      <p><strong>Nom :</strong> <span id="patientName"></span></p>
+      <p><strong>ID patient :</strong> <span id="patientId"></span></p>
+    </div>
+
+    <!-- DOSSIER -->
+    <div class="card">
+      <h3>Dossier médical</h3>
+      <p>✔ Dernière consultation : en cours ou à venir</p>
+      <p>✔ Ordonnances : visibles après consultation</p>
+      <p>✔ Historique sécurisé (PDF bientôt)</p>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="cta">
+      <a href="demande.html">Nouvelle demande médicale</a>
+    </div>
+
+    <div class="cta secondary">
+      <a href="#">Historique des consultations (bientôt)</a>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
