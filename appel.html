@@ -6,131 +6,156 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#0a2a5e;
+  --red:#8a1f1f;
+  --green:#1b9c4a;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#000;
-  color:#fff;
+  background:var(--bg);
+  color:var(--text);
 }
 .app{
-  height:100vh;
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
   display:flex;
   flex-direction:column;
 }
+
+/* HEADER */
 .header{
-  padding:14px;
+  padding:16px 20px;
+  border-bottom:1px solid #eef1f6;
   text-align:center;
+}
+.header h1{
+  font-size:16px;
+  margin:0;
+}
+.header .ref{
+  font-size:12px;
+  opacity:.7;
+}
+
+/* CONTENT */
+.content{
+  padding:20px;
+  text-align:center;
+}
+.status{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:20px;
   font-size:14px;
-  background:#0a2a5e;
 }
-.videos{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  position:relative;
+.status.locked{
+  border-color:#f2a900;
 }
-video{
+.status.ready{
+  border-color:var(--green);
+}
+.video{
+  height:220px;
+  border-radius:18px;
   background:#000;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-#local{
-  position:absolute;
-  width:120px;
-  height:160px;
-  bottom:16px;
-  right:16px;
-  border-radius:12px;
-  border:2px solid #fff;
-}
-.controls{
-  padding:16px;
+  color:#fff;
   display:flex;
+  align-items:center;
   justify-content:center;
-  gap:20px;
-  background:#111;
+  font-size:13px;
+  opacity:.85;
+  margin-bottom:18px;
+}
+
+/* CONTROLS */
+.controls{
+  display:flex;
+  gap:12px;
+  justify-content:center;
 }
 .controls button{
-  padding:14px 18px;
+  padding:14px 16px;
   border:none;
-  border-radius:50%;
-  font-size:18px;
+  border-radius:18px;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+}
+.start{
+  background:var(--blue);
   color:#fff;
 }
-.end{background:#c0392b}
-.mute{background:#444}
-.video{background:#0a2a5e}
+.end{
+  background:var(--red);
+  color:#fff;
+}
+.disabled{
+  opacity:.5;
+  pointer-events:none;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.65;
+}
 </style>
 
 <script>
-let localStream;
-
-function securityCheck(){
-  const request = JSON.parse(localStorage.getItem("cizaRequest"));
-  const session = JSON.parse(localStorage.getItem("cizaSession"));
-  const payment = localStorage.getItem("paymentStatus");
-  const callStatus = localStorage.getItem("callStatus");
-
-  if(!request || !session){
-    alert("Session invalide");
-    window.location.href = "index.html";
-    return false;
-  }
-
-  if(payment !== "paid"){
-    alert("Paiement requis");
-    window.location.href = "paiement.html";
-    return false;
-  }
-
-  if(callStatus !== "accepted"){
-    alert("En attente de confirmation du professionnel");
-    window.location.href = "matching.html";
-    return false;
-  }
-
-  return true;
+function getData(){
+  return JSON.parse(localStorage.getItem("cizaRequest"));
+}
+function getPayment(){
+  return localStorage.getItem("paymentStatus");
 }
 
-async function startCall(){
-  if(!securityCheck()) return;
-
-  try{
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:true
-    });
-
-    document.getElementById("local").srcObject = localStream;
-    document.getElementById("remote").srcObject = localStream;
-
-  }catch(e){
-    alert("Accès caméra/micro refusé");
+function init(){
+  const data = getData();
+  if(data){
+    document.getElementById("ref").innerText = data.dossierNumber;
   }
+
+  const paid = getPayment() === "paid";
+  const statusBox = document.getElementById("statusBox");
+  const startBtn = document.getElementById("startBtn");
+
+  if(paid){
+    statusBox.classList.remove("locked");
+    statusBox.classList.add("ready");
+    statusBox.innerHTML = "✔ Paiement validé<br>L’appel peut démarrer.";
+    startBtn.classList.remove("disabled");
+  }else{
+    statusBox.classList.add("locked");
+    statusBox.innerHTML = "🔒 Paiement requis<br>L’appel est verrouillé.";
+    startBtn.classList.add("disabled");
+  }
+}
+
+function startCall(){
+  // Placeholder WebRTC chiffré (à brancher plus tard)
+  document.getElementById("video").innerText =
+    "🔐 Appel sécurisé en cours (simulation)";
 }
 
 function endCall(){
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-  }
-  localStorage.removeItem("callStatus");
-  alert("Appel terminé");
-  window.location.href = "index.html";
+  // Log fin d’appel + redirection résumé
+  localStorage.setItem("callEnded","true");
+  window.location.href = "resume-consultation.html";
 }
 
-function toggleMute(){
-  localStream.getAudioTracks()[0].enabled =
-    !localStream.getAudioTracks()[0].enabled;
-}
-
-function toggleVideo(){
-  localStream.getVideoTracks()[0].enabled =
-    !localStream.getVideoTracks()[0].enabled;
-}
-
-document.addEventListener("DOMContentLoaded", startCall);
+document.addEventListener("DOMContentLoaded", init);
 </script>
 </head>
 
@@ -138,19 +163,37 @@ document.addEventListener("DOMContentLoaded", startCall);
 
 <div class="app">
 
+  <!-- HEADER -->
   <div class="header">
-    🔒 Appel chiffré — CizaHealth+
+    <h1>Appel sécurisé</h1>
+    <div class="ref">Dossier n° <strong id="ref">—</strong></div>
   </div>
 
-  <div class="videos">
-    <video id="remote" autoplay playsinline></video>
-    <video id="local" autoplay muted playsinline></video>
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="status" id="statusBox">
+      🔒 Paiement requis
+    </div>
+
+    <div class="video" id="video">
+      Flux audio / vidéo sécurisé
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" class="start disabled" onclick="startCall()">
+        Démarrer
+      </button>
+      <button class="end" onclick="endCall()">
+        Terminer
+      </button>
+    </div>
+
   </div>
 
-  <div class="controls">
-    <button class="mute" onclick="toggleMute()">🎤</button>
-    <button class="video" onclick="toggleVideo()">🎥</button>
-    <button class="end" onclick="endCall()">⛔</button>
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
