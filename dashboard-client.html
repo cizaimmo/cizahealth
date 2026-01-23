@@ -9,7 +9,6 @@
 :root{
   --blue:#0a2a5e;
   --green:#1b9c4a;
-  --orange:#f2a900;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -21,6 +20,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
@@ -35,12 +35,10 @@ body{
   padding:18px 20px;
   border-bottom:1px solid #eef1f6;
 }
-.header strong{
-  font-size:16px;
-}
+.header strong{font-size:16px}
 .header span{
   display:block;
-  font-size:12px;
+  font-size:13px;
   opacity:.75;
 }
 
@@ -48,9 +46,12 @@ body{
 .content{
   padding:20px;
 }
-h1{
-  font-size:18px;
-  margin-bottom:14px;
+.section{
+  margin-bottom:22px;
+}
+.section h2{
+  font-size:16px;
+  margin-bottom:12px;
 }
 
 /* CARD */
@@ -58,49 +59,35 @@ h1{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
-  margin-bottom:16px;
-}
-.card.active{
-  border-left:5px solid var(--orange);
-}
-.card.success{
-  border-left:5px solid var(--green);
-}
-
-.card h3{
-  font-size:15px;
-  margin:0 0 6px;
+  margin-bottom:14px;
 }
 .card p{
-  font-size:13px;
-  margin:4px 0;
-  opacity:.85;
+  font-size:13.5px;
+  margin:6px 0;
+  opacity:.9;
 }
 
 /* ACTIONS */
 .actions{
-  margin-top:14px;
   display:grid;
-  gap:10px;
+  gap:12px;
 }
-.actions button{
-  padding:14px;
-  border:none;
-  border-radius:16px;
+.actions a{
+  display:block;
+  text-align:center;
+  padding:16px;
+  border-radius:18px;
   font-weight:600;
-  font-size:14px;
-}
-.actions button.disabled{
-  background:#cfd6ea;
+  text-decoration:none;
   color:#fff;
 }
-.actions button.primary{
-  background:var(--blue);
-  color:#fff;
-}
-.actions button.success{
-  background:var(--green);
-  color:#fff;
+.primary{background:var(--blue)}
+.secondary{background:#6b7fa6}
+
+/* HISTORY */
+.history{
+  font-size:13px;
+  opacity:.85;
 }
 
 /* FOOTER */
@@ -114,49 +101,25 @@ h1{
 </style>
 
 <script>
-let doctorFound = false;
-let paymentDone = false;
+document.addEventListener("DOMContentLoaded",()=>{
+  // Simulation patient (sera Firebase plus tard)
+  const patient = {
+    name:"Alice N.",
+    id:"PAT-2026-004581"
+  };
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  const session = JSON.parse(localStorage.getItem("cizaSession"));
+  document.getElementById("patientName").innerText = patient.name;
+  document.getElementById("patientId").innerText = patient.id;
+
   const request = JSON.parse(localStorage.getItem("cizaRequest"));
-
-  if(!session){
-    window.location.href = "login.html";
-    return;
-  }
-
-  document.getElementById("patientName").innerText = session.fullName;
-  document.getElementById("patientId").innerText = session.patientId;
-
   if(request){
-    document.getElementById("province").innerText = request.province;
-    document.getElementById("dossier").innerText = request.dossierNumber;
+    document.getElementById("status").innerText =
+      "Demande en cours — " + request.serviceType;
   } else {
-    document.getElementById("noRequest").style.display = "block";
+    document.getElementById("status").innerText =
+      "Aucune demande active";
   }
 });
-
-function searchDoctor(){
-  // Simulation matching (Firebase plus tard)
-  doctorFound = true;
-  document.getElementById("status").innerText =
-    "✔ Médecin disponible dans votre province";
-  document.getElementById("payBtn").classList.remove("disabled");
-  document.getElementById("payBtn").classList.add("primary");
-}
-
-function pay(){
-  if(!doctorFound) return;
-  paymentDone = true;
-  document.getElementById("callBtn").classList.remove("disabled");
-  document.getElementById("callBtn").classList.add("success");
-}
-
-function startCall(){
-  if(!paymentDone) return;
-  window.location.href = "appel.html";
-}
 </script>
 </head>
 
@@ -170,39 +133,41 @@ function startCall(){
     <span>ID patient : <span id="patientId"></span></span>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Votre demande active</h1>
 
-    <div id="noRequest" style="display:none">
-      Aucune demande en cours.
+    <!-- STATUT -->
+    <div class="section">
+      <h2>Statut actuel</h2>
+      <div class="card">
+        <p id="status"></p>
+      </div>
     </div>
 
-    <div class="card active">
-      <h3>Dossier <span id="dossier"></span></h3>
-      <p><strong>Province :</strong> <span id="province"></span></p>
-      <p id="status">⏳ En attente d’un médecin disponible</p>
-
+    <!-- ACTIONS -->
+    <div class="section">
+      <h2>Services</h2>
       <div class="actions">
-        <button class="primary" onclick="searchDoctor()">
-          Chercher un médecin disponible
-        </button>
+        <a href="demande.html" class="primary">
+          🩺 Demander une téléconsultation
+        </a>
+        <a href="demande.html" class="secondary">
+          🏠 Demander une aide à domicile
+        </a>
+      </div>
+    </div>
 
-        <button id="payBtn" class="disabled" onclick="pay()">
-          Procéder au paiement
-        </button>
-
-        <button id="callBtn" class="disabled" onclick="startCall()">
-          Démarrer la téléconsultation
-        </button>
+    <!-- HISTORIQUE -->
+    <div class="section">
+      <h2>Historique médical</h2>
+      <div class="card history">
+        Aucune consultation enregistrée pour le moment.
       </div>
     </div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+    © 2026 CizaHealth+ — Espace patient sécurisé
   </div>
 
 </div>
