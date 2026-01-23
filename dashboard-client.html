@@ -55,14 +55,20 @@ body{
 .content{
   padding:24px 20px;
 }
+
+/* IDENTITY */
 .name{
   font-size:20px;
   font-weight:700;
 }
-.pid{
+.meta{
   font-size:13px;
-  opacity:.75;
-  margin-bottom:22px;
+  opacity:.8;
+  margin-top:4px;
+}
+.pid{
+  margin-top:8px;
+  font-size:13px;
 }
 
 /* CARD */
@@ -70,15 +76,11 @@ body{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
-  margin-bottom:18px;
+  margin-top:18px;
 }
 .card h3{
-  margin:0 0 10px;
+  margin:0 0 12px;
   font-size:15px;
-}
-.card p{
-  font-size:13px;
-  opacity:.85;
 }
 
 /* BUTTONS */
@@ -90,7 +92,6 @@ body{
   font-weight:600;
   font-size:15px;
   margin-top:12px;
-  cursor:pointer;
 }
 .primary{
   background:var(--blue);
@@ -99,11 +100,6 @@ body{
 .secondary{
   background:#e9eef8;
   color:var(--blue);
-}
-.disabled{
-  background:#c9d3ea;
-  color:#fff;
-  cursor:not-allowed;
 }
 
 /* FOOTER */
@@ -117,47 +113,23 @@ body{
 </style>
 
 <script>
-let activeRequest = null;
-
 document.addEventListener("DOMContentLoaded", () => {
+
+  // Récupération du profil créé au signup
   const profile = JSON.parse(localStorage.getItem("patientProfile"));
+
   if(!profile){
+    // Sécurité : pas d’accès sans identité
     window.location.href = "login.html";
     return;
   }
 
-  fullName.innerText = profile.fullName;
-  patientId.innerText = profile.patientId;
-
-  activeRequest = JSON.parse(localStorage.getItem("activeRequest"));
-
-  if(activeRequest){
-    statusText.innerText = "Demande en cours — Province : " + activeRequest.province;
-    requestCard.style.display = "block";
-  }
+  // Injection des données réelles du signup
+  document.getElementById("fullName").innerText = profile.fullName;
+  document.getElementById("patientId").innerText = profile.patientId;
+  document.getElementById("age").innerText = profile.age + " ans";
+  document.getElementById("province").innerText = profile.province;
 });
-
-function searchDoctor(){
-  // Simulation : médecin trouvé dans la province
-  activeRequest.doctorFound = true;
-  activeRequest.doctorName = "Dr disponible (" + activeRequest.province + ")";
-  localStorage.setItem("activeRequest", JSON.stringify(activeRequest));
-
-  doctorStatus.innerText = "✔ " + activeRequest.doctorName;
-  payBtn.classList.remove("disabled");
-}
-
-function proceedPayment(){
-  activeRequest.paymentStatus = "paid";
-  localStorage.setItem("activeRequest", JSON.stringify(activeRequest));
-
-  payBtn.innerText = "Paiement confirmé";
-  startCallBtn.classList.remove("disabled");
-}
-
-function startCall(){
-  window.location.href = "appel.html";
-}
 </script>
 </head>
 
@@ -173,50 +145,44 @@ function startCall(){
 
   <!-- LOGO -->
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
   <!-- CONTENT -->
   <div class="content">
 
+    <!-- IDENTITÉ -->
     <div class="name" id="fullName">—</div>
-    <div class="pid">ID patient : <strong id="patientId">—</strong></div>
+    <div class="meta">
+      Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
+    </div>
+    <div class="pid">
+      ID patient : <strong id="patientId">—</strong>
+    </div>
 
-    <!-- AUCUNE DEMANDE -->
+    <!-- SERVICES -->
     <div class="card">
-      <h3>Nouvelle demande</h3>
+      <h3>Services médicaux</h3>
+
       <button class="btn primary" onclick="location.href='demande.html'">
         🩺 Demander une téléconsultation
       </button>
+
       <button class="btn secondary" onclick="location.href='demande.html'">
         🏠 Demander une aide à domicile
       </button>
     </div>
 
-    <!-- DEMANDE ACTIVE -->
-    <div class="card" id="requestCard" style="display:none;">
-      <h3>Statut de la demande</h3>
-      <p id="statusText">—</p>
-
-      <p id="doctorStatus">Aucun professionnel assigné</p>
-
-      <button class="btn secondary" onclick="searchDoctor()">
-        🔍 Chercher un professionnel disponible
-      </button>
-
-      <button id="payBtn" class="btn disabled" onclick="proceedPayment()">
-        💳 Procéder au paiement
-      </button>
-
-      <button id="startCallBtn" class="btn disabled" onclick="startCall()">
-        🎥 Démarrer la téléconsultation
-      </button>
-    </div>
-
-    <!-- HISTORIQUE -->
+    <!-- DOSSIER -->
     <div class="card">
-      <h3>Historique médical</h3>
-      <p>Aucune consultation enregistrée pour le moment.</p>
+      <h3>Mon dossier santé</h3>
+      <p style="font-size:13px;opacity:.85">
+        Consultez l’historique de vos consultations, résumés médicaux
+        et recommandations professionnelles.
+      </p>
+      <button class="btn secondary" onclick="location.href='dossier.html'">
+        Consulter mon dossier
+      </button>
     </div>
 
   </div>
