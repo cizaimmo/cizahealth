@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Espace patient</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.logout{
+  color:#8a1f1f;
+  text-decoration:none;
+  font-size:13px;
+}
+
+/* LOGO (IDENTIQUE À INDEX) */
+.logo{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.logo img{
+  height:120px;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
+}
+.name{
+  font-size:20px;
+  font-weight:700;
+}
+.pid{
+  font-size:13px;
+  opacity:.75;
+  margin-bottom:22px;
+}
+
+/* CARD */
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:18px;
+}
+.card h3{
+  margin:0 0 10px;
+  font-size:15px;
+}
+
+/* BUTTONS */
+.btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  font-weight:600;
+  font-size:15px;
+  margin-top:12px;
+}
+.primary{
+  background:var(--blue);
+  color:#fff;
+}
+.secondary{
+  background:#e9eef8;
+  color:var(--blue);
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.6;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+
+  if(!profile){
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("fullName").innerText = profile.fullName;
+  document.getElementById("patientId").innerText = profile.patientId;
+
+  const activeRequest = localStorage.getItem("cizaRequest");
+
+  if(activeRequest){
+    document.getElementById("status").innerText = "Demande en cours";
+    document.getElementById("resume").classList.remove("hidden");
+  }
+});
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <strong>Espace patient</strong>
+    <a href="logout.html" class="logout">Déconnexion</a>
+  </div>
+
+  <!-- LOGO -->
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="name" id="fullName">—</div>
+    <div class="pid">ID patient : <strong id="patientId">—</strong></div>
+
+    <div class="card">
+      <h3>Statut actuel</h3>
+      <div id="status">Aucune demande en cours</div>
+    </div>
+
+    <div class="card hidden" id="resume">
+      <h3>Dossier médical</h3>
+      <p>Une demande est en cours de traitement.</p>
+      <button class="btn secondary" onclick="location.href='confirmation.html'">
+        Voir la demande
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>Services</h3>
+      <button class="btn primary" onclick="location.href='demande.html'">
+        🩺 Demander une téléconsultation
+      </button>
+      <button class="btn secondary" onclick="location.href='demande.html'">
+        🏠 Demander une aide à domicile
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>Historique médical</h3>
+      <p>Aucune consultation enregistrée pour le moment.</p>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
