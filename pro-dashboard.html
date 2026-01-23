@@ -2,13 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Administration</title>
+<title>CizaHealth+ | Tableau de bord Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
-  --danger:#8a1f1f;
+  --green:#1b9c4a;
+  --red:#8a1f1f;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -42,9 +43,9 @@ body{
   font-size:16px;
 }
 .logout{
-  text-decoration:none;
   font-size:13px;
-  color:var(--danger);
+  color:var(--red);
+  cursor:pointer;
 }
 
 /* CONTENT */
@@ -56,6 +57,22 @@ h1{
   margin-bottom:14px;
 }
 
+/* STATUS */
+.status{
+  border-radius:16px;
+  padding:14px;
+  font-size:13px;
+  margin-bottom:18px;
+}
+.status.pending{
+  background:#fff6e0;
+  color:#8a5b00;
+}
+.status.valid{
+  background:#e7f6ec;
+  color:#1b9c4a;
+}
+
 /* CARD */
 .card{
   border:2px solid #e6ebf5;
@@ -63,16 +80,6 @@ h1{
   padding:18px;
   margin-bottom:16px;
 }
-.card.pending{
-  border-left:5px solid #f2a900;
-}
-.card.validated{
-  border-left:5px solid #1b9c4a;
-}
-.card.refused{
-  border-left:5px solid #8a1f1f;
-}
-
 .card h3{
   font-size:15px;
   margin:0 0 6px;
@@ -81,18 +88,6 @@ h1{
   font-size:13px;
   margin:4px 0;
   opacity:.85;
-}
-
-/* DOCS */
-.docs{
-  margin-top:10px;
-}
-.docs a{
-  display:block;
-  font-size:13px;
-  color:var(--blue);
-  text-decoration:none;
-  margin-top:6px;
 }
 
 /* ACTIONS */
@@ -109,12 +104,16 @@ h1{
   font-size:14px;
   cursor:pointer;
 }
-.actions .approve{
-  background:#1b9c4a;
+.accept{
+  background:var(--green);
   color:#fff;
 }
-.actions .reject{
-  background:var(--danger);
+.reject{
+  background:var(--red);
+  color:#fff;
+}
+.call{
+  background:var(--blue);
   color:#fff;
 }
 
@@ -127,6 +126,52 @@ h1{
   opacity:.6;
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  const pro = JSON.parse(localStorage.getItem("cizaPro"));
+  if(!pro){
+    window.location.href = "pro-login.html";
+    return;
+  }
+
+  // Statut vérification
+  if(!pro.verified){
+    document.getElementById("status").innerHTML =
+      "⏳ Compte en attente de validation par CizaHealth+";
+    document.getElementById("status").className = "status pending";
+  } else {
+    document.getElementById("status").innerHTML =
+      "✔ Compte vérifié – Vous pouvez accepter des consultations";
+    document.getElementById("status").className = "status valid";
+  }
+
+  // Charger demande patient (simulation)
+  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(request){
+    document.getElementById("patientName").innerText = request.fullName;
+    document.getElementById("service").innerText = request.serviceType;
+    document.getElementById("province").innerText = request.province;
+    document.getElementById("dossier").innerText = request.dossierNumber;
+  } else {
+    document.getElementById("card").innerHTML =
+      "<p>Aucune demande disponible pour le moment.</p>";
+  }
+});
+
+function acceptRequest(){
+  window.location.href = "mise-en-relation.html";
+}
+
+function rejectRequest(){
+  alert("Demande refusée.");
+}
+
+function logout(){
+  localStorage.removeItem("cizaPro");
+  window.location.href = "index.html";
+}
+</script>
 </head>
 
 <body>
@@ -135,45 +180,30 @@ h1{
 
   <!-- HEADER -->
   <div class="header">
-    <strong>Administration</strong>
-    <a href="admin-login.html" class="logout">Déconnexion</a>
+    <strong>Espace professionnel</strong>
+    <div class="logout" onclick="logout()">Déconnexion</div>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
-    <h1>Inscriptions professionnelles</h1>
+    <h1>Demandes patients</h1>
 
-    <!-- DEMANDE EN ATTENTE -->
-    <div class="card pending">
-      <h3>Dr Jean N.</h3>
-      <p><strong>Profession :</strong> Médecin</p>
-      <p><strong>Province :</strong> Bujumbura</p>
-      <p><strong>Email :</strong> jean@hopital.bi</p>
+    <div id="status" class="status"></div>
 
-      <div class="docs">
-        <strong>Documents :</strong>
-        <a href="#">📄 Diplôme professionnel</a>
-        <a href="#">🪪 Pièce d’identité</a>
-      </div>
+    <div class="card" id="card">
+      <h3 id="patientName">—</h3>
+      <p><strong>Dossier :</strong> <span id="dossier"></span></p>
+      <p><strong>Service :</strong> <span id="service"></span></p>
+      <p><strong>Province :</strong> <span id="province"></span></p>
 
       <div class="actions">
-        <button class="approve">Valider le compte</button>
-        <button class="reject">Refuser</button>
+        <button class="accept" onclick="acceptRequest()">
+          Accepter la consultation
+        </button>
+        <button class="reject" onclick="rejectRequest()">
+          Refuser
+        </button>
       </div>
-    </div>
-
-    <!-- DEMANDE VALIDÉE -->
-    <div class="card validated">
-      <h3>Infirmière Alice M.</h3>
-      <p><strong>Province :</strong> Gitega</p>
-      <p><strong>Statut :</strong> Compte activé</p>
-    </div>
-
-    <!-- DEMANDE REFUSÉE -->
-    <div class="card refused">
-      <h3>Mr X.</h3>
-      <p><strong>Raison :</strong> Documents non conformes</p>
-      <p><strong>Statut :</strong> Refusé</p>
     </div>
 
   </div>
