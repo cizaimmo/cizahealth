@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Fin de consultation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --green:#1b9c4a;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  padding:28px 20px 10px;
+}
+.header img{
+  height:110px;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
+  text-align:center;
+}
+h1{
+  font-size:20px;
+  margin-bottom:10px;
+}
+.ref{
+  font-size:13px;
+  opacity:.8;
+  margin-bottom:22px;
+}
+
+/* STATUS CARD */
+.status{
+  border:2px solid #e6ebf5;
+  border-radius:22px;
+  padding:22px;
+  margin-bottom:26px;
+}
+.status.success{
+  border-left:5px solid var(--green);
+}
+.status p{
+  font-size:14px;
+  margin:8px 0;
+  line-height:1.5;
+}
+
+/* INFO BOX */
+.info-box{
+  margin-top:10px;
+  font-size:13px;
+  opacity:.85;
+}
+
+/* CTA */
+.cta{
+  margin-top:30px;
+}
+.cta a{
+  display:block;
+  text-align:center;
+  background:var(--blue);
+  color:#fff;
+  padding:16px;
+  border-radius:18px;
+  font-weight:600;
+  text-decoration:none;
+  font-size:15px;
+}
+
+/* FOOTER */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+  margin-top:auto;
+}
+.footer{
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  const data = JSON.parse(localStorage.getItem("cizaRequest") || "{}");
+
+  if(!data.dossierNumber){
+    document.getElementById("ref").innerText = "—";
+  }else{
+    document.getElementById("ref").innerText = data.dossierNumber;
+  }
+});
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Consultation terminée</h1>
+
+    <div class="ref">
+      Numéro de dossier : <strong id="ref"></strong>
+    </div>
+
+    <div class="status success">
+      <p>✔ La consultation médicale est officiellement clôturée.</p>
+      <p>🩺 Le professionnel va finaliser le résumé médical.</p>
+      <p>💊 Si une ordonnance est nécessaire, elle sera transmise
+      directement à une pharmacie partenaire.</p>
+    </div>
+
+    <div class="info-box">
+      Vous pourrez consulter :
+      <br>• le résumé de la consultation
+      <br>• l’historique de vos échanges
+      <br>• le statut de votre ordonnance
+      <br><br>
+      depuis votre espace patient sécurisé.
+    </div>
+
+    <div class="cta">
+      <a href="dashboard-client.html">
+        Retour à mon espace
+      </a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
