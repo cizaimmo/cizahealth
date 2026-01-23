@@ -19,6 +19,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
@@ -41,7 +42,7 @@ body{
   font-size:13px;
 }
 
-/* LOGO (IDENTIQUE À INDEX) */
+/* LOGO */
 .logo{
   text-align:center;
   padding:10px 20px 0;
@@ -75,6 +76,10 @@ body{
   margin:0 0 10px;
   font-size:15px;
 }
+.card p{
+  font-size:13px;
+  opacity:.85;
+}
 
 /* BUTTONS */
 .btn{
@@ -85,6 +90,7 @@ body{
   font-weight:600;
   font-size:15px;
   margin-top:12px;
+  cursor:pointer;
 }
 .primary{
   background:var(--blue);
@@ -93,6 +99,11 @@ body{
 .secondary{
   background:#e9eef8;
   color:var(--blue);
+}
+.disabled{
+  background:#c9d3ea;
+  color:#fff;
+  cursor:not-allowed;
 }
 
 /* FOOTER */
@@ -106,24 +117,47 @@ body{
 </style>
 
 <script>
+let activeRequest = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   const profile = JSON.parse(localStorage.getItem("patientProfile"));
-
   if(!profile){
     window.location.href = "login.html";
     return;
   }
 
-  document.getElementById("fullName").innerText = profile.fullName;
-  document.getElementById("patientId").innerText = profile.patientId;
+  fullName.innerText = profile.fullName;
+  patientId.innerText = profile.patientId;
 
-  const activeRequest = localStorage.getItem("cizaRequest");
+  activeRequest = JSON.parse(localStorage.getItem("activeRequest"));
 
   if(activeRequest){
-    document.getElementById("status").innerText = "Demande en cours";
-    document.getElementById("resume").classList.remove("hidden");
+    statusText.innerText = "Demande en cours — Province : " + activeRequest.province;
+    requestCard.style.display = "block";
   }
 });
+
+function searchDoctor(){
+  // Simulation : médecin trouvé dans la province
+  activeRequest.doctorFound = true;
+  activeRequest.doctorName = "Dr disponible (" + activeRequest.province + ")";
+  localStorage.setItem("activeRequest", JSON.stringify(activeRequest));
+
+  doctorStatus.innerText = "✔ " + activeRequest.doctorName;
+  payBtn.classList.remove("disabled");
+}
+
+function proceedPayment(){
+  activeRequest.paymentStatus = "paid";
+  localStorage.setItem("activeRequest", JSON.stringify(activeRequest));
+
+  payBtn.innerText = "Paiement confirmé";
+  startCallBtn.classList.remove("disabled");
+}
+
+function startCall(){
+  window.location.href = "appel.html";
+}
 </script>
 </head>
 
@@ -139,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   <!-- LOGO -->
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <!-- CONTENT -->
@@ -148,21 +182,9 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="name" id="fullName">—</div>
     <div class="pid">ID patient : <strong id="patientId">—</strong></div>
 
+    <!-- AUCUNE DEMANDE -->
     <div class="card">
-      <h3>Statut actuel</h3>
-      <div id="status">Aucune demande en cours</div>
-    </div>
-
-    <div class="card hidden" id="resume">
-      <h3>Dossier médical</h3>
-      <p>Une demande est en cours de traitement.</p>
-      <button class="btn secondary" onclick="location.href='confirmation.html'">
-        Voir la demande
-      </button>
-    </div>
-
-    <div class="card">
-      <h3>Services</h3>
+      <h3>Nouvelle demande</h3>
       <button class="btn primary" onclick="location.href='demande.html'">
         🩺 Demander une téléconsultation
       </button>
@@ -171,6 +193,27 @@ document.addEventListener("DOMContentLoaded", () => {
       </button>
     </div>
 
+    <!-- DEMANDE ACTIVE -->
+    <div class="card" id="requestCard" style="display:none;">
+      <h3>Statut de la demande</h3>
+      <p id="statusText">—</p>
+
+      <p id="doctorStatus">Aucun professionnel assigné</p>
+
+      <button class="btn secondary" onclick="searchDoctor()">
+        🔍 Chercher un professionnel disponible
+      </button>
+
+      <button id="payBtn" class="btn disabled" onclick="proceedPayment()">
+        💳 Procéder au paiement
+      </button>
+
+      <button id="startCallBtn" class="btn disabled" onclick="startCall()">
+        🎥 Démarrer la téléconsultation
+      </button>
+    </div>
+
+    <!-- HISTORIQUE -->
     <div class="card">
       <h3>Historique médical</h3>
       <p>Aucune consultation enregistrée pour le moment.</p>
