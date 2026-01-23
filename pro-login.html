@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Espace professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 20px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.header img{
+  height:120px;
+}
+
+/* CONTENT */
+.content{
+  padding:24px 20px;
+}
+h1{
+  font-size:20px;
+  margin-bottom:8px;
+  text-align:center;
+}
+.subtitle{
+  font-size:14px;
+  text-align:center;
+  opacity:.85;
+  margin-bottom:24px;
+}
+
+/* FORM */
+label{
+  display:block;
+  margin-top:18px;
+  font-size:14px;
+  font-weight:600;
+}
+input{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.8px solid #e6ebf5;
+  font-size:14px;
+}
+
+/* CTA */
+.cta{
+  margin-top:28px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:#b7c3dd;
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+}
+.cta button.active{
+  background:var(--blue);
+}
+
+/* LINKS */
+.links{
+  margin-top:18px;
+  text-align:center;
+}
+.links a{
+  display:block;
+  margin-top:10px;
+  font-size:13px;
+  color:var(--blue);
+  text-decoration:none;
+}
+
+/* INFO BOX */
+.info-box{
+  margin-top:26px;
+  border:1.6px solid #e6ebf5;
+  border-radius:18px;
+  padding:16px;
+  font-size:13px;
+  opacity:.85;
+}
+
+/* FOOTER */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
+  margin-top:auto;
+}
+.footer{
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+function validateForm(){
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  const valid =
+    email.includes("@") &&
+    password.length >= 6;
+
+  loginBtn.disabled = !valid;
+  loginBtn.classList.toggle("active", valid);
+}
+
+function loginPro(){
+  const proUser = {
+    email: emailInput.value,
+    role: "pro",
+    verified: false, // documents pas encore validés
+    loginAt: Date.now()
+  };
+
+  localStorage.setItem("cizaPro", JSON.stringify(proUser));
+  window.location.href = "pro-dashboard.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html" class="back">← Retour</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Espace professionnel</h1>
+    <div class="subtitle">
+      Médecins & Infirmiers partenaires
+    </div>
+
+    <label>Email professionnel</label>
+    <input
+      id="emailInput"
+      type="email"
+      placeholder="ex: nom@hopital.bi"
+      oninput="validateForm()"
+    >
+
+    <label>Mot de passe</label>
+    <input
+      id="passwordInput"
+      type="password"
+      placeholder="••••••••"
+      oninput="validateForm()"
+    >
+
+    <div class="cta">
+      <button id="loginBtn" disabled onclick="loginPro()">
+        Se connecter
+      </button>
+    </div>
+
+    <div class="links">
+      <a href="pro-register.html">Créer un compte professionnel</a>
+      <a href="#">Mot de passe oublié</a>
+    </div>
+
+    <div class="info-box">
+      ⚠️ L’accès à la plateforme est soumis à la vérification
+      des documents professionnels (diplôme, autorisation,
+      identité).  
+      <br><br>
+      Aucun patient ne peut vous contacter sans validation
+      officielle par CizaHealth+.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-separator"></div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
