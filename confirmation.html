@@ -29,22 +29,13 @@ body{
   flex-direction:column;
 }
 
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
 /* HEADER */
 .header{
   text-align:center;
-  padding:10px 20px 0;
+  padding:18px 20px 10px;
 }
 .header img{
-  height:104px;
+  height:120px;
 }
 
 /* CONTENT */
@@ -53,34 +44,31 @@ body{
 }
 h1{
   font-size:20px;
-  margin-bottom:6px;
+  margin-bottom:10px;
+  text-align:center;
 }
 .ref{
+  text-align:center;
   font-size:13px;
-  color:var(--blue);
-  font-weight:600;
-  margin-bottom:18px;
+  opacity:.75;
+  margin-bottom:24px;
 }
 
-/* INFO CARD */
+/* CARD */
 .card{
-  border:1.8px solid #e6ebf5;
+  border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:16px;
-  margin-bottom:14px;
+  padding:18px;
+  margin-bottom:18px;
 }
-.card strong{
-  display:block;
-  font-size:13px;
-  opacity:.7;
-}
-.card span{
-  font-size:15px;
+.card p{
+  font-size:14px;
+  margin:6px 0;
 }
 
 /* CTA */
 .cta{
-  margin-top:22px;
+  margin-top:28px;
 }
 .cta button{
   width:100%;
@@ -93,23 +81,8 @@ h1{
   font-size:15px;
 }
 
-/* SECONDARY */
-.secondary{
-  margin-top:12px;
-}
-.secondary button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:18px;
-  background:#e9eef6;
-  color:var(--blue);
-  font-weight:600;
-  font-size:14px;
-}
-
 /* INFO */
-.notice{
+.info{
   margin-top:18px;
   font-size:12.5px;
   opacity:.75;
@@ -117,12 +90,8 @@ h1{
 }
 
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
@@ -131,117 +100,64 @@ h1{
 </style>
 
 <script>
-let request = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const req = JSON.parse(localStorage.getItem("cizaRequest"));
 
-function loadData(){
-  const raw = localStorage.getItem("cizaRequest");
-  if(!raw){
-    window.location.href = "demande.html";
+  if(!req){
+    window.location.href = "dashboard-client.html";
     return;
   }
 
-  request = JSON.parse(raw);
+  document.getElementById("ref").innerText = req.dossier;
+  document.getElementById("service").innerText = req.service;
+  document.getElementById("province").innerText = req.province;
+  document.getElementById("pharmacy").innerText = req.pharmacy || "—";
+});
 
-  document.getElementById("ref").innerText = "Dossier n° " + request.dossierNumber;
-
-  fill("fullname", request.fullName);
-  fill("birth", request.birthDate + " (" + request.age + " ans)");
-  fill("gender", request.gender);
-  fill("province", request.province);
-  fill("phone", request.phone);
-  fill("service", serviceLabel(request.serviceType));
-  fill("desc", request.description);
-}
-
-function fill(id, value){
-  document.getElementById(id).innerText = value || "-";
-}
-
-function serviceLabel(v){
-  if(v === "immediat") return "Téléconsultation immédiate";
-  if(v === "rdv") return "Rendez-vous médical";
-  if(v === "domicile") return "Aide à domicile";
-  return "-";
-}
-
-function proceedToPayment(){
-  // Étape suivante (paiement / mise en relation)
-  window.location.href = "paiement.html";
-}
-
-function editRequest(){
-  window.location.href = "demande.html";
+function startSearch(){
+  window.location.href = "recherche-pro.html";
 }
 </script>
 </head>
 
-<body onload="loadData()">
+<body>
 
 <div class="app">
 
-  <div class="topbar">
-    <a href="index.html" class="back">← Accueil</a>
-  </div>
-
+  <!-- HEADER -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
+  <!-- CONTENT -->
   <div class="content">
-    <h1>Confirmation de la demande</h1>
-    <div class="ref" id="ref"></div>
+    <h1>Confirmation de votre demande</h1>
 
-    <div class="card">
-      <strong>Nom complet</strong>
-      <span id="fullname"></span>
+    <div class="ref">
+      Numéro de dossier : <strong id="ref">—</strong>
     </div>
 
     <div class="card">
-      <strong>Date de naissance / Âge</strong>
-      <span id="birth"></span>
-    </div>
-
-    <div class="card">
-      <strong>Sexe / Genre</strong>
-      <span id="gender"></span>
-    </div>
-
-    <div class="card">
-      <strong>Province</strong>
-      <span id="province"></span>
-    </div>
-
-    <div class="card">
-      <strong>Numéro de téléphone</strong>
-      <span id="phone"></span>
-    </div>
-
-    <div class="card">
-      <strong>Type de service</strong>
-      <span id="service"></span>
-    </div>
-
-    <div class="card">
-      <strong>Description</strong>
-      <span id="desc"></span>
+      <p><strong>Type de service :</strong> <span id="service"></span></p>
+      <p><strong>Province :</strong> <span id="province"></span></p>
+      <p><strong>Pharmacie partenaire :</strong> <span id="pharmacy"></span></p>
     </div>
 
     <div class="cta">
-      <button onclick="proceedToPayment()">
-        Procéder au paiement
+      <button onclick="startSearch()">
+        🔍 Rechercher un professionnel disponible
       </button>
     </div>
 
-    <div class="secondary">
-      <button onclick="editRequest()">Modifier</button>
-    </div>
-
-    <div class="notice">
-      Vos informations sont traitées de manière confidentielle.
+    <div class="info">
+      La recherche se fait uniquement dans la province sélectionnée.
+      <br>
+      Le paiement ne sera possible qu’après confirmation
+      de la disponibilité d’un professionnel.
     </div>
   </div>
 
-  <div class="footer-separator"></div>
+  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
