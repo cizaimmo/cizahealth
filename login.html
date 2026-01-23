@@ -6,75 +6,168 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#f4f7fb;
+  background:var(--bg);
+  color:var(--text);
 }
+
+/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  padding:24px 20px 10px;
+}
+.header img{
+  height:120px;
+}
+.header h1{
+  font-size:20px;
+  margin:10px 0 6px;
+}
+.header p{
+  font-size:14px;
+  opacity:.85;
+}
+
+/* CONTENT */
+.content{
   padding:24px 20px;
 }
-.logo{text-align:center}
-.logo img{height:120px}
-h1{text-align:center;font-size:20px;margin:18px 0}
+
+label{
+  display:block;
+  margin-top:18px;
+  font-size:14px;
+  font-weight:600;
+}
 input{
   width:100%;
-  margin-top:14px;
+  margin-top:8px;
   padding:14px;
   border-radius:14px;
   border:1.8px solid #e6ebf5;
+  font-size:14px;
 }
-button{
-  margin-top:22px;
+
+/* CTA */
+.cta{
+  margin-top:28px;
+}
+.cta button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:#0a2a5e;
+  background:var(--blue);
   color:#fff;
   font-weight:600;
+  font-size:15px;
 }
+
+/* LINKS */
 .links{
   margin-top:18px;
   text-align:center;
+}
+.links a{
+  display:block;
+  margin-top:10px;
   font-size:13px;
+  color:var(--blue);
+  text-decoration:none;
+}
+
+/* MESSAGE */
+.message{
+  margin-top:16px;
+  font-size:13px;
+  color:#8a1f1f;
+  text-align:center;
+  display:none;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.6;
 }
 </style>
 
 <script>
-function login(){
-  const profile = localStorage.getItem("patientProfile");
-  if(!profile){
-    alert("Aucun compte trouvé. Veuillez créer un compte.");
+function loginPatient(){
+  const storedProfile = localStorage.getItem("patientProfile");
+
+  if(!storedProfile){
+    document.getElementById("error").style.display = "block";
     return;
   }
+
+  // Connexion réussie (simulation avant Firebase)
   window.location.href = "dashboard-client.html";
 }
 </script>
 </head>
 
 <body>
+
 <div class="app">
 
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <h1>Connexion patient</h1>
+    <p>Accédez à votre espace santé sécurisé</p>
   </div>
 
-  <h1>Connexion patient</h1>
+  <!-- CONTENT -->
+  <div class="content">
 
-  <input placeholder="Email ou identifiant patient">
-  <input type="password" placeholder="Mot de passe">
+    <label>Contact utilisé lors de l’inscription</label>
+    <input placeholder="Téléphone ou email">
 
-  <button onclick="login()">Se connecter</button>
+    <div class="cta">
+      <button onclick="loginPatient()">
+        Se connecter
+      </button>
+    </div>
 
-  <div class="links">
-    <a href="signup.html">Créer un compte patient</a>
+    <div class="message" id="error">
+      Aucun compte patient trouvé.<br>
+      Veuillez créer un compte avant de vous connecter.
+    </div>
+
+    <div class="links">
+      <a href="signup.html">Créer un compte patient</a>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
+
 </body>
 </html>
