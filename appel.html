@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Appel en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --green:#1b9c4a;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  text-align:center;
+  padding:24px 20px 10px;
+}
+.header img{
+  height:120px;
+}
+
+.content{
+  padding:22px 20px;
+  text-align:center;
+}
+
+h1{
+  font-size:20px;
+  margin-bottom:6px;
+}
+.ref{
+  font-size:13px;
+  opacity:.75;
+  margin-bottom:20px;
+}
+
+.status{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:20px;
+  font-size:14px;
+  margin-bottom:24px;
+}
+
+.status.ready{
+  border-color:var(--green);
+}
+
+.call-btn{
+  margin-top:10px;
+}
+.call-btn button{
+  width:100%;
+  padding:18px;
+  border:none;
+  border-radius:20px;
+  background:#b7c3dd;
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+}
+.call-btn button.active{
+  background:var(--green);
+}
+
+.note{
+  margin-top:18px;
+  font-size:12.5px;
+  opacity:.7;
+}
+
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // 🔐 Vérification paiement
+  const payment = localStorage.getItem("paymentStatus");
+  if(payment !== "paid"){
+    window.location.href = "dashboard-client.html";
+    return;
+  }
+
+  // 📁 Récupération dossier
+  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(!request){
+    window.location.href = "dashboard-client.html";
+    return;
+  }
+
+  // 🔢 Numéro de dossier UNIQUE
+  document.getElementById("ref").innerText = request.dossierNumber;
+
+  // ⏳ Simulation disponibilité pro
+  setTimeout(()=>{
+    document.getElementById("status").classList.add("ready");
+    document.getElementById("statusText").innerHTML =
+      "✔ Professionnel assigné<br><br>🟢 Appel prêt à démarrer";
+    const btn = document.getElementById("callBtn");
+    btn.disabled = false;
+    btn.classList.add("active");
+  }, 3000); // 3 secondes simulées
+});
+
+function startCall(){
+  alert(
+    "📞 Appel médical en cours...\n\n" +
+    "⚠️ (WebRTC / appel vidéo sera intégré plus tard)"
+  );
+}
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <div class="content">
+    <h1>Appel médical</h1>
+
+    <div class="ref">
+      Numéro de dossier : <strong id="ref"></strong>
+    </div>
+
+    <div id="status" class="status">
+      <div id="statusText">
+        ⏳ En attente du professionnel de santé<br><br>
+        Veuillez rester sur cet écran
+      </div>
+    </div>
+
+    <div class="call-btn">
+      <button id="callBtn" disabled onclick="startCall()">
+        Démarrer l’appel
+      </button>
+    </div>
+
+    <div class="note">
+      L’appel est sécurisé et confidentiel.<br>
+      Ne quittez pas l’application.
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
