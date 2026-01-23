@@ -6,142 +6,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#0a2a5e;
-  --bg:#f4f7fb;
-  --text:#0a1a2f;
-  --radius:22px;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-  color:var(--text);
+  background:#f4f7fb;
 }
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
-}
-.header{
-  text-align:center;
-  padding:20px;
-}
-.header img{
-  height:120px;
-}
-.content{
   padding:24px 20px;
 }
-h1{
-  text-align:center;
-  font-size:20px;
-  margin-bottom:20px;
-}
-label{
-  display:block;
-  margin-top:16px;
-  font-size:14px;
-  font-weight:600;
-}
+.logo{text-align:center}
+.logo img{height:120px}
+h1{text-align:center;font-size:20px;margin:18px 0}
 input{
   width:100%;
-  margin-top:8px;
+  margin-top:14px;
   padding:14px;
   border-radius:14px;
   border:1.8px solid #e6ebf5;
-  font-size:14px;
 }
 button{
+  margin-top:22px;
   width:100%;
-  margin-top:26px;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#0a2a5e;
   color:#fff;
   font-weight:600;
-  font-size:15px;
 }
-.footer{
-  margin-top:auto;
+.links{
+  margin-top:18px;
   text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.6;
+  font-size:13px;
 }
 </style>
 
 <script>
-function loginPatient(e){
-  e.preventDefault();
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(!email || !password){
-    alert("Veuillez remplir tous les champs");
+function login(){
+  const profile = localStorage.getItem("patientProfile");
+  if(!profile){
+    alert("Aucun compte trouvé. Veuillez créer un compte.");
     return;
   }
-
-  /* 🔐 SIMULATION LOGIN
-     ➜ PLUS TARD : Firebase Auth
-  */
-
-  // ⚠️ Ces infos viennent normalement du SIGNUP
-  const patientProfile = {
-    fullName: "Jean Ndayishimiye",
-    patientId: "PAT-2026-000482",
-    province: "Bujumbura",
-
-    // 🔒 DONNÉES PRIVÉES (jamais visibles au médecin)
-    email: email,
-    phone: "+25761234567"
-  };
-
-  // ✅ SESSION PATIENT
-  localStorage.setItem(
-    "patientProfile",
-    JSON.stringify(patientProfile)
-  );
-
-  // ✅ REDIRECTION VERS TON DASHBOARD
   window.location.href = "dashboard-client.html";
 }
 </script>
 </head>
 
 <body>
-
 <div class="app">
 
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <div class="content">
-    <h1>Connexion patient</h1>
+  <h1>Connexion patient</h1>
 
-    <form onsubmit="loginPatient(event)">
-      <label>Email</label>
-      <input type="email" id="email" required>
+  <input placeholder="Email ou identifiant patient">
+  <input type="password" placeholder="Mot de passe">
 
-      <label>Mot de passe</label>
-      <input type="password" id="password" required>
+  <button onclick="login()">Se connecter</button>
 
-      <button type="submit">Se connecter</button>
-    </form>
-  </div>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+  <div class="links">
+    <a href="signup.html">Créer un compte patient</a>
   </div>
 
 </div>
-
 </body>
 </html>
