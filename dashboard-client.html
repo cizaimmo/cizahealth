@@ -8,6 +8,8 @@
 <style>
 :root{
   --blue:#0a2a5e;
+  --green:#1b9c4a;
+  --orange:#f2a900;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -19,7 +21,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -32,18 +33,15 @@ body{
 /* HEADER */
 .header{
   padding:18px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
   border-bottom:1px solid #eef1f6;
 }
 .header strong{
-  font-size:15px;
+  font-size:16px;
 }
-.logout{
-  font-size:13px;
-  text-decoration:none;
-  color:#8a1f1f;
+.header span{
+  display:block;
+  font-size:12px;
+  opacity:.75;
 }
 
 /* CONTENT */
@@ -52,12 +50,7 @@ body{
 }
 h1{
   font-size:18px;
-  margin-bottom:6px;
-}
-.sub{
-  font-size:13px;
-  opacity:.8;
-  margin-bottom:20px;
+  margin-bottom:14px;
 }
 
 /* CARD */
@@ -67,6 +60,13 @@ h1{
   padding:18px;
   margin-bottom:16px;
 }
+.card.active{
+  border-left:5px solid var(--orange);
+}
+.card.success{
+  border-left:5px solid var(--green);
+}
+
 .card h3{
   font-size:15px;
   margin:0 0 6px;
@@ -79,51 +79,84 @@ h1{
 
 /* ACTIONS */
 .actions{
+  margin-top:14px;
   display:grid;
   gap:10px;
-  margin-top:10px;
 }
-.actions a{
-  display:block;
-  text-align:center;
+.actions button{
   padding:14px;
+  border:none;
   border-radius:16px;
-  text-decoration:none;
   font-weight:600;
   font-size:14px;
+}
+.actions button.disabled{
+  background:#cfd6ea;
+  color:#fff;
+}
+.actions button.primary{
   background:var(--blue);
   color:#fff;
 }
-.actions a.secondary{
-  background:#eef2fa;
-  color:var(--blue);
+.actions button.success{
+  background:var(--green);
+  color:#fff;
 }
 
 /* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
-  padding:18px;
+  padding:16px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", ()=>{
-  const data = JSON.parse(localStorage.getItem("cizaRequest") || "{}");
+let doctorFound = false;
+let paymentDone = false;
 
-  // Sécurité minimale
-  if(!data.fullName){
-    document.body.innerHTML = "<p style='padding:20px'>Accès non autorisé</p>";
+document.addEventListener("DOMContentLoaded", ()=>{
+  const session = JSON.parse(localStorage.getItem("cizaSession"));
+  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+
+  if(!session){
+    window.location.href = "login.html";
     return;
   }
 
-  document.getElementById("patientName").innerText = data.fullName;
-  document.getElementById("patientId").innerText =
-    "PAT-" + data.dossierNumber.slice(-6);
-  document.getElementById("dossier").innerText = data.dossierNumber;
+  document.getElementById("patientName").innerText = session.fullName;
+  document.getElementById("patientId").innerText = session.patientId;
+
+  if(request){
+    document.getElementById("province").innerText = request.province;
+    document.getElementById("dossier").innerText = request.dossierNumber;
+  } else {
+    document.getElementById("noRequest").style.display = "block";
+  }
 });
+
+function searchDoctor(){
+  // Simulation matching (Firebase plus tard)
+  doctorFound = true;
+  document.getElementById("status").innerText =
+    "✔ Médecin disponible dans votre province";
+  document.getElementById("payBtn").classList.remove("disabled");
+  document.getElementById("payBtn").classList.add("primary");
+}
+
+function pay(){
+  if(!doctorFound) return;
+  paymentDone = true;
+  document.getElementById("callBtn").classList.remove("disabled");
+  document.getElementById("callBtn").classList.add("success");
+}
+
+function startCall(){
+  if(!paymentDone) return;
+  window.location.href = "appel.html";
+}
 </script>
 </head>
 
@@ -133,43 +166,35 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   <!-- HEADER -->
   <div class="header">
-    <strong>Espace patient</strong>
-    <a href="logout.html" class="logout">Déconnexion</a>
+    <strong id="patientName"></strong>
+    <span>ID patient : <span id="patientId"></span></span>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
+    <h1>Votre demande active</h1>
 
-    <h1 id="patientName"></h1>
-    <div class="sub">
-      ID patient : <strong id="patientId"></strong>
+    <div id="noRequest" style="display:none">
+      Aucune demande en cours.
     </div>
 
-    <!-- DOSSIER -->
-    <div class="card">
-      <h3>Dossier médical</h3>
-      <p><strong>Numéro :</strong> <span id="dossier"></span></p>
-      <p><strong>Statut :</strong> Actif</p>
-    </div>
-
-    <!-- DERNIÈRE CONSULTATION -->
-    <div class="card">
-      <h3>Dernière consultation</h3>
-      <p>✔ Téléconsultation finalisée</p>
-      <p>Résumé médical en cours de validation</p>
+    <div class="card active">
+      <h3>Dossier <span id="dossier"></span></h3>
+      <p><strong>Province :</strong> <span id="province"></span></p>
+      <p id="status">⏳ En attente d’un médecin disponible</p>
 
       <div class="actions">
-        <a href="#" class="secondary">Résumé médical (PDF)</a>
-        <a href="#" class="secondary">Statut ordonnance</a>
-      </div>
-    </div>
+        <button class="primary" onclick="searchDoctor()">
+          Chercher un médecin disponible
+        </button>
 
-    <!-- ACTIONS -->
-    <div class="card">
-      <h3>Actions rapides</h3>
-      <div class="actions">
-        <a href="demande.html">Nouvelle consultation</a>
-        <a href="historique.html" class="secondary">Historique médical</a>
+        <button id="payBtn" class="disabled" onclick="pay()">
+          Procéder au paiement
+        </button>
+
+        <button id="callBtn" class="disabled" onclick="startCall()">
+          Démarrer la téléconsultation
+        </button>
       </div>
     </div>
 
