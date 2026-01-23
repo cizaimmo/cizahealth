@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Mon espace patient</title>
+<title>CizaHealth+ | Espace patient</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --blue-dark:#071733;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -19,6 +20,8 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
+/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -30,87 +33,103 @@ body{
 
 /* HEADER */
 .header{
-  padding:16px 20px;
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   border-bottom:1px solid #eef1f6;
 }
 .header h1{
   font-size:18px;
   margin:0;
 }
-.header span{
+.logout{
+  color:#8a1f1f;
+  text-decoration:none;
   font-size:13px;
-  opacity:.7;
+  font-weight:600;
 }
 
 /* CONTENT */
 .content{
-  padding:20px;
-}
-.section-title{
-  font-size:15px;
-  font-weight:600;
-  margin-bottom:12px;
+  padding:22px 20px;
 }
 
 /* CARD */
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:16px;
-  margin-bottom:14px;
+  padding:18px;
+  margin-bottom:18px;
 }
-.card h3{
-  font-size:14px;
-  margin:0 0 6px;
+.card h2{
+  font-size:15px;
+  margin:0 0 8px;
 }
 .card p{
-  font-size:13px;
-  margin:4px 0;
-  opacity:.85;
+  font-size:14px;
+  margin:6px 0;
+  opacity:.9;
 }
 
-/* STATUS */
-.status{
-  font-size:12.5px;
-  margin-top:6px;
+/* DOSSIER */
+.dossier{
+  background:#f9fbff;
 }
-.status.pending{color:#c58a00}
-.status.done{color:#1b9c4a}
 
-/* ACTION */
-.action{
-  margin-top:10px;
+/* BUTTONS */
+.cta{
+  margin-top:18px;
 }
-.action a{
+.cta a{
   display:block;
   text-align:center;
-  padding:12px;
-  border-radius:14px;
-  background:var(--blue);
-  color:#fff;
-  font-size:13.5px;
+  padding:16px;
+  border-radius:18px;
   font-weight:600;
   text-decoration:none;
+  margin-bottom:12px;
+}
+.cta .primary{
+  background:var(--blue);
+  color:#fff;
+}
+.cta .secondary{
+  background:#eef2f8;
+  color:var(--blue-dark);
+}
+
+/* INFO */
+.info{
+  font-size:12.5px;
+  opacity:.7;
+  text-align:center;
+  margin-top:14px;
 }
 
 /* FOOTER */
 .footer{
   margin-top:auto;
-  text-align:center;
   padding:16px;
-  font-size:12px;
-  opacity:.65;
+  text-align:center;
+  font-size:11.5px;
+  opacity:.6;
 }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener("DOMContentLoaded", () => {
   const data = JSON.parse(localStorage.getItem("cizaRequest"));
-  if(!data) return;
 
-  document.getElementById("ref").innerText = data.dossierNumber;
-  document.getElementById("service").innerText = data.serviceType;
-  document.getElementById("province").innerText = data.province;
+  if(!data || !data.fullName){
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("patientName").innerText = data.fullName;
+  document.getElementById("dossierNumber").innerText = data.dossierNumber || "—";
+  document.getElementById("serviceType").innerText = data.serviceType || "—";
+  document.getElementById("province").innerText = data.province || "—";
 });
 </script>
 </head>
@@ -121,49 +140,50 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   <!-- HEADER -->
   <div class="header">
-    <h1>Mon espace santé</h1>
-    <span>Dossier médical personnel</span>
+    <h1>Espace patient</h1>
+    <a href="logout.html" class="logout">Déconnexion</a>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
 
-    <div class="section-title">Dernière consultation</div>
-
+    <!-- IDENTITÉ -->
     <div class="card">
-      <h3>Dossier n° <span id="ref">—</span></h3>
-      <p><strong>Service :</strong> <span id="service">—</span></p>
-      <p><strong>Province :</strong> <span id="province">—</span></p>
-      <div class="status pending">
-        ⏳ En attente / En cours de traitement
-      </div>
-
-      <div class="action">
-        <a href="mise-en-relation.html">
-          Suivre ma consultation
-        </a>
-      </div>
+      <h2>Connecté en tant que</h2>
+      <p><strong id="patientName"></strong></p>
     </div>
 
-    <div class="section-title">Mes documents</div>
-
-    <div class="card">
-      <h3>Résumé médical</h3>
-      <p>Disponible après la consultation</p>
-      <div class="status pending">Non disponible</div>
+    <!-- DOSSIER ACTIF -->
+    <div class="card dossier">
+      <h2>Dossier médical actif</h2>
+      <p><strong>Numéro :</strong> <span id="dossierNumber"></span></p>
+      <p><strong>Service :</strong> <span id="serviceType"></span></p>
+      <p><strong>Province :</strong> <span id="province"></span></p>
     </div>
 
-    <div class="card">
-      <h3>Ordonnance</h3>
-      <p>Aperçu sécurisé (non exploitable)</p>
-      <div class="status pending">Protégée</div>
+    <!-- ACTIONS -->
+    <div class="cta">
+      <a href="demande.html" class="primary">
+        Nouvelle demande médicale
+      </a>
+      <a href="appel.html" class="secondary">
+        Accéder à l’appel sécurisé
+      </a>
+      <a href="#" class="secondary">
+        Historique des consultations (bientôt)
+      </a>
+    </div>
+
+    <div class="info">
+      Vos informations médicales sont protégées et confidentielles.
     </div>
 
   </div>
 
   <!-- FOOTER -->
   <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Plateforme de santé numérique responsable
   </div>
 
 </div>
