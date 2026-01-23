@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Mon espace patient</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 20px;
+  border-bottom:1px solid #eef1f6;
+}
+.header h1{
+  font-size:18px;
+  margin:0;
+}
+.header span{
+  font-size:13px;
+  opacity:.7;
+}
+
+/* CONTENT */
+.content{
+  padding:20px;
+}
+.section-title{
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+/* CARD */
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:14px;
+}
+.card h3{
+  font-size:14px;
+  margin:0 0 6px;
+}
+.card p{
+  font-size:13px;
+  margin:4px 0;
+  opacity:.85;
+}
+
+/* STATUS */
+.status{
+  font-size:12.5px;
+  margin-top:6px;
+}
+.status.pending{color:#c58a00}
+.status.done{color:#1b9c4a}
+
+/* ACTION */
+.action{
+  margin-top:10px;
+}
+.action a{
+  display:block;
+  text-align:center;
+  padding:12px;
+  border-radius:14px;
+  background:var(--blue);
+  color:#fff;
+  font-size:13.5px;
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.65;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const data = JSON.parse(localStorage.getItem("cizaRequest"));
+  if(!data) return;
+
+  document.getElementById("ref").innerText = data.dossierNumber;
+  document.getElementById("service").innerText = data.serviceType;
+  document.getElementById("province").innerText = data.province;
+});
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Mon espace santé</h1>
+    <span>Dossier médical personnel</span>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="section-title">Dernière consultation</div>
+
+    <div class="card">
+      <h3>Dossier n° <span id="ref">—</span></h3>
+      <p><strong>Service :</strong> <span id="service">—</span></p>
+      <p><strong>Province :</strong> <span id="province">—</span></p>
+      <div class="status pending">
+        ⏳ En attente / En cours de traitement
+      </div>
+
+      <div class="action">
+        <a href="mise-en-relation.html">
+          Suivre ma consultation
+        </a>
+      </div>
+    </div>
+
+    <div class="section-title">Mes documents</div>
+
+    <div class="card">
+      <h3>Résumé médical</h3>
+      <p>Disponible après la consultation</p>
+      <div class="status pending">Non disponible</div>
+    </div>
+
+    <div class="card">
+      <h3>Ordonnance</h3>
+      <p>Aperçu sécurisé (non exploitable)</p>
+      <div class="status pending">Protégée</div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+</body>
+</html>
