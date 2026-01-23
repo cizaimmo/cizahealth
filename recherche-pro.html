@@ -8,7 +8,6 @@
 <style>
 :root{
   --blue:#0a2a5e;
-  --green:#1b9c4a;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -28,114 +27,97 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-}
-
-.header{
-  text-align:center;
-  padding:28px 20px 10px;
-}
-.header img{
-  height:110px;
-}
-
-.content{
+  justify-content:center;
   padding:24px 20px;
   text-align:center;
 }
 
-h1{
-  font-size:22px;
-  margin-bottom:6px;
+.logo img{
+  height:110px;
+  margin-bottom:30px;
 }
 
-.ref{
+.loader{
+  font-size:46px;
+  animation:spin 1.4s linear infinite;
+  margin-bottom:20px;
+}
+@keyframes spin{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+
+h1{
+  font-size:20px;
+  margin-bottom:10px;
+}
+p{
   font-size:14px;
-  opacity:.8;
-  margin-bottom:22px;
+  opacity:.85;
 }
 
 .card{
+  margin-top:28px;
   border:2px solid #e6ebf5;
-  border-radius:22px;
-  padding:22px;
-  margin-bottom:26px;
-  font-size:15px;
-}
-
-.status{
-  font-size:16px;
-  font-weight:600;
-  margin-bottom:10px;
-}
-
-.status.searching{
-  color:#b37b00;
-}
-.status.found{
-  color:var(--green);
-}
-
-.cta button{
-  width:100%;
+  border-radius:var(--radius);
   padding:18px;
-  border:none;
-  border-radius:20px;
-  background:#b7c3dd;
-  color:#fff;
-  font-size:16px;
-  font-weight:600;
-}
-.cta button.active{
-  background:var(--blue);
+  display:none;
 }
 
-.note{
-  margin-top:16px;
-  font-size:13px;
-  opacity:.7;
+.card.success{
+  border-left:5px solid #1b9c4a;
+}
+
+.btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  font-weight:600;
+  font-size:15px;
+  margin-top:18px;
+}
+.primary{
+  background:var(--blue);
+  color:#fff;
 }
 
 .footer{
   margin-top:auto;
-  text-align:center;
-  padding:18px;
   font-size:12px;
   opacity:.6;
+  padding-top:30px;
 }
 </style>
 
 <script>
-let request = null;
-
 document.addEventListener("DOMContentLoaded", () => {
-  request = JSON.parse(localStorage.getItem("activeRequest"));
+
+  const request = JSON.parse(localStorage.getItem("activeRequest"));
 
   if(!request){
     window.location.href = "dashboard-client.html";
     return;
   }
 
-  document.getElementById("dossier").innerText = request.dossierNumber;
   document.getElementById("province").innerText = request.province;
+  document.getElementById("dossier").innerText = request.dossierNumber;
 
-  // Simulation de recherche
+  // ⏳ Simulation recherche
   setTimeout(() => {
-    document.getElementById("statusText").innerText =
-      "Professionnel disponible trouvé dans la province";
-    document.getElementById("statusText").className = "status found";
 
-    document.getElementById("proName").innerText = "Dr Alice M.";
-    document.getElementById("proRole").innerText = "Médecin généraliste";
-
-    document.getElementById("paymentBtn").disabled = false;
-    document.getElementById("paymentBtn").classList.add("active");
-
-    // Marquer la demande comme prête au paiement
+    // PRO TROUVÉ (simulation forcée)
     request.status = "pro_found";
+    request.proName = "Dr Alice M.";
+    request.proRole = "Médecin généraliste";
+
     localStorage.setItem("activeRequest", JSON.stringify(request));
 
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("result").style.display = "block";
+
   }, 2500);
-}
+});
 
 function goToPayment(){
   window.location.href = "paiement.html";
@@ -147,41 +129,30 @@ function goToPayment(){
 
 <div class="app">
 
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <div class="content">
+  <div id="loader">
+    <div class="loader">🔄</div>
+    <h1>Recherche d’un professionnel disponible…</h1>
+    <p>
+      Province sélectionnée : <strong id="province"></strong><br>
+      Dossier n° <strong id="dossier"></strong>
+    </p>
+  </div>
 
-    <h1>Recherche en cours</h1>
-    <div class="ref">
-      Dossier : <strong id="dossier">—</strong>
-    </div>
+  <div class="card success" id="result">
+    <h1>Professionnel trouvé</h1>
+    <p>
+      <strong>Dr Alice M.</strong><br>
+      Médecin généraliste<br><br>
+      Vous pouvez procéder au paiement pour démarrer la consultation.
+    </p>
 
-    <div class="card">
-      <div id="statusText" class="status searching">
-        ⏳ Recherche d’un professionnel disponible…
-      </div>
-
-      <p><strong>Province :</strong> <span id="province">—</span></p>
-
-      <div style="margin-top:14px;">
-        <p><strong id="proName">—</strong></p>
-        <p id="proRole" style="opacity:.8;">—</p>
-      </div>
-    </div>
-
-    <div class="cta">
-      <button id="paymentBtn" disabled onclick="goToPayment()">
-        💳 Procéder au paiement
-      </button>
-    </div>
-
-    <div class="note">
-      Le paiement est activé uniquement après confirmation
-      de la disponibilité d’un professionnel.
-    </div>
-
+    <button class="btn primary" onclick="goToPayment()">
+      Procéder au paiement
+    </button>
   </div>
 
   <div class="footer">
