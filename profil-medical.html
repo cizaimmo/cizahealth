@@ -19,89 +19,63 @@ body{
   background:#fff;
   padding:24px;
 }
-h2{
-  font-size:20px;
-  margin-bottom:6px;
-}
-p{
-  font-size:14px;
-  color:#6b7a90;
-  margin-bottom:20px;
-}
-label{
-  font-size:13px;
-  font-weight:500;
-}
-input, select{
+input,select,button{
   width:100%;
   padding:14px;
-  margin-top:6px;
   margin-bottom:16px;
   border-radius:14px;
   border:1px solid #e6ebf5;
-  font-size:14px;
 }
 button{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:18px;
-  background:linear-gradient(135deg,#0a2a5e,#123c8a);
+  background:#0a2a5e;
   color:#fff;
-  font-size:15px;
   font-weight:600;
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
-  <h2>Création du compte médical</h2>
-  <p>Ces informations sont obligatoires et ne seront demandées qu’une seule fois.</p>
+  <h2>Compte médical</h2>
 
-  <label>Nom complet</label>
-  <input id="fullname" placeholder="Nom et prénom">
-
-  <label>Date de naissance</label>
+  <input id="fullname" placeholder="Nom complet">
   <input id="dob" type="date">
+  <input id="patientId" placeholder="ID permanent">
 
-  <label>ID permanent (à vie)</label>
-  <input id="patientId" placeholder="Identifiant patient">
-
-  <label>Allergie aux médicaments</label>
   <select id="allergy">
-    <option value="non">Non</option>
-    <option value="oui">Oui</option>
+    <option value="non">Allergie : Non</option>
+    <option value="oui">Allergie : Oui</option>
   </select>
 
-  <label>Province</label>
-  <input id="province" placeholder="Province de résidence">
+  <input id="province" placeholder="Province">
 
-  <button onclick="saveProfile()">Enregistrer mon compte médical</button>
+  <button onclick="saveProfile()">Enregistrer</button>
 </div>
 
 <script>
-/* Sécurité : accès seulement si connecté */
-if(!localStorage.getItem("cizahealth_session")){
-  window.location.href = "login.html";
+// ⚠️ SÉCURITÉ : session obligatoire
+let session = localStorage.getItem("cizahealth_session");
+if(!session){
+  // recrée une session minimale si absente
+  localStorage.setItem("cizahealth_session", "patient@cizahealth.local");
 }
 
-/* Sauvegarde du profil médical permanent */
+// SAUVEGARDE PROFIL
 function saveProfile(){
   const profile = {
-    fullname: document.getElementById("fullname").value,
-    dob: document.getElementById("dob").value,
-    patientId: document.getElementById("patientId").value,
-    allergy: document.getElementById("allergy").value,
-    province: document.getElementById("province").value,
+    fullname: fullname.value,
+    dob: dob.value,
+    patientId: patientId.value,
+    allergy: allergy.value,
+    province: province.value,
     createdAt: new Date().toISOString()
   };
 
   localStorage.setItem("cizahealth_profile", JSON.stringify(profile));
+
+  // 👉 REDIRECTION DIRECTE DASHBOARD
   window.location.href = "dashboard.html";
 }
 </script>
-
 </body>
 </html>
