@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Aide à domicile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --green:#3b8f6b;
+  --green-soft:#f0f8f4;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--green);
+  font-weight:500;
+}
+
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:220px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(30,90,70,.25),
+      rgba(30,90,70,.6)
+    ),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+}
+
+/* HERO TEXT */
+.hero{
+  padding:22px 26px 10px;
+}
+.hero h1{
+  font-size:22px;
+  margin:0 0 8px;
+  font-weight:600;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* SECTION */
+.section{
+  padding:22px 26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+/* STEPS */
+.step{
+  display:flex;
+  gap:14px;
+}
+.step-num{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--green);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.step p{
+  margin:0;
+  font-size:14px;
+}
+
+/* TEXT */
+.text{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* RESPONSABILITÉ */
+.responsabilite{
+  background:var(--green-soft);
+  border-left:4px solid var(--green);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.65;
+  color:#1f3f34;
+}
+
+/* CTA */
+.cta{
+  margin:24px 26px 30px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#3b8f6b,#4da783);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  display:block;
+}
+
+/* FOOTER */
+.footer-min{
+  margin-top:32px;
+  padding:26px 26px 30px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .links{
+  font-size:12.5px;
+  margin-bottom:8px;
+}
+.footer-min .links a{
+  color:#6b7a90;
+  text-decoration:none;
+  margin:0 6px;
+}
+.footer-min .legal{
+  font-size:11.5px;
+  color:#8a95a8;
+  line-height:1.5;
+}
+</style>
+
+<script>
+function startAideDomicile(){
+  const session = localStorage.getItem("cizahealth_session");
+  if(session){
+    window.location.href = "dashboard.html";
+  }else{
+    window.location.href = "login.html";
+  }
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Accueil</a>
+  </div>
+
+  <div class="hero-img"></div>
+
+  <div class="hero">
+    <h1>Aide à domicile</h1>
+    <p>
+      Assistance humaine organisée pour les personnes
+      nécessitant un accompagnement à domicile.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Comment ça fonctionne</h2>
+
+    <div class="card step">
+      <div class="step-num">1</div>
+      <p>Vous décrivez votre besoin d’aide à domicile.</p>
+    </div>
+
+    <div class="card step">
+      <div class="step-num">2</div>
+      <p>Un intervenant est identifié selon votre province.</p>
+    </div>
+
+    <div class="card step">
+      <div class="step-num">3</div>
+      <p>L’intervention est organisée en toute confidentialité.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>À quoi sert l’aide à domicile</h2>
+    <div class="card text">
+      Ce service vise à fournir un accompagnement humain
+      et un soutien à domicile, sans se substituer
+      à une prise en charge médicale spécialisée.
+    </div>
+  </div>
+
+  <!-- RESPONSABILITÉ -->
+  <div class="section">
+    <h2>Responsabilité et limites du service</h2>
+    <div class="responsabilite">
+      Le service d’aide à domicile proposé par CizaHealth+ n’est pas
+      un service médical et ne constitue pas un acte de soins.
+      CizaHealth+ agit comme plateforme de mise en relation et
+      d’organisation de services d’assistance humaine.
+      <br><br>
+      Les intervenants ne sont pas habilités à poser des diagnostics,
+      prescrire des traitements ou effectuer des actes médicaux.
+      En cas de situation urgente ou nécessitant une prise en charge
+      médicale, le patient ou ses proches doivent contacter
+      immédiatement les services de secours ou un établissement de santé.
+    </div>
+  </div>
+
+  <a href="#" class="cta" onclick="startAideDomicile()">
+    Faire une demande d’aide à domicile
+  </a>
+
+  <footer class="footer-min">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+"
+    >
+    <div class="links">
+      <a href="confidentialite.html">Confidentialité</a>•
+      <a href="conditions.html">Conditions</a>•
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
