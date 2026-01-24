@@ -38,7 +38,6 @@ body{
 }
 .logout{
   color:#8a1f1f;
-  text-decoration:none;
   font-size:13px;
   cursor:pointer;
 }
@@ -54,7 +53,7 @@ body{
 
 /* CONTENT */
 .content{
-  padding:24px 20px;
+  padding:26px 20px;
 }
 
 /* IDENTITY */
@@ -65,10 +64,10 @@ body{
 .meta{
   font-size:13px;
   opacity:.8;
-  margin-top:4px;
+  margin-top:6px;
 }
 .pid{
-  margin-top:8px;
+  margin-top:10px;
   font-size:13px;
 }
 
@@ -76,8 +75,8 @@ body{
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:18px;
-  margin-top:18px;
+  padding:20px;
+  margin-top:20px;
 }
 .card h3{
   margin:0 0 12px;
@@ -116,21 +115,21 @@ body{
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Sécurité : accès uniquement si connecté
+  // 🔐 Sécurité : accès uniquement si signup fait
   const profile = JSON.parse(localStorage.getItem("patientProfile"));
   if(!profile){
-    window.location.href = "login.html";
+    window.location.href = "signup.html";
     return;
   }
 
-  // Injection données signup
+  // ✅ Injection données réelles du signup
   document.getElementById("fullName").innerText = profile.fullName;
-  document.getElementById("patientId").innerText = profile.patientId;
   document.getElementById("age").innerText = profile.age + " ans";
   document.getElementById("province").innerText = profile.province;
+  document.getElementById("patientId").innerText = profile.patientId;
 });
 
-// ✅ LOGIQUE DE DÉCONNEXION
+// 🚪 Déconnexion propre
 function logout(){
   localStorage.removeItem("patientProfile");
   localStorage.removeItem("activeRequest");
@@ -152,13 +151,13 @@ function logout(){
 
   <!-- LOGO -->
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- IDENTITÉ -->
+    <!-- IDENTITÉ PATIENT -->
     <div class="name" id="fullName">—</div>
     <div class="meta">
       Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
@@ -167,7 +166,7 @@ function logout(){
       ID patient : <strong id="patientId">—</strong>
     </div>
 
-    <!-- SERVICES -->
+    <!-- ACTIONS -->
     <div class="card">
       <h3>Services médicaux</h3>
 
@@ -184,8 +183,8 @@ function logout(){
     <div class="card">
       <h3>Mon dossier santé</h3>
       <p style="font-size:13px;opacity:.85">
-        Consultez l’historique de vos consultations, résumés médicaux
-        et recommandations professionnelles.
+        Historique de consultations, résumés médicaux et
+        recommandations professionnelles.
       </p>
       <button class="btn secondary" onclick="location.href='dossier.html'">
         Consulter mon dossier
