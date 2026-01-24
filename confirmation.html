@@ -8,15 +8,19 @@
 <style>
 :root{
   --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --green:#3b8f6b;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
 .app{
@@ -24,172 +28,175 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
 }
 
-/* HEADER */
+/* TOP */
 .topbar{
-  padding:18px 20px;
+  padding:18px 22px;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
-  font-weight:600;
-}
-
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.logo img{
-  height:120px;
+  font-weight:500;
 }
 
 /* CONTENT */
-.content{
-  padding:24px 20px;
+.section{
+  padding:22px;
 }
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
 h1{
   font-size:20px;
-  margin-bottom:14px;
+  margin:0 0 10px;
 }
-
-.card{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:18px;
-}
-.card h3{
-  font-size:15px;
-  margin-bottom:10px;
-}
-
-.line{
+.row{
   font-size:14px;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
-.line strong{
-  font-weight:600;
+.row span{
+  color:var(--muted);
+  display:block;
+  font-size:12.5px;
 }
 
 /* CTA */
 .cta{
-  margin-top:26px;
-}
-.cta button{
-  width:100%;
+  margin-top:18px;
   padding:16px;
-  border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
   color:#fff;
+  text-align:center;
   font-weight:600;
+  border:none;
+  width:100%;
   font-size:15px;
 }
-
-/* INFO */
-.info{
-  margin-top:18px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
-}
-
-/* FOOTER */
-.footer{
-  margin-top:auto;
-  text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.65;
+.cta.secondary{
+  background:#eef2f8;
+  color:var(--text);
 }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
+}
 
-  const request = JSON.parse(localStorage.getItem("activeRequest"));
+/* DATA */
+const service = localStorage.getItem("cizahealth_service_type");
+const dossier = localStorage.getItem("cizahealth_dossier");
 
-  if(!request){
-    window.location.href = "dashboard-client.html";
-    return;
+const province = localStorage.getItem("cizahealth_province");
+const reason = localStorage.getItem("cizahealth_reason");
+
+/* TELECONSULTATION */
+const mode = localStorage.getItem("cizahealth_consult_mode");
+const duration = localStorage.getItem("cizahealth_consult_duration");
+
+/* AIDE */
+const aideType = localStorage.getItem("cizahealth_aide_type");
+const period = localStorage.getItem("cizahealth_aide_period");
+
+function proceed(){
+  if(service === "teleconsultation"){
+    window.location.href="recherche-medecin.html";
+  }else{
+    window.location.href="recherche-intervenant.html";
   }
-
-  document.getElementById("dossier").innerText = request.dossierNumber;
-  document.getElementById("service").innerText = request.serviceType;
-  document.getElementById("province").innerText = request.province;
-  document.getElementById("description").innerText = request.description;
-
-  if(request.date){
-    document.getElementById("date").innerText = request.date + " à " + request.time;
-  } else {
-    document.getElementById("date").innerText = "Consultation immédiate";
-  }
-
-});
+}
 </script>
 </head>
 
 <body>
-
 <div class="app">
 
   <div class="topbar">
-    <a href="demande.html" class="back">← Modifier la demande</a>
+    <a href="dashboard.html" class="back">← Tableau de bord</a>
   </div>
 
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  </div>
-
-  <div class="content">
-    <h1>Confirmation de la demande</h1>
+  <div class="section">
 
     <div class="card">
-      <h3>Référence du dossier</h3>
-      <div class="line">
-        Numéro : <strong id="dossier">—</strong>
+      <h1>Confirmation de la demande</h1>
+
+      <div class="row">
+        <span>Numéro de dossier</span>
+        <strong id="dossier"></strong>
+      </div>
+
+      <div class="row">
+        <span>Service demandé</span>
+        <strong id="serviceLabel"></strong>
+      </div>
+
+      <div class="row">
+        <span>Province de prise en charge</span>
+        <strong id="province"></strong>
       </div>
     </div>
+
+    <div class="card" id="details"></div>
 
     <div class="card">
-      <h3>Détails de la demande</h3>
-      <div class="line">
-        <strong>Service :</strong> <span id="service"></span>
-      </div>
-      <div class="line">
-        <strong>Province :</strong> <span id="province"></span>
-      </div>
-      <div class="line">
-        <strong>Date :</strong> <span id="date"></span>
-      </div>
-      <div class="line">
-        <strong>Description :</strong><br>
-        <span id="description"></span>
+      <div class="row">
+        <span>Description de la demande</span>
+        <strong id="reason"></strong>
       </div>
     </div>
 
-    <div class="cta">
-      <button onclick="location.href='recherche-pro.html'">
-        Chercher un professionnel disponible
-      </button>
-    </div>
+    <button class="cta" onclick="proceed()">
+      Confirmer et continuer
+    </button>
 
-    <div class="info">
-      Aucun paiement n’est effectué à ce stade.
-      La recherche se fait uniquement dans votre province.
-    </div>
+    <button class="cta secondary" onclick="window.location.href='dashboard.html'">
+      Modifier plus tard
+    </button>
 
-  </div>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
+
+<script>
+document.getElementById("dossier").textContent = dossier || "—";
+document.getElementById("province").textContent = province || "—";
+document.getElementById("reason").textContent = reason || "—";
+
+if(service === "teleconsultation"){
+  document.getElementById("serviceLabel").textContent = "Téléconsultation médicale";
+  document.getElementById("details").innerHTML = `
+    <div class="row">
+      <span>Mode de consultation</span>
+      <strong>${mode}</strong>
+    </div>
+    <div class="row">
+      <span>Durée</span>
+      <strong>${duration} minutes</strong>
+    </div>
+  `;
+}else{
+  document.getElementById("serviceLabel").textContent = "Aide à domicile";
+  document.getElementById("details").innerHTML = `
+    <div class="row">
+      <span>Type d’aide</span>
+      <strong>${aideType}</strong>
+    </div>
+    <div class="row">
+      <span>Période souhaitée</span>
+      <strong>${period}</strong>
+    </div>
+  `;
+}
+</script>
 
 </body>
 </html>
