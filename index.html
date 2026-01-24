@@ -7,105 +7,307 @@
 
 <style>
 :root{
-  --blue:#0a2a5e;
+  --blue:#123c8a;
+  --blue-soft:#e9f0fb;
+  --green-soft:#edf7f1;
+  --purple-soft:#f3f0fb;
   --bg:#f4f7fb;
   --text:#0a1a2f;
-  --radius:18px;
+  --muted:#6b7a90;
+  --radius:22px;
 }
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
+/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 0 40px rgba(10,42,94,.08);
 }
+
+/* TOP BAR */
+.topbar{
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.menu-btn{
+  font-size:22px;
+  cursor:pointer;
+  color:var(--blue);
+}
+
+/* MENU */
+.menu{
+  display:none;
+  padding:14px 22px 22px;
+  border-bottom:1px solid #eef1f6;
+  background:#fff;
+}
+.menu a{
+  display:block;
+  padding:12px 0;
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+.menu-separator{
+  margin:14px 0;
+  height:1px;
+  background:#e6ebf5;
+}
+.menu-pro{font-weight:600}
+.menu-admin{font-weight:600;color:#8a1f1f}
+
+/* LOGO */
 .logo{
   text-align:center;
-  padding:20px;
+  padding:18px 20px 6px;
 }
-.logo img{height:110px}
+.logo img{
+  height:110px;
+}
+
+/* HERO */
 .hero{
   text-align:center;
-  padding:10px 24px 20px;
+  padding:22px 26px 14px;
 }
 .hero h1{
   font-size:22px;
-  margin-bottom:8px;
+  line-height:1.4;
+  margin:10px 0 8px;
+  font-weight:600;
 }
 .hero p{
-  font-size:14px;
-  color:#6b7a90;
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
 }
+
+/* SERVICES */
 .services{
   padding:22px;
   display:grid;
   gap:18px;
 }
-.card{
+
+/* CARTES */
+.service-card{
   border-radius:var(--radius);
   padding:22px;
   text-decoration:none;
   color:var(--text);
-  border:1px solid #e6ebf5;
+  transition:.25s ease;
+  box-shadow:0 12px 28px rgba(10,42,94,.08);
 }
-.card.primary{
-  background:linear-gradient(135deg,#0a2a5e,#123c8a);
-  color:#fff;
-  border:none;
+.service-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 40px rgba(10,42,94,.14);
 }
-.card strong{font-size:16px}
-.card span{
+
+/* COULEURS PAR SERVICE */
+.service-card.tele{
+  background:linear-gradient(135deg,var(--blue-soft),#ffffff);
+  border-left:5px solid var(--blue);
+}
+.service-card.home{
+  background:linear-gradient(135deg,var(--green-soft),#ffffff);
+  border-left:5px solid #2d8a5a;
+}
+.service-card.pharma{
+  background:linear-gradient(135deg,var(--purple-soft),#ffffff);
+  border-left:5px solid #6b4ca5;
+}
+
+.service-icon{
+  font-size:26px;
+  margin-bottom:8px;
+}
+.service-card strong{
+  font-size:16px;
+  font-weight:600;
+}
+.service-card span{
   display:block;
   font-size:13px;
   margin-top:6px;
-  opacity:.85;
+  color:var(--muted);
 }
-.cta{
-  margin:20px;
-  padding:16px;
-  border-radius:18px;
-  background:#0a2a5e;
-  color:#fff;
+
+/* REASSURANCE */
+.reassurance{
   text-align:center;
-  text-decoration:none;
+  font-size:12.5px;
+  padding:14px 22px 22px;
+  color:var(--muted);
+}
+
+/* FOOTER */
+.footer-separator{
+  height:1px;
+  background:linear-gradient(to right,transparent,rgba(10,42,94,.35),transparent);
+}
+
+.footer-health{
+  background:linear-gradient(180deg,#0b1f44,#071733);
+  color:#e6ebff;
+  padding:48px 22px 34px;
+}
+.footer-grid{
+  display:grid;
+  gap:26px;
+}
+.footer-health h4{
+  margin-bottom:10px;
+  font-size:14px;
   font-weight:600;
 }
+.footer-health a{
+  color:#cfd8ff;
+  text-decoration:none;
+  font-size:13px;
+  line-height:2;
+}
+.footer-health a.danger{
+  color:#ffb3b3;
+}
+.footer-disclaimer{
+  margin-top:26px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.15);
+  font-size:12px;
+  opacity:.85;
+  text-align:center;
+  line-height:1.6;
+}
+.footer-bottom{
+  margin-top:16px;
+  font-size:11.5px;
+  opacity:.75;
+  text-align:center;
+}
 </style>
+
+<script>
+function toggleMenu(){
+  const menu=document.getElementById("menu");
+  menu.style.display=menu.style.display==="block"?"none":"block";
+}
+</script>
 </head>
 
 <body>
+
 <div class="app">
 
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div></div>
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+  </div>
+
+  <!-- MENU -->
+  <div class="menu" id="menu">
+    <a href="index.html">Accueil</a>
+    <a href="apropos.html">À propos</a>
+    <a href="faq.html">FAQ</a>
+    <a href="login.html">Connexion</a>
+    <a href="logout.html">Déconnexion</a>
+
+    <div class="menu-separator"></div>
+
+    <a href="pro-login.html" class="menu-pro">Espace professionnel</a>
+    <a href="admin-login.html" class="menu-admin">Administration</a>
+  </div>
+
+  <!-- LOGO -->
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
+  <!-- HERO -->
   <div class="hero">
-    <h1>Soins médicaux accessibles</h1>
-    <p>Téléconsultation et aide à domicile sécurisées</p>
+    <h1>Des soins médicaux fiables et accessibles</h1>
+    <p>Téléconsultation, aide à domicile et orientation pharmaceutique</p>
   </div>
 
+  <!-- SERVICES -->
   <div class="services">
-    <a href="teleconsultation.html" class="card primary">
-      <strong>🩺 Téléconsultation</strong>
-      <span>Consulter un professionnel de santé</span>
+
+    <a href="teleconsultation.html" class="service-card tele">
+      <div class="service-icon">🩺</div>
+      <strong>Téléconsultation médicale</strong>
+      <span>Consultez un professionnel de santé qualifié</span>
     </a>
 
-    <a href="aide-domicile.html" class="card">
-      <strong>🏠 Aide à domicile</strong>
-      <span>Assistance médicale et humaine</span>
+    <a href="aide-domicile.html" class="service-card home">
+      <div class="service-icon">🏠</div>
+      <strong>Aide à domicile</strong>
+      <span>Assistance humaine organisée et respectueuse</span>
     </a>
+
+    <a href="pharmacie.html" class="service-card pharma">
+      <div class="service-icon">💊</div>
+      <strong>Pharmacie partenaire</strong>
+      <span>Orientation vers des pharmacies de confiance</span>
+    </a>
+
   </div>
 
-  <a href="login.html" class="cta">
-    Se connecter / Créer un compte
-  </a>
+  <div class="reassurance">
+    ✔ Professionnels vérifiés • ✔ Données confidentielles • ✔ Service non urgent
+  </div>
+
+  <div class="footer-separator"></div>
+
+  <footer class="footer-health">
+    <div class="footer-grid">
+      <div>
+        <h4>Informations</h4>
+        <a href="confidentialite.html">Confidentialité</a><br>
+        <a href="conditions.html">Conditions d’utilisation</a><br>
+        <a href="faq.html">FAQ</a>
+      </div>
+
+      <div>
+        <h4>Compte</h4>
+        <a href="login.html">Connexion</a><br>
+        <a href="logout.html">Déconnexion</a><br>
+        <a href="supprimer-compte.html" class="danger">Supprimer mon compte</a>
+      </div>
+
+      <div>
+        <h4>Contact</h4>
+        <a href="mailto:infos@cizagroup.com">infos@cizagroup.com</a><br>
+        <span>Burundi</span>
+      </div>
+    </div>
+
+    <div class="footer-disclaimer">
+      CizaHealth+ ne prend pas en charge les urgences médicales.
+      En cas d’urgence, contactez immédiatement les services de secours locaux.
+    </div>
+
+    <div class="footer-bottom">
+      © 2026 CizaHealth+ — CIZA GROUP • Plateforme de santé numérique
+    </div>
+  </footer>
 
 </div>
+
 </body>
 </html>
