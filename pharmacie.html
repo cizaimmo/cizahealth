@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Pharmacies partenaires</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --purple:#6b5ca8;
+  --purple-soft:#f4f2fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --bg:#f4f7fb;
+  --radius:24px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--purple);
+  font-weight:500;
+}
+
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:220px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(90,80,140,.25),
+      rgba(90,80,140,.6)
+    ),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/79bde4b134991796b44ac15111ae99ebe4c31f71/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+}
+
+/* HERO TEXT */
+.hero{
+  padding:22px 26px 10px;
+}
+.hero h1{
+  font-size:22px;
+  line-height:1.45;
+  margin:0 0 8px;
+  font-weight:600;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* SECTION */
+.section{
+  padding:22px 26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+/* ZONES */
+.zone-list{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+.zone{
+  background:var(--purple-soft);
+  border-left:4px solid var(--purple);
+  padding:12px 14px;
+  border-radius:14px;
+  font-size:13.5px;
+  font-weight:500;
+  color:#2d2650;
+}
+
+/* TEXT */
+.text{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--purple-soft);
+  border-left:4px solid var(--purple);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+  color:#2d2650;
+}
+
+/* CTA */
+.cta{
+  margin:24px 26px 30px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#6b5ca8,#7b6cc2);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  display:block;
+}
+.note{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
+  padding-bottom:10px;
+}
+
+/* FOOTER MIN */
+.footer-min{
+  margin-top:32px;
+  padding:26px 26px 30px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .links{
+  font-size:12.5px;
+  margin-bottom:8px;
+}
+.footer-min .links a{
+  color:#6b7a90;
+  text-decoration:none;
+  margin:0 6px;
+}
+.footer-min .legal{
+  font-size:11.5px;
+  color:#8a95a8;
+  line-height:1.5;
+}
+</style>
+
+<script>
+/* CTA PHARMACIE : orientation intelligente */
+function goPharmacieOrientation(){
+  // redirection vers la page d’orientation (logique gérée là-bas)
+  window.location.href = "orientation-pharmacie.html";
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- TOP -->
+  <div class="topbar">
+    <a href="index.html" class="back">← Accueil</a>
+  </div>
+
+  <!-- HERO IMAGE -->
+  <div class="hero-img"></div>
+
+  <!-- HERO TEXT -->
+  <div class="hero">
+    <h1>Pharmacies partenaires</h1>
+    <p>
+      Orientation vers des pharmacies partenaires
+      selon votre localisation.
+    </p>
+  </div>
+
+  <!-- COUVERTURE -->
+  <div class="section">
+    <h2>Zones couvertes</h2>
+
+    <div class="card">
+      <div class="zone-list">
+        <div class="zone">Bujumbura</div>
+        <div class="zone">Gitega</div>
+        <div class="zone">Ngozi</div>
+        <div class="zone">Muyinga</div>
+        <div class="zone">Kayanza</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UTILITÉ -->
+  <div class="section">
+    <h2>À quoi sert ce service</h2>
+    <div class="card text">
+      Le service de pharmacies partenaires permet d’orienter les patients
+      vers des pharmacies fiables et reconnues, facilitant l’accès
+      aux médicaments prescrits lors d’une téléconsultation ou recommandés
+      par un professionnel de santé.
+    </div>
+  </div>
+
+  <!-- NON RESPONSABILITÉ -->
+  <div class="section">
+    <h2>Information importante</h2>
+    <div class="disclaimer">
+      CizaHealth+ n’est pas une pharmacie et ne vend pas de médicaments.
+      Les pharmacies partenaires restent seules responsables de la
+      dispensation des produits pharmaceutiques conformément
+      à la réglementation en vigueur.
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <a href="#" class="cta" onclick="goPharmacieOrientation()">
+    Trouver une pharmacie partenaire
+  </a>
+
+  <div class="note">
+    Service d’orientation pharmaceutique.
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer-min">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+"
+    >
+    <div class="links">
+      <a href="confidentialite.html">Confidentialité</a>•
+      <a href="conditions.html">Conditions</a>•
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
