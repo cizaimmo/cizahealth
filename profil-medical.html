@@ -2,204 +2,106 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Création du profil médical</title>
+<title>CizaHealth+ | Compte médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#0a2a5e;
-  --bg:#f4f7fb;
-  --text:#0a1a2f;
-  --radius:22px;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-  color:var(--text);
+  background:#f4f7fb;
+  color:#0a1a2f;
 }
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  padding:24px;
 }
-
-/* HEADER */
-.header{
-  text-align:center;
-  padding:40px 20px 10px;
-}
-.header img{height:120px}
-
-/* CONTENT */
-.content{padding:24px 20px}
-h1{
+h2{
   font-size:20px;
-  text-align:center;
   margin-bottom:6px;
 }
-.subtitle{
-  text-align:center;
+p{
   font-size:14px;
-  opacity:.8;
-  margin-bottom:28px;
+  color:#6b7a90;
+  margin-bottom:20px;
 }
-
-/* FORM */
 label{
-  display:block;
-  margin-top:18px;
-  font-size:14px;
-  font-weight:600;
+  font-size:13px;
+  font-weight:500;
 }
 input, select{
   width:100%;
-  margin-top:8px;
   padding:14px;
+  margin-top:6px;
+  margin-bottom:16px;
   border-radius:14px;
-  border:1.8px solid #e6ebf5;
+  border:1px solid #e6ebf5;
   font-size:14px;
 }
-
-/* CHECKBOX PRO */
-.checkbox{
-  margin-top:20px;
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  font-size:13px;
-}
-.checkbox input{margin-top:3px}
-.checkbox label{line-height:1.45}
-
-/* CTA */
-.cta{margin-top:30px}
-.cta button{
+button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:#b7c3dd;
+  background:linear-gradient(135deg,#0a2a5e,#123c8a);
   color:#fff;
-  font-weight:600;
   font-size:15px;
-}
-.cta button.active{background:var(--blue)}
-
-/* FOOTER */
-.footer{
-  margin-top:auto;
-  text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.6;
+  font-weight:600;
 }
 </style>
-
-<script>
-function calculateAge(date){
-  const dob = new Date(date);
-  const diff = Date.now() - dob.getTime();
-  return new Date(diff).getUTCFullYear() - 1970;
-}
-
-function validateForm(){
-  const required = [
-    fullName.value,
-    birthDate.value,
-    gender.value,
-    province.value
-  ];
-  let valid = required.every(v => v.trim() !== "");
-  if(!privacy.checked) valid = false;
-
-  saveBtn.disabled = !valid;
-  saveBtn.classList.toggle("active", valid);
-}
-
-function createProfile(){
-  const patientId = "PT-" + Math.floor(100000 + Math.random()*900000);
-
-  const profile = {
-    patientId,
-    fullName: fullName.value.trim(),
-    birthDate: birthDate.value,
-    age: calculateAge(birthDate.value),
-    gender: gender.value,
-    province: province.value,
-    createdAt: new Date().toISOString()
-  };
-
-  localStorage.setItem("patientProfile", JSON.stringify(profile));
-
-  // 👉 Suite du flow
-  window.location.href = "demande.html";
-}
-</script>
 </head>
 
 <body>
 
 <div class="app">
+  <h2>Création du compte médical</h2>
+  <p>Ces informations sont obligatoires et ne seront demandées qu’une seule fois.</p>
 
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  </div>
+  <label>Nom complet</label>
+  <input id="fullname" placeholder="Nom et prénom">
 
-  <div class="content">
-    <h1>Créer votre profil médical</h1>
-    <div class="subtitle">
-      Informations requises une seule fois, conformément aux normes de santé.
-    </div>
+  <label>Date de naissance</label>
+  <input id="dob" type="date">
 
-    <label>Nom complet</label>
-    <input id="fullName" oninput="validateForm()">
+  <label>ID permanent (à vie)</label>
+  <input id="patientId" placeholder="Identifiant patient">
 
-    <label>Date de naissance</label>
-    <input type="date" id="birthDate" onchange="validateForm()">
+  <label>Allergie aux médicaments</label>
+  <select id="allergy">
+    <option value="non">Non</option>
+    <option value="oui">Oui</option>
+  </select>
 
-    <label>Sexe / Genre</label>
-    <select id="gender" onchange="validateForm()">
-      <option value="">Sélectionner</option>
-      <option>Homme</option>
-      <option>Femme</option>
-      <option>Autre / Préfère ne pas dire</option>
-    </select>
+  <label>Province</label>
+  <input id="province" placeholder="Province de résidence">
 
-    <label>Province</label>
-    <select id="province" onchange="validateForm()">
-      <option value="">Choisir</option>
-      <option>Bujumbura</option>
-      <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
-      <option>Kayanza</option>
-    </select>
-
-    <div class="checkbox">
-      <input type="checkbox" id="privacy" onchange="validateForm()">
-      <label for="privacy">
-        J’accepte la création de mon dossier médical CizaHealth+,
-        conformément aux normes OMS et à la politique de confidentialité.
-      </label>
-    </div>
-
-    <div class="cta">
-      <button id="saveBtn" disabled onclick="createProfile()">
-        Enregistrer mon profil
-      </button>
-    </div>
-  </div>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
-
+  <button onclick="saveProfile()">Enregistrer mon compte médical</button>
 </div>
+
+<script>
+/* Sécurité : accès seulement si connecté */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href = "login.html";
+}
+
+/* Sauvegarde du profil médical permanent */
+function saveProfile(){
+  const profile = {
+    fullname: document.getElementById("fullname").value,
+    dob: document.getElementById("dob").value,
+    patientId: document.getElementById("patientId").value,
+    allergy: document.getElementById("allergy").value,
+    province: document.getElementById("province").value,
+    createdAt: new Date().toISOString()
+  };
+
+  localStorage.setItem("cizahealth_profile", JSON.stringify(profile));
+  window.location.href = "dashboard.html";
+}
+</script>
 
 </body>
 </html>
