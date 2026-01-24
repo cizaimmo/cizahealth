@@ -8,13 +8,19 @@
 <style>
 :root{
   --blue:#123c8a;
-  --blue-soft:#e9f0fb;
-  --green-soft:#edf7f1;
-  --purple-soft:#f3f0fb;
-  --bg:#f4f7fb;
+  --blue-soft:#f1f5fc;
+
+  --green-soft:#f0f8f4;
+  --green:#3b8f6b;
+
+  --purple-soft:#f4f2fb;
+  --purple:#6b5ca8;
+
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:22px;
+  --bg:#f4f7fb;
+
+  --radius:24px;
 }
 
 *{box-sizing:border-box}
@@ -26,20 +32,17 @@ body{
   color:var(--text);
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
-  box-shadow:0 0 40px rgba(10,42,94,.08);
+  box-shadow:0 10px 50px rgba(10,42,94,.08);
 }
 
 /* TOP BAR */
 .topbar{
-  padding:18px 20px;
+  padding:18px 22px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -53,9 +56,9 @@ body{
 /* MENU */
 .menu{
   display:none;
-  padding:14px 22px 22px;
-  border-bottom:1px solid #eef1f6;
+  padding:16px 22px 22px;
   background:#fff;
+  border-bottom:1px solid #eef1f6;
 }
 .menu a{
   display:block;
@@ -69,27 +72,27 @@ body{
   height:1px;
   background:#e6ebf5;
 }
-.menu-pro{font-weight:600}
-.menu-admin{font-weight:600;color:#8a1f1f}
+.menu-admin{
+  font-weight:600;
+  color:#8a1f1f;
+}
 
 /* LOGO */
 .logo{
   text-align:center;
-  padding:18px 20px 6px;
+  padding:22px 20px 10px;
 }
-.logo img{
-  height:110px;
-}
+.logo img{height:108px}
 
 /* HERO */
 .hero{
   text-align:center;
-  padding:22px 26px 14px;
+  padding:22px 28px 16px;
 }
 .hero h1{
   font-size:22px;
-  line-height:1.4;
-  margin:10px 0 8px;
+  line-height:1.45;
+  margin:6px 0 10px;
   font-weight:600;
 }
 .hero p{
@@ -100,43 +103,71 @@ body{
 
 /* SERVICES */
 .services{
-  padding:22px;
+  padding:24px;
   display:grid;
-  gap:18px;
+  gap:20px;
 }
 
-/* CARTES */
+/* CARD */
 .service-card{
+  position:relative;
   border-radius:var(--radius);
-  padding:22px;
+  padding:26px 22px 22px;
   text-decoration:none;
   color:var(--text);
-  transition:.25s ease;
-  box-shadow:0 12px 28px rgba(10,42,94,.08);
+  transition:.3s ease;
+  box-shadow:0 10px 30px rgba(10,42,94,.08);
 }
 .service-card:hover{
   transform:translateY(-2px);
-  box-shadow:0 18px 40px rgba(10,42,94,.14);
+  box-shadow:0 18px 44px rgba(10,42,94,.14);
+}
+.service-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:18px;
+  bottom:18px;
+  width:4px;
+  border-radius:4px;
 }
 
-/* COULEURS PAR SERVICE */
-.service-card.tele{
-  background:linear-gradient(135deg,var(--blue-soft),#ffffff);
-  border-left:5px solid var(--blue);
+/* COLORS */
+.tele{
+  background:linear-gradient(180deg,var(--blue-soft),#fff);
 }
-.service-card.home{
-  background:linear-gradient(135deg,var(--green-soft),#ffffff);
-  border-left:5px solid #2d8a5a;
+.tele::before{background:var(--blue)}
+
+.home{
+  background:linear-gradient(180deg,var(--green-soft),#fff);
 }
-.service-card.pharma{
-  background:linear-gradient(135deg,var(--purple-soft),#ffffff);
-  border-left:5px solid #6b4ca5;
+.home::before{background:var(--green)}
+
+.pharma{
+  background:linear-gradient(180deg,var(--purple-soft),#fff);
+}
+.pharma::before{background:var(--purple)}
+
+/* ICONS SVG */
+.icon-box{
+  width:52px;
+  height:52px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:12px;
+}
+.tele .icon-box{background:rgba(18,60,138,.1)}
+.home .icon-box{background:rgba(59,143,107,.1)}
+.pharma .icon-box{background:rgba(107,92,168,.1)}
+
+svg{
+  width:26px;
+  height:26px;
 }
 
-.service-icon{
-  font-size:26px;
-  margin-bottom:8px;
-}
+/* TEXT */
 .service-card strong{
   font-size:16px;
   font-weight:600;
@@ -148,33 +179,11 @@ body{
   color:var(--muted);
 }
 
-/* REASSURANCE */
-.reassurance{
-  text-align:center;
-  font-size:12.5px;
-  padding:14px 22px 22px;
-  color:var(--muted);
-}
-
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,rgba(10,42,94,.35),transparent);
-}
-
 .footer-health{
   background:linear-gradient(180deg,#0b1f44,#071733);
   color:#e6ebff;
-  padding:48px 22px 34px;
-}
-.footer-grid{
-  display:grid;
-  gap:26px;
-}
-.footer-health h4{
-  margin-bottom:10px;
-  font-size:14px;
-  font-weight:600;
+  padding:48px 26px 34px;
 }
 .footer-health a{
   color:#cfd8ff;
@@ -182,20 +191,16 @@ body{
   font-size:13px;
   line-height:2;
 }
-.footer-health a.danger{
-  color:#ffb3b3;
-}
+.footer-health a.danger{color:#ffb3b3}
 .footer-disclaimer{
-  margin-top:26px;
-  padding-top:18px;
+  margin-top:22px;
+  padding-top:16px;
   border-top:1px solid rgba(255,255,255,.15);
   font-size:12px;
-  opacity:.85;
   text-align:center;
-  line-height:1.6;
 }
 .footer-bottom{
-  margin-top:16px;
+  margin-top:14px;
   font-size:11.5px;
   opacity:.75;
   text-align:center;
@@ -211,103 +216,88 @@ function toggleMenu(){
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div></div>
-    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+<div class="topbar">
+  <div></div>
+  <div class="menu-btn" onclick="toggleMenu()">☰</div>
+</div>
+
+<div class="menu" id="menu">
+  <a href="index.html">Accueil</a>
+  <a href="apropos.html">À propos</a>
+  <a href="faq.html">FAQ</a>
+  <a href="login.html">Connexion</a>
+  <div class="menu-separator"></div>
+  <a href="admin-login.html" class="menu-admin">Administration</a>
+</div>
+
+<div class="logo">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+</div>
+
+<div class="hero">
+  <h1>Des soins médicaux fiables et accessibles</h1>
+  <p>Téléconsultation, aide à domicile et orientation pharmaceutique</p>
+</div>
+
+<div class="services">
+
+<a href="teleconsultation.html" class="service-card tele">
+  <div class="icon-box">
+    <!-- STETHOSCOPE -->
+    <svg fill="none" stroke="#123c8a" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M4 3v5a4 4 0 008 0V3"/>
+      <path d="M12 13a5 5 0 005 5"/>
+      <circle cx="17" cy="18" r="3"/>
+    </svg>
   </div>
+  <strong>Téléconsultation médicale</strong>
+  <span>Consultez un professionnel de santé qualifié</span>
+</a>
 
-  <!-- MENU -->
-  <div class="menu" id="menu">
-    <a href="index.html">Accueil</a>
-    <a href="apropos.html">À propos</a>
-    <a href="faq.html">FAQ</a>
-    <a href="login.html">Connexion</a>
-    <a href="logout.html">Déconnexion</a>
-
-    <div class="menu-separator"></div>
-
-    <a href="pro-login.html" class="menu-pro">Espace professionnel</a>
-    <a href="admin-login.html" class="menu-admin">Administration</a>
+<a href="aide-domicile.html" class="service-card home">
+  <div class="icon-box">
+    <!-- HOME CARE -->
+    <svg fill="none" stroke="#3b8f6b" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M3 10l9-7 9 7"/>
+      <path d="M9 22V12h6v10"/>
+    </svg>
   </div>
+  <strong>Aide à domicile</strong>
+  <span>Assistance humaine organisée et respectueuse</span>
+</a>
 
-  <!-- LOGO -->
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+<a href="pharmacie.html" class="service-card pharma">
+  <div class="icon-box">
+    <!-- PHARMACY -->
+    <svg fill="none" stroke="#6b5ca8" stroke-width="2" viewBox="0 0 24 24">
+      <rect x="4" y="4" width="16" height="16" rx="3"/>
+      <path d="M12 8v8M8 12h8"/>
+    </svg>
   </div>
-
-  <!-- HERO -->
-  <div class="hero">
-    <h1>Des soins médicaux fiables et accessibles</h1>
-    <p>Téléconsultation, aide à domicile et orientation pharmaceutique</p>
-  </div>
-
-  <!-- SERVICES -->
-  <div class="services">
-
-    <a href="teleconsultation.html" class="service-card tele">
-      <div class="service-icon">🩺</div>
-      <strong>Téléconsultation médicale</strong>
-      <span>Consultez un professionnel de santé qualifié</span>
-    </a>
-
-    <a href="aide-domicile.html" class="service-card home">
-      <div class="service-icon">🏠</div>
-      <strong>Aide à domicile</strong>
-      <span>Assistance humaine organisée et respectueuse</span>
-    </a>
-
-    <a href="pharmacie.html" class="service-card pharma">
-      <div class="service-icon">💊</div>
-      <strong>Pharmacie partenaire</strong>
-      <span>Orientation vers des pharmacies de confiance</span>
-    </a>
-
-  </div>
-
-  <div class="reassurance">
-    ✔ Professionnels vérifiés • ✔ Données confidentielles • ✔ Service non urgent
-  </div>
-
-  <div class="footer-separator"></div>
-
-  <footer class="footer-health">
-    <div class="footer-grid">
-      <div>
-        <h4>Informations</h4>
-        <a href="confidentialite.html">Confidentialité</a><br>
-        <a href="conditions.html">Conditions d’utilisation</a><br>
-        <a href="faq.html">FAQ</a>
-      </div>
-
-      <div>
-        <h4>Compte</h4>
-        <a href="login.html">Connexion</a><br>
-        <a href="logout.html">Déconnexion</a><br>
-        <a href="supprimer-compte.html" class="danger">Supprimer mon compte</a>
-      </div>
-
-      <div>
-        <h4>Contact</h4>
-        <a href="mailto:infos@cizagroup.com">infos@cizagroup.com</a><br>
-        <span>Burundi</span>
-      </div>
-    </div>
-
-    <div class="footer-disclaimer">
-      CizaHealth+ ne prend pas en charge les urgences médicales.
-      En cas d’urgence, contactez immédiatement les services de secours locaux.
-    </div>
-
-    <div class="footer-bottom">
-      © 2026 CizaHealth+ — CIZA GROUP • Plateforme de santé numérique
-    </div>
-  </footer>
+  <strong>Pharmacie partenaire</strong>
+  <span>Orientation vers des pharmacies de confiance</span>
+</a>
 
 </div>
 
+<footer class="footer-health">
+  <div>
+    <a href="confidentialite.html">Confidentialité</a><br>
+    <a href="conditions.html">Conditions</a><br>
+    <a href="supprimer-compte.html" class="danger">Supprimer mon compte</a>
+  </div>
+
+  <div class="footer-disclaimer">
+    CizaHealth+ ne prend pas en charge les urgences médicales.
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+</footer>
+
+</div>
 </body>
 </html>
