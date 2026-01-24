@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Connexion patient</title>
+<title>CizaHealth+ | Connexion</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -19,6 +19,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
@@ -28,22 +29,12 @@ body{
   flex-direction:column;
 }
 
-/* TOP */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
-/* LOGO */
-.logo{
+/* HEADER */
+.header{
   text-align:center;
-  padding:10px 20px 0;
+  padding:40px 20px 10px;
 }
-.logo img{
+.header img{
   height:120px;
 }
 
@@ -52,17 +43,18 @@ body{
   padding:24px 20px;
 }
 h1{
-  font-size:20px;
   text-align:center;
-  margin-bottom:8px;
+  font-size:20px;
+  margin-bottom:6px;
 }
 .subtitle{
-  font-size:14px;
   text-align:center;
-  opacity:.85;
-  margin-bottom:24px;
+  font-size:14px;
+  opacity:.8;
+  margin-bottom:28px;
 }
 
+/* FORM */
 label{
   display:block;
   margin-top:18px;
@@ -80,7 +72,7 @@ input{
 
 /* CTA */
 .cta{
-  margin-top:28px;
+  margin-top:30px;
 }
 .cta button{
   width:100%;
@@ -91,28 +83,18 @@ input{
   color:#fff;
   font-weight:600;
   font-size:15px;
+  cursor:pointer;
 }
 
 /* LINKS */
 .links{
   margin-top:18px;
   text-align:center;
+  font-size:13px;
 }
 .links a{
-  display:block;
-  margin-top:10px;
-  font-size:13px;
   color:var(--blue);
   text-decoration:none;
-}
-
-/* ERROR */
-.error{
-  margin-top:14px;
-  font-size:13px;
-  color:#8a1f1f;
-  display:none;
-  text-align:center;
 }
 
 /* FOOTER */
@@ -121,39 +103,25 @@ input{
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 
 <script>
 function login(){
-  const savedAuth = JSON.parse(localStorage.getItem("patientAuth"));
-  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+  const identifier = document.getElementById("identifier").value.trim();
+  const password = document.getElementById("password").value.trim();
 
-  if(!savedAuth || !profile){
-    showError("Aucun compte patient trouvé. Veuillez créer un compte.");
+  if(!identifier || !password){
+    alert("Veuillez remplir tous les champs");
     return;
   }
 
-  if(
-    contact.value.trim() !== savedAuth.contact ||
-    password.value !== savedAuth.password
-  ){
-    showError("Identifiants incorrects");
-    return;
-  }
+  // 🔐 AUTHENTIFICATION SOFT (temporaire)
+  localStorage.setItem("softAuth", "true");
 
-  // ✅ session active
-  localStorage.setItem("patientSession", "active");
-
-  // 👉 redirection dashboard patient
-  window.location.href = "dashboard-client.html";
-}
-
-function showError(msg){
-  const el = document.getElementById("error");
-  el.innerText = msg;
-  el.style.display = "block";
+  // 🚀 Accès à l’index (PAS dashboard)
+  window.location.href = "index.html";
 }
 </script>
 </head>
@@ -162,36 +130,27 @@ function showError(msg){
 
 <div class="app">
 
-  <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
-  </div>
-
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
   <div class="content">
-    <h1>Connexion patient</h1>
+    <h1>Connexion</h1>
     <div class="subtitle">
-      Accès sécurisé à votre espace santé
+      Accès sécurisé à la plateforme CizaHealth+
     </div>
 
     <label>Email ou téléphone</label>
-    <input id="contact" placeholder="email ou +257…">
+    <input id="identifier" placeholder="ex: nom@email.com ou +257…">
 
     <label>Mot de passe</label>
-    <input type="password" id="password">
-
-    <div id="error" class="error"></div>
+    <input id="password" type="password" placeholder="••••••••">
 
     <div class="cta">
-      <button onclick="login()">
-        Se connecter
-      </button>
+      <button onclick="login()">Se connecter</button>
     </div>
 
     <div class="links">
-      <a href="signup.html">Créer un compte patient</a>
       <a href="#">Mot de passe oublié</a>
     </div>
   </div>
