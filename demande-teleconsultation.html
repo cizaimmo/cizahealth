@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Demande de téléconsultation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
+}
+
+/* TOP */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* FORM */
+.form{
+  padding:22px;
+}
+.group{
+  margin-bottom:14px;
+}
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:#1a2f55;
+}
+input, select, textarea{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
+}
+input[readonly]{
+  background:#f0f3f9;
+}
+textarea{
+  resize:none;
+  height:90px;
+}
+
+/* RADIO */
+.radio-group{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.radio{
+  border:1.5px solid #dfe5f0;
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+  font-size:13.5px;
+  cursor:pointer;
+}
+.radio.active{
+  border-color:var(--blue);
+  background:#eef2f8;
+}
+
+/* CTA */
+.cta{
+  margin-top:18px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+}
+</style>
+
+<script>
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
+}
+
+/* DOSSIER */
+const dossier = "DOS-" + Date.now();
+
+function selectRadio(el, value){
+  document.querySelectorAll(".radio").forEach(r=>r.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("type").value = value;
+}
+
+function submitRequest(){
+  localStorage.setItem("cizahealth_dossier", dossier);
+  localStorage.setItem("cizahealth_consult_type", document.getElementById("type").value);
+  localStorage.setItem("cizahealth_consult_duration", document.getElementById("duration").value);
+  localStorage.setItem("cizahealth_consult_province", document.getElementById("prov").value);
+  localStorage.setItem("cizahealth_consult_reason", document.getElementById("reason").value);
+  window.location.href="confirmation-teleconsultation.html";
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="dashboard.html" class="back">← Retour</a>
+  </div>
+
+  <div class="form">
+
+    <div class="group">
+      <label>Identité du patient</label>
+      <input type="text" id="pname" readonly>
+    </div>
+
+    <div class="group">
+      <label>Identifiant médical</label>
+      <input type="text" id="pid" readonly>
+    </div>
+
+    <div class="group">
+      <label>Province de prise en charge</label>
+      <select id="prov">
+        <option>Bujumbura</option>
+        <option>Gitega</option>
+        <option>Ngozi</option>
+        <option>Kayanza</option>
+        <option>Muyinga</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Mode de consultation</label>
+      <div class="radio-group">
+        <div class="radio active" onclick="selectRadio(this,'audio')">Audio</div>
+        <div class="radio" onclick="selectRadio(this,'video')">Vidéo</div>
+      </div>
+      <input type="hidden" id="type" value="audio">
+    </div>
+
+    <div class="group">
+      <label>Durée de la consultation</label>
+      <select id="duration">
+        <option value="10">10 minutes</option>
+        <option value="20">20 minutes</option>
+        <option value="30">30 minutes</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Motif principal de la consultation</label>
+      <textarea id="reason" placeholder="Décrivez brièvement votre situation"></textarea>
+    </div>
+
+    <button class="cta" onclick="submitRequest()">
+      Valider la demande
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+document.getElementById("pname").value =
+  localStorage.getItem("cizahealth_name") || "Patient";
+document.getElementById("pid").value =
+  localStorage.getItem("cizahealth_patient_id") || "—";
+document.getElementById("prov").value =
+  localStorage.getItem("cizahealth_province") || "Bujumbura";
+</script>
+</body>
+</html>
