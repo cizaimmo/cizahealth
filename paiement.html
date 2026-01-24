@@ -11,7 +11,6 @@
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
-  --disabled:#b7c3dd;
 }
 *{box-sizing:border-box}
 body{
@@ -20,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -31,11 +29,21 @@ body{
 }
 
 /* HEADER */
-.header{
-  text-align:center;
-  padding:18px 20px 10px;
+.topbar{
+  padding:18px 20px;
 }
-.header img{
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* LOGO */
+.logo{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.logo img{
   height:120px;
 }
 
@@ -45,43 +53,36 @@ body{
 }
 h1{
   font-size:20px;
-  text-align:center;
-  margin-bottom:10px;
-}
-.ref{
-  text-align:center;
-  font-size:13px;
-  opacity:.75;
-  margin-bottom:22px;
+  margin-bottom:14px;
 }
 
-/* CARD */
-.card{
+/* INFO */
+.info{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
-  margin-bottom:20px;
   font-size:14px;
+  margin-bottom:20px;
+}
+.info p{
+  margin:6px 0;
 }
 
-/* PAYMENT */
-.method{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:14px;
+/* PAYMENT OPTIONS */
+.payments{
+  display:grid;
+  gap:14px;
 }
-.method input{
-  transform:scale(1.2);
+.payment-option{
+  border:2px solid #e6ebf5;
+  border-radius:18px;
+  padding:16px;
+  cursor:pointer;
+  font-weight:600;
 }
-
-/* CHECKBOX */
-.checkbox{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  margin-top:18px;
-  font-size:13px;
+.payment-option.active{
+  border-color:var(--blue);
+  background:#eef3ff;
 }
 
 /* CTA */
@@ -93,21 +94,13 @@ h1{
   padding:16px;
   border:none;
   border-radius:18px;
+  background:#b7c3dd;
+  color:#fff;
   font-weight:600;
   font-size:15px;
-  background:var(--disabled);
-  color:#fff;
 }
 .cta button.active{
   background:var(--blue);
-}
-
-/* INFO */
-.info{
-  margin-top:14px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
 }
 
 /* FOOTER */
@@ -121,41 +114,46 @@ h1{
 </style>
 
 <script>
+let request = null;
 let paymentMethod = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const req = JSON.parse(localStorage.getItem("cizaRequest"));
 
-  if(!req){
+  request = JSON.parse(localStorage.getItem("activeRequest"));
+
+  if(!request || request.status !== "pro_found"){
     window.location.href = "dashboard-client.html";
     return;
   }
 
-  document.getElementById("ref").innerText = req.dossier;
-  document.getElementById("service").innerText = req.serviceType;
-  document.getElementById("province").innerText = req.province;
+  document.getElementById("dossier").innerText = request.dossierNumber;
+  document.getElementById("pro").innerText = request.pro.name;
+  document.getElementById("province").innerText = request.pro.province;
 });
 
-function selectMethod(value){
-  paymentMethod = value;
-  validate();
-}
+function selectPayment(method){
+  paymentMethod = method;
 
-function validate(){
-  const ok =
-    paymentMethod &&
-    document.getElementById("privacy").checked;
+  document.querySelectorAll(".payment-option").forEach(el=>{
+    el.classList.remove("active");
+  });
+
+  document.getElementById(method).classList.add("active");
 
   const btn = document.getElementById("payBtn");
-  btn.disabled = !ok;
-  btn.classList.toggle("active", ok);
+  btn.disabled = false;
+  btn.classList.add("active");
 }
 
 function confirmPayment(){
-  if(!paymentMethod) return;
+  request.payment = {
+    method: paymentMethod,
+    status: "paid",
+    date: new Date().toISOString()
+  };
+  request.status = "paid";
 
-  localStorage.setItem("paymentStatus", "paid");
-  localStorage.setItem("paymentMethod", paymentMethod);
+  localStorage.setItem("activeRequest", JSON.stringify(request));
 
   window.location.href = "appel.html";
 }
@@ -166,46 +164,33 @@ function confirmPayment(){
 
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
+  <div class="topbar">
+    <a href="recherche-pro.html" class="back">← Retour</a>
+  </div>
+
+  <div class="logo">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Paiement sécurisé</h1>
+    <h1>Paiement de la consultation</h1>
 
-    <div class="ref">
-      Dossier : <strong id="ref">—</strong><br>
-      Service : <strong id="service">—</strong><br>
-      Province : <strong id="province">—</strong>
+    <div class="info">
+      <p><strong>Dossier :</strong> <span id="dossier">—</span></p>
+      <p><strong>Professionnel :</strong> <span id="pro">—</span></p>
+      <p><strong>Province :</strong> <span id="province">—</span></p>
     </div>
 
-    <div class="card">
-      <strong>Moyen de paiement</strong>
-
-      <div class="method">
-        <input type="radio" name="pay" onclick="selectMethod('EcoCash')">
-        <label>EcoCash</label>
+    <div class="payments">
+      <div class="payment-option" id="lumicash" onclick="selectPayment('lumicash')">
+        💳 Lumicash
       </div>
-
-      <div class="method">
-        <input type="radio" name="pay" onclick="selectMethod('Lumicash')">
-        <label>Lumicash</label>
+      <div class="payment-option" id="ecocash" onclick="selectPayment('ecocash')">
+        📱 EcoCash
       </div>
-
-      <div class="method">
-        <input type="radio" name="pay" onclick="selectMethod('e-Noti')">
-        <label>e-Noti</label>
+      <div class="payment-option" id="inoti" onclick="selectPayment('inoti')">
+        🏦 Inoti
       </div>
-    </div>
-
-    <div class="checkbox">
-      <input type="checkbox" id="privacy" onchange="validate()">
-      <label for="privacy">
-        J’accepte les conditions de paiement et la politique
-        de confidentialité de CizaHealth+.
-      </label>
     </div>
 
     <div class="cta">
@@ -214,13 +199,8 @@ function confirmPayment(){
       </button>
     </div>
 
-    <div class="info">
-      Le paiement est requis avant le démarrage
-      de la téléconsultation.
-    </div>
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
