@@ -69,13 +69,13 @@ button.secondary{
   <h2>Connexion</h2>
   <p>Accédez à votre espace CizaHealth+</p>
 
-  <input id="email" type="email" placeholder="Adresse email">
+  <input id="email" type="email" placeholder="Adresse email (recommandé)">
   <input id="password" type="password" placeholder="Mot de passe">
 
-  <!-- BOUTON LOGIN -->
+  <!-- CONNEXION -->
   <button onclick="login()">Connexion</button>
 
-  <!-- BOUTON SIGNUP -->
+  <!-- CRÉATION DE COMPTE -->
   <button class="secondary" onclick="signup()">Créer un compte</button>
 
   <div class="small">
@@ -84,24 +84,26 @@ button.secondary{
 </div>
 
 <script>
-/* LOGIN */
+/* CONNEXION */
 function login(){
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
+
   if(!email){
-    alert("Veuillez entrer un email");
+    alert("Veuillez entrer votre email pour vous connecter.");
     return;
   }
 
-  /* Création de la session */
   localStorage.setItem("cizahealth_session", email);
-
-  /* Retour index (aligné avec le flow) */
   window.location.href = "index.html";
 }
 
-/* SIGNUP */
+/* CRÉATION DE COMPTE */
 function signup(){
-  login(); // même logique en phase test
+  // Création de compte TEST (sans bloquer)
+  const email = document.getElementById("email").value.trim() || "nouveau@cizahealth.local";
+
+  localStorage.setItem("cizahealth_session", email);
+  window.location.href = "index.html";
 }
 </script>
 
