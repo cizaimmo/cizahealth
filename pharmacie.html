@@ -7,183 +7,253 @@
 
 <style>
 :root{
-  --blue:#0a2a5e;
-  --bg:#f4f7fb;
+  --purple:#6b5ca8;
+  --purple-soft:#f4f2fb;
   --text:#0a1a2f;
-  --radius:22px;
+  --muted:#6b7a90;
+  --bg:#f4f7fb;
+  --radius:24px;
 }
+
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
 }
 
 /* TOP BAR */
 .topbar{
-  padding:18px 20px;
+  padding:18px 22px;
 }
 .back{
   text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
+  color:var(--purple);
+  font-weight:500;
 }
 
-/* HEADER */
-.header{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.header img{
-  height:120px;
-}
-
-/* HERO PHARMACIE */
-.hero-pharma{
-  padding:16px 20px 10px;
-}
-.hero-pharma img{
+/* HERO IMAGE */
+.hero-img{
   width:100%;
-  border-radius:22px;
-}
-.hero-pharma h1{
-  margin-top:14px;
-  font-size:20px;
-  text-align:center;
-}
-.hero-pharma p{
-  margin-top:6px;
-  font-size:14.5px;
-  text-align:center;
-  opacity:.85;
+  height:220px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(90,80,140,.25),
+      rgba(90,80,140,.6)
+    ),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/79bde4b134991796b44ac15111ae99ebe4c31f71/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
 }
 
-/* CONTENT */
-.content{
-  padding:24px 20px;
+/* HERO TEXT */
+.hero{
+  padding:22px 26px 10px;
 }
-.section-title{
-  font-size:16px;
+.hero h1{
+  font-size:22px;
+  line-height:1.45;
+  margin:0 0 8px;
   font-weight:600;
-  margin-bottom:10px;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
 }
 
-/* INFO BOX */
-.info-box{
-  border:2px solid #e6ebf5;
-  border-radius:22px;
-  padding:18px;
-  font-size:14px;
-  line-height:1.5;
+/* SECTION */
+.section{
+  padding:22px 26px;
 }
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
 
-/* PROVINCES */
-.provinces{
-  margin-top:20px;
+/* ZONES */
+.zone-list{
   display:grid;
+  grid-template-columns:repeat(2,1fr);
   gap:12px;
 }
-.province{
-  border:2px solid #e6ebf5;
-  border-radius:18px;
-  padding:14px;
-  font-size:14px;
-  background:#fff;
+.zone{
+  background:var(--purple-soft);
+  border-left:4px solid var(--purple);
+  padding:12px 14px;
+  border-radius:14px;
+  font-size:13.5px;
+  font-weight:500;
+  color:#2d2650;
 }
 
-/* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
+/* TEXT */
+.text{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--muted);
 }
-.footer{
-  text-align:center;
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--purple-soft);
+  border-left:4px solid var(--purple);
   padding:18px;
-  font-size:12px;
-  opacity:.65;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+  color:#2d2650;
+}
+
+/* CTA */
+.cta{
+  margin:24px 26px 30px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#6b5ca8,#7b6cc2);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  display:block;
+}
+.note{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
+  padding-bottom:10px;
+}
+
+/* FOOTER MIN */
+.footer-min{
+  margin-top:32px;
+  padding:26px 26px 30px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .links{
+  font-size:12.5px;
+  margin-bottom:8px;
+}
+.footer-min .links a{
+  color:#6b7a90;
+  text-decoration:none;
+  margin:0 6px;
+}
+.footer-min .legal{
+  font-size:11.5px;
+  color:#8a95a8;
+  line-height:1.5;
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- TOP BAR -->
+  <!-- TOP -->
   <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
+    <a href="index.html" class="back">← Accueil</a>
   </div>
 
-  <!-- HEADER -->
-  <div class="header">
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
-      alt="CizaHealth+"
-    >
-  </div>
+  <!-- HERO IMAGE -->
+  <div class="hero-img"></div>
 
-  <!-- HERO -->
-  <div class="hero-pharma">
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/21c81e3b180a5e224b4d3962b7f79d3bdbe3f0c6/BDCBD9D0-99EF-4239-A3F9-B7C26DA54555.png"
-      alt="Patient récupérant ses médicaments"
-    >
-
+  <!-- HERO TEXT -->
+  <div class="hero">
     <h1>Pharmacies partenaires</h1>
-
     <p>
-      Pour garantir la sécurité et l’authenticité des traitements,
-      les ordonnances sont transmises directement par le médecin
-      à une pharmacie partenaire.
+      Orientation vers des pharmacies partenaires
+      selon votre localisation.
     </p>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <!-- COUVERTURE -->
+  <div class="section">
+    <h2>Zones couvertes</h2>
 
-    <div class="section-title">Fonctionnement</div>
-
-    <div class="info-box">
-      ✔ Le patient ne reçoit pas l’ordonnance directement<br><br>
-      ✔ Le médecin choisit avec le patient la province de délivrance<br><br>
-      ✔ L’ordonnance est envoyée uniquement à une pharmacie partenaire<br><br>
-      ✔ Le patient récupère ses médicaments sur présentation d’une pièce d’identité
+    <div class="card">
+      <div class="zone-list">
+        <div class="zone">Bujumbura</div>
+        <div class="zone">Gitega</div>
+        <div class="zone">Ngozi</div>
+        <div class="zone">Muyinga</div>
+        <div class="zone">Kayanza</div>
+      </div>
     </div>
+  </div>
 
-    <div class="section-title" style="margin-top:26px">
-      Provinces couvertes
+  <!-- UTILITÉ -->
+  <div class="section">
+    <h2>À quoi sert ce service</h2>
+    <div class="card text">
+      Le service de pharmacies partenaires permet d’orienter les patients
+      vers des pharmacies fiables et reconnues, facilitant l’accès
+      aux médicaments prescrits lors d’une téléconsultation ou recommandés
+      par un professionnel de santé.
     </div>
+  </div>
 
-    <div class="provinces">
-      <div class="province">📍 Bujumbura — pharmacies partenaires disponibles</div>
-      <div class="province">📍 Gitega — pharmacies partenaires disponibles</div>
-      <div class="province">📍 Ngozi — pharmacies partenaires disponibles</div>
-      <div class="province">📍 Muyinga — pharmacies partenaires disponibles</div>
-      <div class="province">📍 Kayanza — pharmacies partenaires disponibles</div>
+  <!-- NON RESPONSABILITÉ -->
+  <div class="section">
+    <h2>Information importante</h2>
+    <div class="disclaimer">
+      CizaHealth+ n’est pas une pharmacie et ne vend pas de médicaments.
+      Les pharmacies partenaires restent seules responsables de la
+      dispensation des produits pharmaceutiques conformément
+      à la réglementation en vigueur.
     </div>
+  </div>
 
+  <!-- CTA -->
+  <a href="#" class="cta">
+    Trouver une pharmacie partenaire
+  </a>
+
+  <div class="note">
+    Service d’orientation pharmaceutique.
   </div>
 
   <!-- FOOTER -->
-  <div class="footer-separator"></div>
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP<br>
-    Plateforme de santé numérique à usage responsable
-  </div>
+  <footer class="footer-min">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+"
+    >
+    <div class="links">
+      <a href="confidentialite.html">Confidentialité</a>•
+      <a href="conditions.html">Conditions</a>•
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
 
 </div>
-
 </body>
 </html>
