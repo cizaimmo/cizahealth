@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Téléconsultation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:220px;
+  background:
+    linear-gradient(rgba(10,42,94,.25),rgba(10,42,94,.6)),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/36bdf09d6bea282a3b4d357a2c8e177dbf138090/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+}
+
+/* HERO TEXT */
+.hero{
+  padding:22px 26px 10px;
+}
+.hero h1{
+  font-size:22px;
+  line-height:1.45;
+  margin:0 0 8px;
+  font-weight:600;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* SECTION */
+.section{
+  padding:22px 26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+/* STEPS */
+.step{
+  display:flex;
+  gap:14px;
+}
+.step-num{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--blue);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.step p{
+  margin:0;
+  font-size:14px;
+}
+
+/* TEXT */
+.text{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+  color:#1a2f55;
+}
+
+/* CTA */
+.cta{
+  margin:24px 26px 30px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  display:block;
+}
+
+/* FOOTER MINIMAL */
+.footer-min{
+  margin-top:36px;
+  padding:26px 26px 30px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .links{
+  font-size:12.5px;
+  margin-bottom:8px;
+}
+.footer-min .links a{
+  color:#6b7a90;
+  text-decoration:none;
+  margin:0 6px;
+}
+.footer-min .legal{
+  font-size:11.5px;
+  color:#8a95a8;
+  line-height:1.5;
+}
+</style>
+
+<script>
+function startTeleconsultation(){
+  const session = localStorage.getItem("cizahealth_session");
+  if(session){
+    window.location.href = "dashboard.html";
+  }else{
+    window.location.href = "login.html";
+  }
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Accueil</a>
+  </div>
+
+  <div class="hero-img"></div>
+
+  <div class="hero">
+    <h1>Téléconsultation médicale</h1>
+    <p>
+      Accédez à un professionnel de santé qualifié,
+      où que vous soyez, en toute confidentialité.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Comment ça fonctionne</h2>
+
+    <div class="card step">
+      <div class="step-num">1</div>
+      <p>Vous formulez votre demande de téléconsultation.</p>
+    </div>
+
+    <div class="card step">
+      <div class="step-num">2</div>
+      <p>Un professionnel de santé disponible est identifié.</p>
+    </div>
+
+    <div class="card step">
+      <div class="step-num">3</div>
+      <p>La consultation se déroule par appel audio ou vidéo.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Information importante</h2>
+    <div class="disclaimer">
+      Ce service ne prend pas en charge les urgences médicales.
+      En cas d’urgence, contactez les services de secours locaux.
+    </div>
+  </div>
+
+  <a href="#" class="cta" onclick="startTeleconsultation()">
+    Démarrer une téléconsultation
+  </a>
+
+  <!-- FOOTER -->
+  <footer class="footer-min">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+"
+    >
+    <div class="links">
+      <a href="confidentialite.html">Confidentialité</a>•
+      <a href="conditions.html">Conditions</a>•
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
