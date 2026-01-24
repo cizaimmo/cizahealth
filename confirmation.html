@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Confirmation de votre demande</title>
+<title>CizaHealth+ | Confirmation de la demande</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -19,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -29,74 +28,89 @@ body{
   flex-direction:column;
 }
 
-.header{
-  text-align:center;
-  padding:30px 20px 10px;
+/* HEADER */
+.topbar{
+  padding:18px 20px;
 }
-.header img{
-  height:110px;
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
 }
 
+/* LOGO */
+.logo{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.logo img{
+  height:120px;
+}
+
+/* CONTENT */
 .content{
   padding:24px 20px;
-  text-align:center;
 }
-
 h1{
-  font-size:22px;
-  margin-bottom:8px;
-}
-
-.ref{
-  font-size:14px;
-  opacity:.8;
-  margin-bottom:22px;
+  font-size:20px;
+  margin-bottom:14px;
 }
 
 .card{
   border:2px solid #e6ebf5;
-  border-radius:22px;
-  padding:20px;
-  text-align:left;
-  margin-bottom:28px;
-}
-
-.card p{
-  margin:10px 0;
-  font-size:14px;
-}
-
-.cta{
-  margin-top:10px;
-}
-.cta button{
-  width:100%;
+  border-radius:var(--radius);
   padding:18px;
-  border:none;
-  border-radius:20px;
-  background:var(--blue);
-  color:#fff;
-  font-size:16px;
+  margin-bottom:18px;
+}
+.card h3{
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+.line{
+  font-size:14px;
+  margin-bottom:6px;
+}
+.line strong{
   font-weight:600;
 }
 
-.note{
-  margin-top:16px;
-  font-size:13px;
-  opacity:.7;
+/* CTA */
+.cta{
+  margin-top:26px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
 }
 
+/* INFO */
+.info{
+  margin-top:18px;
+  font-size:12.5px;
+  opacity:.75;
+  text-align:center;
+}
+
+/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.6;
+  opacity:.65;
 }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
   const request = JSON.parse(localStorage.getItem("activeRequest"));
 
   if(!request){
@@ -107,25 +121,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("dossier").innerText = request.dossierNumber;
   document.getElementById("service").innerText = request.serviceType;
   document.getElementById("province").innerText = request.province;
+  document.getElementById("description").innerText = request.description;
 
-  let pharmacie = "—";
-  if(request.ordonnanceDestination === "pharmacie_province"){
-    pharmacie = "Pharmacie partenaire (province)";
-  }
-  if(request.ordonnanceDestination === "pharmacie_autre"){
-    pharmacie = "Pharmacie partenaire (autre province)";
-  }
-  if(request.ordonnanceDestination === "decider_medecin"){
-    pharmacie = "À décider avec le médecin";
+  if(request.date){
+    document.getElementById("date").innerText = request.date + " à " + request.time;
+  } else {
+    document.getElementById("date").innerText = "Consultation immédiate";
   }
 
-  document.getElementById("pharmacie").innerText = pharmacie;
 });
-
-function searchProfessional(){
-  localStorage.setItem("searchStatus", "searching");
-  window.location.href = "matching.html";
-}
 </script>
 </head>
 
@@ -133,32 +137,50 @@ function searchProfessional(){
 
 <div class="app">
 
-  <div class="header">
+  <div class="topbar">
+    <a href="demande.html" class="back">← Modifier la demande</a>
+  </div>
+
+  <div class="logo">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <div class="content">
+    <h1>Confirmation de la demande</h1>
 
-    <h1>Confirmation de votre demande</h1>
-    <div class="ref">
-      Numéro de dossier : <strong id="dossier">—</strong>
+    <div class="card">
+      <h3>Référence du dossier</h3>
+      <div class="line">
+        Numéro : <strong id="dossier">—</strong>
+      </div>
     </div>
 
     <div class="card">
-      <p><strong>Type de service :</strong> <span id="service">—</span></p>
-      <p><strong>Province :</strong> <span id="province">—</span></p>
-      <p><strong>Pharmacie partenaire :</strong> <span id="pharmacie">—</span></p>
+      <h3>Détails de la demande</h3>
+      <div class="line">
+        <strong>Service :</strong> <span id="service"></span>
+      </div>
+      <div class="line">
+        <strong>Province :</strong> <span id="province"></span>
+      </div>
+      <div class="line">
+        <strong>Date :</strong> <span id="date"></span>
+      </div>
+      <div class="line">
+        <strong>Description :</strong><br>
+        <span id="description"></span>
+      </div>
     </div>
 
     <div class="cta">
-      <button onclick="searchProfessional()">
-        🔍 Rechercher un professionnel disponible
+      <button onclick="location.href='recherche-pro.html'">
+        Chercher un professionnel disponible
       </button>
     </div>
 
-    <div class="note">
-      La recherche se fait uniquement dans la province sélectionnée.<br>
-      Le paiement sera activé après confirmation de disponibilité.
+    <div class="info">
+      Aucun paiement n’est effectué à ce stade.
+      La recherche se fait uniquement dans votre province.
     </div>
 
   </div>
