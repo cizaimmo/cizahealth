@@ -2,252 +2,265 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Demande médicale</title>
+<title>CizaHealth+ | Demande de service</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --green:#3b8f6b;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
 }
 
-/* HEADER */
+/* TOP */
 .topbar{
-  padding:18px 20px;
+  padding:18px 22px;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
-  font-weight:600;
+  font-weight:500;
 }
 
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:10px 20px 0;
+/* FORM */
+.form{
+  padding:22px;
 }
-.logo img{
-  height:120px;
+.group{
+  margin-bottom:14px;
 }
-
-/* CONTENT */
-.content{
-  padding:26px 20px;
-}
-h1{
-  font-size:20px;
-  margin-bottom:18px;
-}
-
 label{
   display:block;
-  margin-top:18px;
-  font-size:14px;
-  font-weight:600;
-}
-
-input, textarea, select{
-  width:100%;
-  margin-top:8px;
-  padding:14px;
-  border-radius:14px;
-  border:1.8px solid #e6ebf5;
-  font-size:14px;
-}
-
-input[readonly]{
-  background:#f1f4fa;
-}
-
-textarea{min-height:110px}
-
-/* CHECKBOX PRO */
-.checkbox{
-  margin-top:18px;
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
   font-size:13px;
+  margin-bottom:6px;
+  color:#1a2f55;
 }
-.checkbox input{
-  margin-top:4px;
+input, select, textarea{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
 }
-.checkbox label{
-  margin:0;
-  line-height:1.45;
+input[readonly]{
+  background:#f0f3f9;
+}
+textarea{
+  resize:none;
+  height:90px;
+}
+
+/* RADIO */
+.radio-group{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.radio{
+  border:1.5px solid #dfe5f0;
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+  font-size:13.5px;
+  cursor:pointer;
+}
+.radio.active{
+  border-color:var(--blue);
+  background:#eef2f8;
 }
 
 /* CTA */
 .cta{
-  margin-top:30px;
-}
-.cta button{
-  width:100%;
+  margin-top:18px;
   padding:16px;
-  border:none;
   border-radius:18px;
-  background:#b7c3dd;
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
   color:#fff;
+  text-align:center;
   font-weight:600;
+  border:none;
+  width:100%;
   font-size:15px;
 }
-.cta button.active{
-  background:var(--blue);
-}
 
-/* FOOTER */
-.footer{
-  margin-top:auto;
-  text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.6;
-}
+.hidden{display:none}
 </style>
 
 <script>
-let dossierNumber = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  // 🔐 Sécurité : accès uniquement via dashboard
-  const profile = JSON.parse(localStorage.getItem("patientProfile"));
-  if(!profile){
-    window.location.href = "signup.html";
-    return;
-  }
-
-  // 🆔 Injection identité patient
-  fullName.value = profile.fullName;
-  age.value = profile.age + " ans";
-  province.value = profile.province;
-  patientId.value = profile.patientId;
-
-  // 🆔 Numéro de dossier UNIQUE
-  dossierNumber = "CH-" + Date.now();
-  dossier.innerText = dossierNumber;
-});
-
-function validateForm(){
-  const valid =
-    serviceType.value &&
-    description.value.trim() &&
-    ordonnance.value &&
-    privacy.checked;
-
-  continueBtn.disabled = !valid;
-  continueBtn.classList.toggle("active", valid);
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
 }
 
+/* TYPE DE DEMANDE */
+const params = new URLSearchParams(window.location.search);
+const serviceType = params.get("type"); 
+// teleconsultation | aide
+
+if(!serviceType){
+  window.location.href="dashboard.html";
+}
+
+/* DOSSIER UNIQUE */
+const dossier = "DOS-" + Date.now();
+
+/* RADIO HANDLER */
+function selectRadio(el, value, target){
+  document.querySelectorAll("." + target).forEach(r=>r.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById(target).value = value;
+}
+
+/* SUBMIT */
 function submitRequest(){
+  localStorage.setItem("cizahealth_dossier", dossier);
+  localStorage.setItem("cizahealth_service_type", serviceType);
+  localStorage.setItem("cizahealth_province", document.getElementById("prov").value);
+  localStorage.setItem("cizahealth_reason", document.getElementById("reason").value);
 
-  const request = {
-    dossierNumber,
-    patientId: patientId.value,
-    fullName: fullName.value,
-    age: age.value,
-    province: province.value,
-    serviceType: serviceType.value,
-    description: description.value,
-    ordonnanceDestination: ordonnance.value,
-    status: "created",
-    createdAt: new Date().toISOString()
-  };
+  if(serviceType === "teleconsultation"){
+    localStorage.setItem("cizahealth_consult_mode", document.getElementById("mode").value);
+    localStorage.setItem("cizahealth_consult_duration", document.getElementById("duration").value);
+  }
 
-  localStorage.setItem("activeRequest", JSON.stringify(request));
-  window.location.href = "confirmation.html";
+  if(serviceType === "aide"){
+    localStorage.setItem("cizahealth_aide_type", document.getElementById("aideType").value);
+    localStorage.setItem("cizahealth_aide_period", document.getElementById("period").value);
+  }
+
+  window.location.href="confirmation.html";
 }
 </script>
 </head>
 
 <body>
-
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard-client.html" class="back">← Retour</a>
+    <a href="dashboard.html" class="back">← Retour</a>
   </div>
 
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  </div>
-
-  <div class="content">
-    <h1>Nouvelle demande médicale</h1>
+  <div class="form">
 
     <!-- IDENTITÉ -->
-    <label>Nom complet</label>
-    <input id="fullName" readonly>
-
-    <label>Âge</label>
-    <input id="age" readonly>
-
-    <label>Province</label>
-    <input id="province" readonly>
-
-    <label>ID patient</label>
-    <input id="patientId" readonly>
-
-    <label>Numéro de dossier</label>
-    <div id="dossier" style="margin-top:8px;font-weight:700;"></div>
-
-    <!-- DEMANDE -->
-    <label>Type de service</label>
-    <select id="serviceType" onchange="validateForm()">
-      <option value="">Sélectionner</option>
-      <option value="teleconsultation">Téléconsultation</option>
-      <option value="domicile">Aide à domicile</option>
-      <option value="rdv">Rendez-vous programmé</option>
-    </select>
-
-    <label>Description médicale</label>
-    <textarea id="description" oninput="validateForm()"></textarea>
-
-    <label>Ordonnance (si nécessaire)</label>
-    <select id="ordonnance" onchange="validateForm()">
-      <option value="">Choisir une option</option>
-      <option value="pharmacie_partenaire">Pharmacie partenaire (recommandée)</option>
-      <option value="decider_medecin">À décider avec le médecin</option>
-    </select>
-
-    <div class="checkbox">
-      <input type="checkbox" id="privacy" onchange="validateForm()">
-      <label for="privacy">
-        J’accepte le traitement confidentiel de mes données médicales
-        conformément aux normes OMS et à la politique CizaHealth+.
-      </label>
+    <div class="group">
+      <label>Identité du patient</label>
+      <input type="text" id="pname" readonly>
     </div>
 
-    <div class="cta">
-      <button id="continueBtn" disabled onclick="submitRequest()">
-        Continuer
-      </button>
+    <div class="group">
+      <label>Identifiant médical</label>
+      <input type="text" id="pid" readonly>
     </div>
-  </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+    <div class="group">
+      <label>Province de prise en charge</label>
+      <select id="prov">
+        <option>Bujumbura</option>
+        <option>Gitega</option>
+        <option>Ngozi</option>
+        <option>Kayanza</option>
+        <option>Muyinga</option>
+      </select>
+    </div>
+
+    <!-- TELECONSULTATION -->
+    <div id="teleconsultationFields" class="hidden">
+
+      <div class="group">
+        <label>Mode de consultation</label>
+        <div class="radio-group">
+          <div class="radio mode active" onclick="selectRadio(this,'audio','mode')">Audio</div>
+          <div class="radio mode" onclick="selectRadio(this,'video','mode')">Vidéo</div>
+        </div>
+        <input type="hidden" id="mode" value="audio">
+      </div>
+
+      <div class="group">
+        <label>Durée</label>
+        <select id="duration">
+          <option value="10">10 minutes</option>
+          <option value="20">20 minutes</option>
+          <option value="30">30 minutes</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- AIDE A DOMICILE -->
+    <div id="aideFields" class="hidden">
+
+      <div class="group">
+        <label>Type d’aide</label>
+        <div class="radio-group">
+          <div class="radio aideType active" onclick="selectRadio(this,'accompagnement','aideType')">Accompagnement</div>
+          <div class="radio aideType" onclick="selectRadio(this,'presence','aideType')">Présence</div>
+          <div class="radio aideType" onclick="selectRadio(this,'assistance','aideType')">Assistance</div>
+        </div>
+        <input type="hidden" id="aideType" value="accompagnement">
+      </div>
+
+      <div class="group">
+        <label>Période souhaitée</label>
+        <select id="period">
+          <option>Ponctuelle</option>
+          <option>Temporaire</option>
+          <option>Régulière</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- MOTIF -->
+    <div class="group">
+      <label>Description de la demande</label>
+      <textarea id="reason"></textarea>
+    </div>
+
+    <button class="cta" onclick="submitRequest()">Valider la demande</button>
+
   </div>
 
 </div>
+
+<script>
+/* PREFILL */
+document.getElementById("pname").value =
+  localStorage.getItem("cizahealth_name") || "Patient";
+document.getElementById("pid").value =
+  localStorage.getItem("cizahealth_patient_id") || "—";
+document.getElementById("prov").value =
+  localStorage.getItem("cizahealth_province") || "Bujumbura";
+
+/* DYNAMIC UI */
+if(serviceType === "teleconsultation"){
+  document.title = "CizaHealth+ | Demande de téléconsultation";
+  document.getElementById("teleconsultationFields").classList.remove("hidden");
+}
+if(serviceType === "aide"){
+  document.title = "CizaHealth+ | Demande d’aide à domicile";
+  document.getElementById("aideFields").classList.remove("hidden");
+}
+</script>
 
 </body>
 </html>
