@@ -19,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -29,6 +28,7 @@ body{
   flex-direction:column;
 }
 
+/* TOP */
 .topbar{
   padding:18px 20px;
 }
@@ -38,6 +38,7 @@ body{
   font-weight:600;
 }
 
+/* HEADER */
 .header{
   text-align:center;
   padding:10px 20px 0;
@@ -46,6 +47,7 @@ body{
   height:120px;
 }
 
+/* CONTENT */
 .content{
   padding:24px 20px;
 }
@@ -77,24 +79,20 @@ input[readonly]{
 textarea{min-height:110px}
 .hidden{display:none}
 
-/* ✅ CHECKBOX ALIGNÉE PRO */
+/* CHECKBOX PRO */
 .checkbox{
   margin-top:18px;
   display:flex;
-  align-items:center;
-  gap:12px;
+  align-items:flex-start;
+  gap:10px;
   font-size:13px;
-  line-height:1.5;
 }
 .checkbox input{
-  width:18px;
-  height:18px;
-  margin:0;
-  flex-shrink:0;
+  margin-top:4px;
 }
 .checkbox label{
   margin:0;
-  font-weight:400;
+  line-height:1.45;
 }
 
 /* CTA */
@@ -115,7 +113,7 @@ textarea{min-height:110px}
   background:var(--blue);
 }
 
-/* Footer */
+/* FOOTER */
 .footer-separator{
   height:1px;
   background:linear-gradient(to right,transparent,#d0d7e5,transparent);
@@ -133,16 +131,23 @@ textarea{min-height:110px}
 let dossierNumber = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const profile = JSON.parse(localStorage.getItem("patientProfile"));
-  if(!profile){
+
+  if(localStorage.getItem("patientSession") !== "active"){
     window.location.href = "login.html";
     return;
   }
 
-  fullName.value = profile.fullName;
-  province.value = profile.province;
-  patientId.value = profile.patientId;
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
+  if(!profile){
+    window.location.href = "signup.html";
+    return;
+  }
 
+  fullName.value = profile.fullName;
+  patientId.value = profile.patientId;
+  province.value = profile.province;
+
+  // 🔐 Numéro de dossier UNIQUE
   dossierNumber = "CH-2026-" + Math.floor(100000 + Math.random()*900000);
   dossier.innerText = dossierNumber;
 });
@@ -157,11 +162,12 @@ function validatePhone(){
 }
 
 function validateForm(){
-  let valid = serviceType.value &&
-              description.value &&
-              phone.value &&
-              ordonnance.value &&
-              privacy.checked;
+  let valid =
+    serviceType.value &&
+    description.value.trim() &&
+    phone.value.trim() &&
+    ordonnance.value &&
+    privacy.checked;
 
   if(serviceType.value === "rdv"){
     if(!date.value || !time.value) valid = false;
@@ -187,6 +193,8 @@ function saveAndContinue(){
   };
 
   localStorage.setItem("activeRequest", JSON.stringify(request));
+
+  // 👉 ÉTAPE SUIVANTE
   window.location.href = "confirmation.html";
 }
 </script>
@@ -240,19 +248,19 @@ function saveAndContinue(){
     <label>Numéro de contact (confidentiel)</label>
     <input id="phone" inputmode="tel" placeholder="+257…" oninput="validatePhone();validateForm()">
 
-    <label>Si une ordonnance est nécessaire</label>
+    <label>Destination de l’ordonnance (si nécessaire)</label>
     <select id="ordonnance" onchange="validateForm()">
-      <option value="">Choisir une option</option>
+      <option value="">Choisir</option>
       <option value="pharmacie_province">Pharmacie partenaire (ma province)</option>
-      <option value="pharmacie_autre">Pharmacie partenaire (autre province)</option>
       <option value="decider_medecin">À décider avec le médecin</option>
     </select>
 
     <div class="checkbox">
       <input type="checkbox" id="privacy" onchange="validateForm()">
       <label for="privacy">
-        J’accepte que mes informations soient traitées de manière strictement confidentielle,
-        conformément aux normes médicales et à la politique de confidentialité CizaHealth+.
+        J’accepte que mes informations soient traitées de manière strictement
+        confidentielle, conformément aux normes médicales et à la politique
+        de confidentialité CizaHealth+.
       </label>
     </div>
 
