@@ -40,6 +40,7 @@ body{
   color:#8a1f1f;
   text-decoration:none;
   font-size:13px;
+  cursor:pointer;
 }
 
 /* LOGO */
@@ -115,21 +116,27 @@ body{
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Récupération du profil créé au signup
+  // Sécurité : accès uniquement si connecté
   const profile = JSON.parse(localStorage.getItem("patientProfile"));
-
   if(!profile){
-    // Sécurité : pas d’accès sans identité
     window.location.href = "login.html";
     return;
   }
 
-  // Injection des données réelles du signup
+  // Injection données signup
   document.getElementById("fullName").innerText = profile.fullName;
   document.getElementById("patientId").innerText = profile.patientId;
   document.getElementById("age").innerText = profile.age + " ans";
   document.getElementById("province").innerText = profile.province;
 });
+
+// ✅ LOGIQUE DE DÉCONNEXION
+function logout(){
+  localStorage.removeItem("patientProfile");
+  localStorage.removeItem("activeRequest");
+  localStorage.removeItem("paymentStatus");
+  window.location.href = "login.html";
+}
 </script>
 </head>
 
@@ -140,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   <!-- HEADER -->
   <div class="header">
     <strong>Espace patient</strong>
-    <a href="logout.html" class="logout">Déconnexion</a>
+    <span class="logout" onclick="logout()">Déconnexion</span>
   </div>
 
   <!-- LOGO -->
