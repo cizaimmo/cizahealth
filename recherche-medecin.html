@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Recherche d’un médecin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
+}
+
+/* TOP */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* SECTION */
+.section{
+  padding:22px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+h1{
+  font-size:20px;
+  margin:0 0 10px;
+}
+p{
+  font-size:14px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* DOCTOR */
+.doc{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#eef2f8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  color:var(--blue);
+}
+.doc strong{
+  font-size:15px;
+}
+.doc span{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* TIMER */
+.timer{
+  margin-top:12px;
+  font-size:14px;
+  color:#8a1f1f;
+  font-weight:600;
+}
+
+/* CTA */
+.cta{
+  margin-top:18px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+}
+.cta.secondary{
+  background:#eef2f8;
+  color:var(--text);
+}
+</style>
+
+<script>
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
+}
+
+/* DATA */
+const dossier = localStorage.getItem("cizahealth_dossier");
+const province = localStorage.getItem("cizahealth_province");
+const duration = localStorage.getItem("cizahealth_consult_duration") || "—";
+
+/* TIMER 5 MIN */
+let timeLeft = 300;
+function startTimer(){
+  const el = document.getElementById("timer");
+  const interval = setInterval(()=>{
+    const min = Math.floor(timeLeft/60);
+    const sec = timeLeft%60;
+    el.textContent = `Réservation valable ${min}:${sec<10?'0':''}${sec}`;
+    timeLeft--;
+    if(timeLeft < 0){
+      clearInterval(interval);
+      alert("La réservation a expiré.");
+      window.location.href="confirmation.html";
+    }
+  },1000);
+}
+
+function proceed(){
+  window.location.href="paiement.html";
+}
+
+window.onload = startTimer;
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="confirmation.html" class="back">← Retour</a>
+  </div>
+
+  <div class="section">
+
+    <div class="card">
+      <h1>Médecin disponible</h1>
+      <p>
+        Un professionnel de santé correspondant à votre demande
+        a été identifié.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="doc">
+        <div class="avatar">Dr</div>
+        <div>
+          <strong>Dr Jean Ndayishimiye</strong>
+          <span>Médecine générale</span>
+          <span>Province : <strong id="prov"></strong></span>
+        </div>
+      </div>
+
+      <div class="timer" id="timer"></div>
+    </div>
+
+    <div class="card">
+      <p>
+        Durée de consultation : <strong id="dur"></strong> minutes<br>
+        Numéro de dossier : <strong id="dos"></strong>
+      </p>
+    </div>
+
+    <button class="cta" onclick="proceed()">
+      Continuer vers le paiement
+    </button>
+
+    <button class="cta secondary" onclick="window.location.href='confirmation.html'">
+      Annuler
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+document.getElementById("prov").textContent = province || "—";
+document.getElementById("dur").textContent = duration;
+document.getElementById("dos").textContent = dossier || "—";
+</script>
+</body>
+</html>
