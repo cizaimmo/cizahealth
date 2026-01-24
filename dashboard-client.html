@@ -19,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -53,7 +52,7 @@ body{
 
 /* CONTENT */
 .content{
-  padding:26px 20px;
+  padding:24px 20px;
 }
 
 /* IDENTITY */
@@ -64,10 +63,10 @@ body{
 .meta{
   font-size:13px;
   opacity:.8;
-  margin-top:6px;
+  margin-top:4px;
 }
 .pid{
-  margin-top:10px;
+  margin-top:8px;
   font-size:13px;
 }
 
@@ -75,8 +74,8 @@ body{
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:20px;
-  margin-top:20px;
+  padding:18px;
+  margin-top:18px;
 }
 .card h3{
   margin:0 0 12px;
@@ -113,28 +112,39 @@ body{
 </style>
 
 <script>
+/* =========================================
+   🔐 VERROU ABSOLU — ESPACE PATIENT
+   ========================================= */
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 🔐 Sécurité : accès uniquement si signup fait
-  const profile = JSON.parse(localStorage.getItem("patientProfile"));
-  if(!profile){
-    window.location.href = "signup.html";
+  const sessionActive = localStorage.getItem("sessionActive");
+  const profileRaw = localStorage.getItem("patientProfile");
+
+  // ❌ Pas connecté → login
+  if(sessionActive !== "true"){
+    window.location.replace("login.html");
     return;
   }
 
-  // ✅ Injection données réelles du signup
+  // ❌ Connecté MAIS pas de compte médical → signup médical
+  if(!profileRaw){
+    window.location.replace("signup.html");
+    return;
+  }
+
+  // ✅ Profil médical valide
+  const profile = JSON.parse(profileRaw);
+
   document.getElementById("fullName").innerText = profile.fullName;
   document.getElementById("age").innerText = profile.age + " ans";
   document.getElementById("province").innerText = profile.province;
   document.getElementById("patientId").innerText = profile.patientId;
 });
 
-// 🚪 Déconnexion propre
+/* 🔒 DÉCONNEXION (NE SUPPRIME JAMAIS LE PROFIL) */
 function logout(){
-  localStorage.removeItem("patientProfile");
-  localStorage.removeItem("activeRequest");
-  localStorage.removeItem("paymentStatus");
-  window.location.href = "login.html";
+  localStorage.removeItem("sessionActive");
+  window.location.replace("login.html");
 }
 </script>
 </head>
@@ -157,7 +167,7 @@ function logout(){
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- IDENTITÉ PATIENT -->
+    <!-- IDENTITÉ -->
     <div class="name" id="fullName">—</div>
     <div class="meta">
       Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
@@ -166,7 +176,7 @@ function logout(){
       ID patient : <strong id="patientId">—</strong>
     </div>
 
-    <!-- ACTIONS -->
+    <!-- SERVICES -->
     <div class="card">
       <h3>Services médicaux</h3>
 
@@ -183,8 +193,8 @@ function logout(){
     <div class="card">
       <h3>Mon dossier santé</h3>
       <p style="font-size:13px;opacity:.85">
-        Historique de consultations, résumés médicaux et
-        recommandations professionnelles.
+        Historique des consultations, résumés médicaux
+        et recommandations professionnelles.
       </p>
       <button class="btn secondary" onclick="location.href='dossier.html'">
         Consulter mon dossier
