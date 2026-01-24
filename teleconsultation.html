@@ -2,116 +2,176 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Téléconsultation médicale</title>
+<title>CizaHealth+ | Téléconsultation</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
-  --blue:#0a2a5e;
-  --bg:#f4f7fb;
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
   --text:#0a1a2f;
-  --radius:22px;
+  --muted:#6b7a90;
+  --bg:#f4f7fb;
+  --radius:24px;
 }
+
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
   display:flex;
-  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
 }
-.topbar{padding:18px 20px}
-.back{color:var(--blue);text-decoration:none;font-weight:600}
-.header{text-align:center;padding:10px 20px 0}
-.header img{height:120px}
-.content{padding:24px 20px}
-h1{font-size:20px;margin-bottom:10px}
-p{font-size:14.5px;line-height:1.6;opacity:.9}
-.steps{margin-top:24px;display:grid;gap:14px}
-.step{
-  border:1.8px solid #e6ebf5;
-  border-radius:22px;
-  padding:18px;
-  font-size:14px;
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
 }
-.cta{margin-top:28px}
-.cta button{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:18px;
-  background:var(--blue);
-  color:#fff;
+.menu-btn{
+  font-size:22px;
+  cursor:pointer;
+  color:var(--blue);
+}
+
+/* LOGO */
+.logo{
+  text-align:center;
+  padding:22px 20px 10px;
+}
+.logo img{height:100px}
+
+/* HERO */
+.hero{
+  text-align:center;
+  padding:22px 28px 16px;
+}
+.hero h1{
+  font-size:22px;
+  line-height:1.45;
+  margin:6px 0 10px;
   font-weight:600;
-  font-size:15px;
 }
-.footer{margin-top:auto;text-align:center;padding:18px;font-size:12px;opacity:.65}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* CARD */
+.info{
+  margin:24px;
+  padding:26px;
+  border-radius:var(--radius);
+  background:linear-gradient(180deg,var(--blue-soft),#fff);
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+
+.icon-box{
+  width:54px;
+  height:54px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(18,60,138,.1);
+  margin-bottom:14px;
+}
+svg{width:28px;height:28px}
+
+.info strong{
+  font-size:16px;
+  display:block;
+}
+.info span{
+  font-size:13px;
+  color:var(--muted);
+  display:block;
+  margin-top:6px;
+}
+
+/* CTA */
+.cta{
+  margin:26px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+}
+.note{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
+  padding-bottom:30px;
+}
 </style>
-
-<script>
-/* 🔐 GARDE UNIQUE — AUCUNE RECRÉATION */
-document.addEventListener("DOMContentLoaded", () => {
-  const session = localStorage.getItem("sessionActive");
-  const profile = localStorage.getItem("patientProfile");
-
-  if(session !== "true" || !profile){
-    window.location.replace("login.html");
-  }
-});
-
-/* 🚀 TOUJOURS vers l’espace patient */
-function startConsultation(){
-  window.location.href = "dashboard-client.html";
-}
-</script>
 </head>
 
 <body>
-
 <div class="app">
 
+  <!-- TOP BAR -->
   <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
+    <a href="index.html" class="back">← Accueil</a>
+    <div></div>
   </div>
 
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <!-- LOGO -->
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <div class="content">
+  <!-- HERO -->
+  <div class="hero">
     <h1>Téléconsultation médicale</h1>
-
-    <p>
-      Consultez un médecin ou infirmier qualifié à distance,
-      dans un cadre sécurisé et confidentiel.
-    </p>
-
-    <div class="steps">
-      <div class="step">1. Accès à votre espace patient</div>
-      <div class="step">2. Création de la demande médicale</div>
-      <div class="step">3. Paiement sécurisé</div>
-      <div class="step">4. Consultation et suivi</div>
-    </div>
-
-    <div class="cta">
-      <button onclick="startConsultation()">
-        Accéder à mon espace patient
-      </button>
-    </div>
+    <p>Consultez un professionnel de santé à distance</p>
   </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+  <!-- INFO CARD -->
+  <div class="info">
+    <div class="icon-box">
+      <svg fill="none" stroke="#123c8a" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M4 3v5a4 4 0 008 0V3"/>
+        <path d="M12 13a5 5 0 005 5"/>
+        <circle cx="17" cy="18" r="3"/>
+      </svg>
+    </div>
+
+    <strong>Consultation audio ou vidéo</strong>
+    <span>
+      Parlez à un médecin ou infirmier qualifié,
+      selon vos besoins et votre disponibilité.
+    </span>
+  </div>
+
+  <!-- CTA -->
+  <a href="#" class="cta">
+    Commencer une téléconsultation
+  </a>
+
+  <div class="note">
+    Le service n’est pas destiné aux urgences médicales.
   </div>
 
 </div>
-
 </body>
 </html>
