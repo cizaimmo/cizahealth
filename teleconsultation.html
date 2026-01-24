@@ -20,6 +20,7 @@ body{
   color:var(--text);
 }
 
+/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -29,24 +30,26 @@ body{
   flex-direction:column;
 }
 
+/* TOP BAR */
 .topbar{
   padding:18px 20px;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
-  font-size:16px;
   font-weight:600;
 }
 
+/* HEADER */
 .header{
-  padding:14px 20px 0;
   text-align:center;
+  padding:10px 20px 0;
 }
 .header img{
   height:120px;
 }
 
+/* HERO IMAGE */
 .hero-image{
   margin:16px 20px 0;
   border-radius:22px;
@@ -58,6 +61,7 @@ body{
   display:block;
 }
 
+/* CONTENT */
 .content{
   padding:24px 20px;
 }
@@ -71,6 +75,7 @@ p{
   opacity:.9;
 }
 
+/* STEPS */
 .steps{
   margin-top:24px;
   display:grid;
@@ -83,6 +88,7 @@ p{
   font-size:14px;
 }
 
+/* CTA */
 .cta{
   margin-top:28px;
 }
@@ -98,6 +104,7 @@ p{
   cursor:pointer;
 }
 
+/* DISCLAIMER */
 .disclaimer{
   margin-top:24px;
   font-size:12.5px;
@@ -105,9 +112,15 @@ p{
   text-align:center;
 }
 
+/* FOOTER */
 .footer-separator{
   height:1px;
-  background:linear-gradient(to right,transparent,rgba(10,42,94,.35),transparent);
+  background:linear-gradient(
+    to right,
+    transparent,
+    rgba(10,42,94,.35),
+    transparent
+  );
   margin-top:32px;
 }
 .footer{
@@ -119,63 +132,80 @@ p{
 </style>
 
 <script>
-function startConsultation(){
-  const profile = localStorage.getItem("patientProfile");
+function goToTeleconsultation(){
 
-  // ✅ Patient déjà créé → DEMANDE DIRECTE
-  if(profile){
-    window.location.href = "dashboard-client.html";
+  // 🔐 Accès plateforme (login soft)
+  const softAuth = localStorage.getItem("softAuth");
+  if(!softAuth){
+    window.location.href = "login.html";
     return;
   }
 
-  // ❌ Pas de profil → LOGIN (PAS signup-médical)
-  window.location.href = "login";
+  // 🧾 Profil médical patient
+  const patientProfile = localStorage.getItem("patientProfile");
+  if(!patientProfile){
+    // Profil médical pas encore créé
+    window.location.href = "signup.html";
+    return;
+  }
+
+  // ✅ Tout est OK → espace patient
+  window.location.href = "dashboard-client.html";
 }
 </script>
+
 </head>
 
 <body>
 
 <div class="app">
 
+  <!-- TOP BAR -->
   <div class="topbar">
     <a href="index.html" class="back">← Retour</a>
   </div>
 
+  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
+  <!-- HERO IMAGE -->
   <div class="hero-image">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png"
+         alt="Téléconsultation médicale">
   </div>
 
+  <!-- CONTENT -->
   <div class="content">
     <h1>Téléconsultation médicale</h1>
 
     <p>
-      Consultez un médecin ou un infirmier qualifié à distance,
-      dans un cadre professionnel, sécurisé et confidentiel.
+      La téléconsultation CizaHealth+ vous permet d’échanger à distance
+      avec un médecin ou un infirmier qualifié, dans un cadre sécurisé
+      et confidentiel.
     </p>
 
     <div class="steps">
-      <div class="step">1. Décrivez votre situation</div>
-      <div class="step">2. Un professionnel est assigné</div>
-      <div class="step">3. Appel audio ou vidéo sécurisé</div>
-      <div class="step">4. Résumé et ordonnance si nécessaire</div>
+      <div class="step">1. Vous décrivez votre situation médicale</div>
+      <div class="step">2. Un professionnel de votre province est identifié</div>
+      <div class="step">3. Paiement sécurisé avant consultation</div>
+      <div class="step">4. Appel vidéo ou audio avec le professionnel</div>
     </div>
 
     <div class="cta">
-      <button onclick="startConsultation()">
+      <button onclick="goToTeleconsultation()">
         Commencer une consultation
       </button>
     </div>
 
     <div class="disclaimer">
-      Ce service ne prend pas en charge les urgences médicales.
+      Ce service ne prend pas en charge les urgences médicales.<br>
+      En cas d’urgence, contactez immédiatement les services de secours.
     </div>
   </div>
 
+  <!-- FOOTER -->
   <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
