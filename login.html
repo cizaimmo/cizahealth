@@ -19,8 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -30,26 +28,39 @@ body{
   flex-direction:column;
 }
 
-/* HEADER */
-.header{
+/* TOP */
+.topbar{
+  padding:18px 20px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* LOGO */
+.logo{
   text-align:center;
-  padding:24px 20px 10px;
+  padding:10px 20px 0;
 }
-.header img{
+.logo img{
   height:120px;
-}
-.header h1{
-  font-size:20px;
-  margin:10px 0 6px;
-}
-.header p{
-  font-size:14px;
-  opacity:.85;
 }
 
 /* CONTENT */
 .content{
   padding:24px 20px;
+}
+h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:8px;
+}
+.subtitle{
+  font-size:14px;
+  text-align:center;
+  opacity:.85;
+  margin-bottom:24px;
 }
 
 label{
@@ -95,13 +106,13 @@ input{
   text-decoration:none;
 }
 
-/* MESSAGE */
-.message{
-  margin-top:16px;
+/* ERROR */
+.error{
+  margin-top:14px;
   font-size:13px;
   color:#8a1f1f;
-  text-align:center;
   display:none;
+  text-align:center;
 }
 
 /* FOOTER */
@@ -110,21 +121,39 @@ input{
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.6;
+  opacity:.65;
 }
 </style>
 
 <script>
-function loginPatient(){
-  const storedProfile = localStorage.getItem("patientProfile");
+function login(){
+  const savedAuth = JSON.parse(localStorage.getItem("patientAuth"));
+  const profile = JSON.parse(localStorage.getItem("patientProfile"));
 
-  if(!storedProfile){
-    document.getElementById("error").style.display = "block";
+  if(!savedAuth || !profile){
+    showError("Aucun compte patient trouvé. Veuillez créer un compte.");
     return;
   }
 
-  // Connexion réussie (simulation avant Firebase)
+  if(
+    contact.value.trim() !== savedAuth.contact ||
+    password.value !== savedAuth.password
+  ){
+    showError("Identifiants incorrects");
+    return;
+  }
+
+  // ✅ session active
+  localStorage.setItem("patientSession", "active");
+
+  // 👉 redirection dashboard patient
   window.location.href = "dashboard-client.html";
+}
+
+function showError(msg){
+  const el = document.getElementById("error");
+  el.innerText = msg;
+  el.style.display = "block";
 }
 </script>
 </head>
@@ -133,34 +162,38 @@ function loginPatient(){
 
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
-    <h1>Connexion patient</h1>
-    <p>Accédez à votre espace santé sécurisé</p>
+  <div class="topbar">
+    <a href="index.html" class="back">← Retour</a>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
 
-    <label>Contact utilisé lors de l’inscription</label>
-    <input placeholder="Téléphone ou email">
+  <div class="content">
+    <h1>Connexion patient</h1>
+    <div class="subtitle">
+      Accès sécurisé à votre espace santé
+    </div>
+
+    <label>Email ou téléphone</label>
+    <input id="contact" placeholder="email ou +257…">
+
+    <label>Mot de passe</label>
+    <input type="password" id="password">
+
+    <div id="error" class="error"></div>
 
     <div class="cta">
-      <button onclick="loginPatient()">
+      <button onclick="login()">
         Se connecter
       </button>
     </div>
 
-    <div class="message" id="error">
-      Aucun compte patient trouvé.<br>
-      Veuillez créer un compte avant de vous connecter.
-    </div>
-
     <div class="links">
       <a href="signup.html">Créer un compte patient</a>
+      <a href="#">Mot de passe oublié</a>
     </div>
-
   </div>
 
   <div class="footer">
