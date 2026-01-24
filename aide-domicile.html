@@ -20,7 +20,6 @@ body{
   color:var(--text);
 }
 
-/* APP */
 .app{
   max-width:430px;
   margin:auto;
@@ -33,61 +32,46 @@ body{
 /* TOP BAR */
 .topbar{
   padding:18px 20px;
-  display:flex;
-  align-items:center;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
-  font-size:16px;
   font-weight:600;
 }
 
 /* HEADER */
 .header{
-  padding:14px 20px 0;
   text-align:center;
+  padding:10px 20px 0;
 }
 .header img{
-  height:120px; /* même taille que index */
-}
-
-/* HERO IMAGE */
-.hero-image{
-  margin:16px 20px 0;
-  border-radius:22px;
-  overflow:hidden;
-  border:1.8px solid #e6ebf5;
-}
-.hero-image img{
-  width:100%;
-  display:block;
+  height:120px;
 }
 
 /* CONTENT */
 .content{
   padding:24px 20px;
 }
-.content h1{
+h1{
   font-size:20px;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
-.content p{
+p{
   font-size:14.5px;
   line-height:1.6;
   opacity:.9;
 }
 
-/* LIST */
-.list{
-  margin-top:20px;
+/* STEPS */
+.steps{
+  margin-top:24px;
   display:grid;
-  gap:12px;
+  gap:14px;
 }
-.item{
+.step{
   border:1.8px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:16px;
+  border-radius:22px;
+  padding:18px;
   font-size:14px;
 }
 
@@ -95,45 +79,49 @@ body{
 .cta{
   margin-top:28px;
 }
-.cta a{
-  display:block;
-  text-align:center;
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
   background:var(--blue);
   color:#fff;
-  padding:16px;
-  border-radius:18px;
   font-weight:600;
-  text-decoration:none;
-}
-
-/* DISCLAIMER */
-.disclaimer{
-  margin-top:22px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
-}
-
-/* FOOTER SEPARATOR */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(
-    to right,
-    transparent,
-    rgba(10,42,94,.35),
-    transparent
-  );
-  margin-top:32px;
+  font-size:15px;
+  cursor:pointer;
 }
 
 /* FOOTER */
 .footer{
+  margin-top:auto;
   text-align:center;
-  padding:20px;
+  padding:18px;
   font-size:12px;
   opacity:.65;
 }
 </style>
+
+<script>
+/* ===============================
+   🔐 GARDE ABSOLUE — AIDE DOMICILE
+   =============================== */
+document.addEventListener("DOMContentLoaded", () => {
+
+  const sessionActive = localStorage.getItem("sessionActive");
+  const patientProfile = localStorage.getItem("patientProfile");
+
+  // ❌ Pas connecté OU pas de compte médical = pas d’accès
+  if(sessionActive !== "true" || !patientProfile){
+    window.location.replace("login.html");
+  }
+
+});
+
+/* 🚀 ACCÈS DIRECT AU CENTRE MÉDICAL */
+function goToPatientSpace(){
+  window.location.href = "dashboard-client.html";
+}
+</script>
 </head>
 
 <body>
@@ -150,38 +138,31 @@ body{
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
-  <!-- HERO IMAGE -->
-  <div class="hero-image">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png"
-         alt="Aide à domicile CizaHealth+">
-  </div>
-
   <!-- CONTENT -->
   <div class="content">
     <h1>Aide à domicile</h1>
 
     <p>
-      Le service d’aide à domicile CizaHealth+ propose un accompagnement humain
-      respectueux pour les personnes âgées ou nécessitant une assistance quotidienne.
+      Le service d’aide à domicile CizaHealth+ permet d’organiser
+      une assistance humaine qualifiée directement chez vous,
+      dans un cadre professionnel, respectueux et sécurisé.
     </p>
 
-    <div class="list">
-      <div class="item">• Présence et accompagnement à domicile</div>
-      <div class="item">• Assistance dans les gestes du quotidien</div>
-      <div class="item">• Soutien humain organisé et fiable</div>
+    <div class="steps">
+      <div class="step">1. Accès à votre espace patient</div>
+      <div class="step">2. Création de la demande d’assistance</div>
+      <div class="step">3. Organisation du service</div>
+      <div class="step">4. Suivi et recommandations</div>
     </div>
 
     <div class="cta">
-      <a href="demande.html">Demander une aide à domicile</a>
-    </div>
-
-    <div class="disclaimer">
-      Ce service est un accompagnement humain non médical.
+      <button onclick="goToPatientSpace()">
+        Accéder à mon espace patient
+      </button>
     </div>
   </div>
 
   <!-- FOOTER -->
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
