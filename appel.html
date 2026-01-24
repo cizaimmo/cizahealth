@@ -2,14 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Téléconsultation en cours</title>
+<title>CizaHealth+ | Téléconsultation</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
-  --green:#1b9c4a;
-  --red:#8a1f1f;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --radius:22px;
@@ -18,147 +16,119 @@
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-  color:var(--text);
+  background:#000;
+  color:#fff;
 }
-
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
-  background:#fff;
+  background:#000;
   display:flex;
   flex-direction:column;
 }
 
-/* HEADER */
-.header{
-  padding:18px 20px;
-  border-bottom:1px solid #eef1f6;
-  text-align:center;
-}
-.header strong{
-  display:block;
-  font-size:16px;
-}
-.header span{
-  font-size:12px;
-  opacity:.75;
-}
-
-/* CONTENT */
-.content{
-  padding:20px;
-}
-h1{
-  font-size:18px;
-  margin-bottom:10px;
-  text-align:center;
-}
-.info{
+/* TOP */
+.top{
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
   font-size:13px;
-  text-align:center;
   opacity:.85;
-  margin-bottom:20px;
 }
 
-/* CALL BOX */
-.call-box{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  text-align:center;
-}
-.call-box p{
-  font-size:14px;
-  margin:6px 0;
+/* VIDEO */
+.video{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  opacity:.7;
 }
 
-/* FORM */
-label{
-  display:block;
-  margin-top:18px;
-  font-size:14px;
+/* CONTROLS */
+.controls{
+  padding:20px;
+  display:grid;
+  gap:14px;
+  background:#0a0a0a;
+}
+.mode{
+  display:flex;
+  gap:10px;
+}
+.mode button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  background:#1b1b1b;
+  color:#fff;
   font-weight:600;
 }
-textarea{
-  width:100%;
-  margin-top:8px;
-  padding:14px;
-  border-radius:14px;
-  border:1.8px solid #e6ebf5;
-  font-size:14px;
-  min-height:120px;
+.mode button.active{
+  background:var(--blue);
 }
-
-/* ACTIONS */
-.actions{
-  margin-top:22px;
-}
-.actions button{
-  width:100%;
+.end{
+  background:#8a1f1f;
   padding:16px;
   border:none;
   border-radius:18px;
-  font-weight:600;
+  color:#fff;
+  font-weight:700;
   font-size:15px;
-}
-.actions button.disabled{
-  background:#cfd6ea;
-  color:#fff;
-}
-.actions button.end{
-  background:var(--red);
-  color:#fff;
-}
-
-/* FOOTER */
-.footer{
-  margin-top:auto;
-  text-align:center;
-  padding:16px;
-  font-size:12px;
-  opacity:.6;
 }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", ()=>{
-  const session = JSON.parse(localStorage.getItem("cizaSession"));
-  const request = JSON.parse(localStorage.getItem("cizaRequest"));
+let request = null;
 
-  if(!session || !request){
-    window.location.href = "index.html";
+document.addEventListener("DOMContentLoaded", ()=>{
+
+  request = JSON.parse(localStorage.getItem("activeRequest"));
+
+  if(!request || request.status !== "paid"){
+    window.location.href = "dashboard-client.html";
     return;
   }
 
-  document.getElementById("patient").innerText =
-    session.fullName + " (" + session.patientId + ")";
-  document.getElementById("dossier").innerText =
-    request.dossierNumber;
-
-  // Médecin simulé (Firebase plus tard)
-  document.getElementById("doctor").innerText =
-    "Dr assigné – " + request.province;
+  document.getElementById("dossier").innerText = request.dossierNumber;
+  document.getElementById("pro").innerText =
+    request.pro.name + " — " + request.pro.role;
 });
 
-function validateSummary(){
-  const summary = document.getElementById("summary").value.trim();
-  const btn = document.getElementById("endBtn");
+function selectMode(mode){
+  document.getElementById("audio").classList.remove("active");
+  document.getElementById("video").classList.remove("active");
+  document.getElementById(mode).classList.add("active");
 
-  btn.disabled = summary === "";
-  btn.classList.toggle("disabled", summary === "");
+  document.getElementById("screen").innerText =
+    mode === "video"
+      ? "📹 Consultation vidéo en cours"
+      : "🎧 Consultation audio en cours";
 }
 
 function endCall(){
-  const summary = document.getElementById("summary").value.trim();
-  if(summary === "") return;
+  // Résumé médical simulé
+  const resume = {
+    dossierNumber: request.dossierNumber,
+    pro: request.pro,
+    date: new Date().toLocaleString(),
+    conclusion: "Consultation effectuée avec succès.",
+    ordonnance: "Prescription envoyée à la pharmacie partenaire.",
+    recommandations: "Repos, hydratation, suivi si nécessaire."
+  };
 
-  localStorage.setItem("consultationSummary", summary);
-  localStorage.setItem("consultationStatus", "completed");
+  // Enregistrement dans l’espace patient
+  let records = JSON.parse(localStorage.getItem("medicalRecords")) || [];
+  records.push(resume);
+  localStorage.setItem("medicalRecords", JSON.stringify(records));
 
-  // Retour espace patient
-  window.location.href = "dashboard-client.html";
+  request.status = "completed";
+  localStorage.setItem("activeRequest", JSON.stringify(request));
+
+  window.location.href = "dossier-sante.html";
 }
 </script>
 </head>
@@ -167,43 +137,30 @@ function endCall(){
 
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <strong>Consultation en cours</strong>
-    <span>Dossier <span id="dossier"></span></span>
+  <div class="top">
+    <div>Dossier : <strong id="dossier">—</strong></div>
+    <div id="pro">—</div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
-    <h1>Appel audio / vidéo</h1>
+  <div class="video" id="screen">
+    📹 Consultation vidéo en cours
+  </div>
 
-    <div class="info">
-      Cette consultation est sécurisée et confidentielle
-    </div>
+  <div class="controls">
 
-    <div class="call-box">
-      <p><strong>Patient :</strong> <span id="patient"></span></p>
-      <p><strong>Professionnel :</strong> <span id="doctor"></span></p>
-      <p>🔒 Connexion chiffrée</p>
-    </div>
-
-    <label>Résumé médical (obligatoire)</label>
-    <textarea
-      id="summary"
-      placeholder="Résumé de la consultation, recommandations, ordonnance si nécessaire…"
-      oninput="validateSummary()"
-    ></textarea>
-
-    <div class="actions">
-      <button id="endBtn" class="disabled" disabled onclick="endCall()">
-        Terminer la consultation
+    <div class="mode">
+      <button id="video" class="active" onclick="selectMode('video')">
+        🎥 Vidéo
+      </button>
+      <button id="audio" onclick="selectMode('audio')">
+        🎧 Audio
       </button>
     </div>
-  </div>
 
-  <!-- FOOTER -->
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+    <button class="end" onclick="endCall()">
+      Terminer la consultation
+    </button>
+
   </div>
 
 </div>
