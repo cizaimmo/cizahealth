@@ -1,1 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Connexion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+:root{
+  --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
+  padding-bottom:30px;
+}
+
+/* TOP */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* LOGO */
+.logo{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.logo img{height:90px}
+
+/* TITLES */
+.header{
+  padding:20px 26px 10px;
+  text-align:center;
+}
+.header h1{
+  font-size:22px;
+  margin:0 0 6px;
+  font-weight:600;
+}
+.header p{
+  font-size:14px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* TABS */
+.tabs{
+  display:flex;
+  margin:18px 26px 10px;
+  border-radius:14px;
+  background:#eef2f8;
+  padding:4px;
+}
+.tab{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  border-radius:10px;
+  color:var(--muted);
+}
+.tab.active{
+  background:#fff;
+  color:var(--blue);
+  box-shadow:0 6px 16px rgba(10,42,94,.12);
+}
+
+/* FORM */
+.form{
+  padding:18px 26px;
+}
+.group{
+  margin-bottom:14px;
+}
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:#1a2f55;
+}
+input, select{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
+}
+input:focus, select:focus{
+  outline:none;
+  border-color:var(--blue-light);
+}
+
+/* CHECKBOX ALIGNMENT (IMPORTANT) */
+.check{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-top:10px;
+}
+.check input{
+  margin-top:3px;
+}
+.check label{
+  font-size:12.8px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* CTA */
+.cta{
+  margin-top:18px;
+  padding:15px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+}
+
+/* INFO */
+.note{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-top:14px;
+}
+.hidden{display:none}
+</style>
+
+<script>
+function showTab(tab){
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("signup").classList.add("hidden");
+  document.getElementById(tab).classList.remove("hidden");
+
+  document.getElementById("tab-login").classList.remove("active");
+  document.getElementById("tab-signup").classList.remove("active");
+  document.getElementById("tab-"+tab).classList.add("active");
+}
+
+/* SIMULATION AUTH */
+function login(){
+  localStorage.setItem("cizahealth_session","ok");
+  window.location.href="dashboard.html";
+}
+function signup(){
+  localStorage.setItem("cizahealth_session","ok");
+  localStorage.setItem("cizahealth_profile","created");
+  window.location.href="dashboard.html";
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Accueil</a>
+  </div>
+
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <div class="header">
+    <h1>Accès patient</h1>
+    <p>Connexion sécurisée à votre espace médical personnel</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-login" onclick="showTab('login')">Connexion</div>
+    <div class="tab" id="tab-signup" onclick="showTab('signup')">Créer un compte</div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="form" id="login">
+    <div class="group">
+      <label>Email</label>
+      <input type="email" placeholder="exemple@email.com">
+    </div>
+    <div class="group">
+      <label>Mot de passe</label>
+      <input type="password" placeholder="••••••••">
+    </div>
+    <button class="cta" onclick="login()">Se connecter</button>
+  </div>
+
+  <!-- SIGNUP -->
+  <div class="form hidden" id="signup">
+    <div class="group">
+      <label>Nom complet</label>
+      <input type="text">
+    </div>
+    <div class="group">
+      <label>Date de naissance</label>
+      <input type="date">
+    </div>
+    <div class="group">
+      <label>Province de résidence</label>
+      <select>
+        <option>Bujumbura</option>
+        <option>Gitega</option>
+        <option>Ngozi</option>
+        <option>Kayanza</option>
+        <option>Muyinga</option>
+      </select>
+    </div>
+    <div class="group">
+      <label>Email</label>
+      <input type="email">
+    </div>
+    <div class="group">
+      <label>Mot de passe</label>
+      <input type="password">
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="agree">
+      <label for="agree">
+        Je confirme que les informations fournies sont exactes et j’accepte
+        les conditions d’utilisation et la politique de confidentialité.
+      </label>
+    </div>
+
+    <button class="cta" onclick="signup()">Créer mon compte médical</button>
+  </div>
+
+  <div class="note">
+    Vos données médicales sont traitées de manière confidentielle.
+  </div>
+
+</div>
+</body>
+</html>
