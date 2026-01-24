@@ -37,7 +37,7 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 10px 50px rgba(10,42,94,.08);
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
 }
 
 /* TOP BAR */
@@ -67,15 +67,17 @@ body{
   color:var(--blue);
   font-weight:500;
 }
+.menu a.logout{
+  color:#8a1f1f;
+  font-weight:600;
+}
 .menu-separator{
   margin:14px 0;
   height:1px;
   background:#e6ebf5;
 }
-.menu-admin{
-  font-weight:600;
-  color:#8a1f1f;
-}
+.menu-pro{font-weight:600}
+.menu-admin{font-weight:600;color:#8a1f1f}
 
 /* LOGO */
 .logo{
@@ -87,7 +89,7 @@ body{
 /* HERO */
 .hero{
   text-align:center;
-  padding:22px 28px 16px;
+  padding:24px 30px 16px;
 }
 .hero h1{
   font-size:22px;
@@ -103,9 +105,9 @@ body{
 
 /* SERVICES */
 .services{
-  padding:24px;
+  padding:26px;
   display:grid;
-  gap:20px;
+  gap:22px;
 }
 
 /* CARD */
@@ -116,10 +118,10 @@ body{
   text-decoration:none;
   color:var(--text);
   transition:.3s ease;
-  box-shadow:0 10px 30px rgba(10,42,94,.08);
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
 .service-card:hover{
-  transform:translateY(-2px);
+  transform:translateY(-3px);
   box-shadow:0 18px 44px rgba(10,42,94,.14);
 }
 .service-card::before{
@@ -132,7 +134,7 @@ body{
   border-radius:4px;
 }
 
-/* COLORS */
+/* COULEURS */
 .tele{
   background:linear-gradient(180deg,var(--blue-soft),#fff);
 }
@@ -148,7 +150,7 @@ body{
 }
 .pharma::before{background:var(--purple)}
 
-/* ICONS SVG */
+/* ICONS */
 .icon-box{
   width:52px;
   height:52px;
@@ -162,10 +164,7 @@ body{
 .home .icon-box{background:rgba(59,143,107,.1)}
 .pharma .icon-box{background:rgba(107,92,168,.1)}
 
-svg{
-  width:26px;
-  height:26px;
-}
+svg{width:26px;height:26px}
 
 /* TEXT */
 .service-card strong{
@@ -183,7 +182,16 @@ svg{
 .footer-health{
   background:linear-gradient(180deg,#0b1f44,#071733);
   color:#e6ebff;
-  padding:48px 26px 34px;
+  padding:50px 28px 36px;
+}
+.footer-grid{
+  display:grid;
+  gap:26px;
+}
+.footer-health h4{
+  margin-bottom:10px;
+  font-size:14px;
+  font-weight:600;
 }
 .footer-health a{
   color:#cfd8ff;
@@ -212,91 +220,126 @@ function toggleMenu(){
   const menu=document.getElementById("menu");
   menu.style.display=menu.style.display==="block"?"none":"block";
 }
+
+/* Déconnexion → accueil */
+function logout(){
+  localStorage.removeItem("cizahealth_session");
+  window.location.href="index.html";
+}
 </script>
 </head>
 
 <body>
 <div class="app">
 
-<div class="topbar">
-  <div></div>
-  <div class="menu-btn" onclick="toggleMenu()">☰</div>
-</div>
-
-<div class="menu" id="menu">
-  <a href="index.html">Accueil</a>
-  <a href="apropos.html">À propos</a>
-  <a href="faq.html">FAQ</a>
-  <a href="login.html">Connexion</a>
-  <div class="menu-separator"></div>
-  <a href="admin-login.html" class="menu-admin">Administration</a>
-</div>
-
-<div class="logo">
-  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-</div>
-
-<div class="hero">
-  <h1>Des soins médicaux fiables et accessibles</h1>
-  <p>Téléconsultation, aide à domicile et orientation pharmaceutique</p>
-</div>
-
-<div class="services">
-
-<a href="teleconsultation.html" class="service-card tele">
-  <div class="icon-box">
-    <!-- STETHOSCOPE -->
-    <svg fill="none" stroke="#123c8a" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M4 3v5a4 4 0 008 0V3"/>
-      <path d="M12 13a5 5 0 005 5"/>
-      <circle cx="17" cy="18" r="3"/>
-    </svg>
-  </div>
-  <strong>Téléconsultation médicale</strong>
-  <span>Consultez un professionnel de santé qualifié</span>
-</a>
-
-<a href="aide-domicile.html" class="service-card home">
-  <div class="icon-box">
-    <!-- HOME CARE -->
-    <svg fill="none" stroke="#3b8f6b" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M3 10l9-7 9 7"/>
-      <path d="M9 22V12h6v10"/>
-    </svg>
-  </div>
-  <strong>Aide à domicile</strong>
-  <span>Assistance humaine organisée et respectueuse</span>
-</a>
-
-<a href="pharmacie.html" class="service-card pharma">
-  <div class="icon-box">
-    <!-- PHARMACY -->
-    <svg fill="none" stroke="#6b5ca8" stroke-width="2" viewBox="0 0 24 24">
-      <rect x="4" y="4" width="16" height="16" rx="3"/>
-      <path d="M12 8v8M8 12h8"/>
-    </svg>
-  </div>
-  <strong>Pharmacie partenaire</strong>
-  <span>Orientation vers des pharmacies de confiance</span>
-</a>
-
-</div>
-
-<footer class="footer-health">
-  <div>
-    <a href="confidentialite.html">Confidentialité</a><br>
-    <a href="conditions.html">Conditions</a><br>
-    <a href="supprimer-compte.html" class="danger">Supprimer mon compte</a>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div></div>
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
   </div>
 
-  <div class="footer-disclaimer">
-    CizaHealth+ ne prend pas en charge les urgences médicales.
+  <!-- MENU -->
+  <div class="menu" id="menu">
+    <a href="index.html">Accueil</a>
+    <a href="apropos.html">À propos</a>
+    <a href="faq.html">FAQ</a>
+    <a href="login.html">Connexion</a>
+
+    <div class="menu-separator"></div>
+
+    <a href="pro-login.html" class="menu-pro">Espace professionnel</a>
+    <a href="admin-login.html" class="menu-admin">Administration</a>
+
+    <div class="menu-separator"></div>
+
+    <a href="#" class="logout" onclick="logout()">Déconnexion</a>
   </div>
 
-  <div class="footer-bottom">
-    © 2026 CizaHealth+ — CIZA GROUP
+  <!-- LOGO -->
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
-</footer>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Des soins médicaux fiables et accessibles</h1>
+    <p>Téléconsultation, aide à domicile et orientation pharmaceutique</p>
+  </div>
+
+  <!-- SERVICES (ACCÈS LIBRE) -->
+  <div class="services">
+
+    <a href="teleconsultation.html" class="service-card tele">
+      <div class="icon-box">
+        <svg fill="none" stroke="#123c8a" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M4 3v5a4 4 0 008 0V3"/>
+          <path d="M12 13a5 5 0 005 5"/>
+          <circle cx="17" cy="18" r="3"/>
+        </svg>
+      </div>
+      <strong>Téléconsultation médicale</strong>
+      <span>Consultez un professionnel de santé qualifié</span>
+    </a>
+
+    <a href="aide-domicile.html" class="service-card home">
+      <div class="icon-box">
+        <svg fill="none" stroke="#3b8f6b" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 10l9-7 9 7"/>
+          <path d="M9 22V12h6v10"/>
+        </svg>
+      </div>
+      <strong>Aide à domicile</strong>
+      <span>Assistance humaine organisée et respectueuse</span>
+    </a>
+
+    <a href="pharmacie.html" class="service-card pharma">
+      <div class="icon-box">
+        <svg fill="none" stroke="#6b5ca8" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="4" y="4" width="16" height="16" rx="3"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+      </div>
+      <strong>Pharmacie partenaire</strong>
+      <span>Orientation vers des pharmacies de confiance</span>
+    </a>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer-health">
+    <div class="footer-grid">
+
+      <div>
+        <h4>Informations</h4>
+        <a href="confidentialite.html">Confidentialité</a><br>
+        <a href="conditions.html">Conditions</a><br>
+        <a href="faq.html">FAQ</a><br>
+        <a href="plan-application.html">Plan de l’application</a>
+      </div>
+
+      <div>
+        <h4>Compte</h4>
+        <a href="login.html">Connexion</a><br>
+        <a href="supprimer-compte.html" class="danger">Supprimer mon compte</a>
+      </div>
+
+      <div>
+        <h4>Contact</h4>
+        <a href="mailto:infos@cizagroup.com">infos@cizagroup.com</a><br>
+        <span>Burundi</span>
+      </div>
+
+    </div>
+
+    <div class="footer-disclaimer">
+      CizaHealth+ ne prend pas en charge les urgences médicales.
+      En cas d’urgence, contactez immédiatement les services de secours locaux.
+    </div>
+
+    <div class="footer-bottom">
+      © 2026 CizaHealth+ — CIZA GROUP • Plateforme de santé numérique
+    </div>
+  </footer>
 
 </div>
 </body>
