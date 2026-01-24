@@ -17,11 +17,19 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  padding:24px;
+  padding:26px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
 h2{
   font-size:20px;
-  margin-bottom:20px;
+  margin-bottom:6px;
+}
+p{
+  font-size:14px;
+  color:#6b7a90;
+  margin-bottom:24px;
 }
 input{
   width:100%;
@@ -40,11 +48,17 @@ button{
   color:#fff;
   font-size:15px;
   font-weight:600;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
-.secondary{
+button.secondary{
   background:#eef3fa;
   color:#0a2a5e;
+}
+.small{
+  text-align:center;
+  font-size:12.5px;
+  color:#6b7a90;
+  margin-top:10px;
 }
 </style>
 </head>
@@ -52,13 +66,21 @@ button{
 <body>
 
 <div class="app">
-  <h2>Connexion / Inscription</h2>
+  <h2>Connexion</h2>
+  <p>Accédez à votre espace CizaHealth+</p>
 
-  <input id="email" type="email" placeholder="Email">
+  <input id="email" type="email" placeholder="Adresse email">
   <input id="password" type="password" placeholder="Mot de passe">
 
+  <!-- BOUTON LOGIN -->
   <button onclick="login()">Connexion</button>
+
+  <!-- BOUTON SIGNUP -->
   <button class="secondary" onclick="signup()">Créer un compte</button>
+
+  <div class="small">
+    En créant un compte, vous acceptez les conditions d’utilisation.
+  </div>
 </div>
 
 <script>
@@ -66,20 +88,20 @@ button{
 function login(){
   const email = document.getElementById("email").value;
   if(!email){
-    alert("Email requis");
+    alert("Veuillez entrer un email");
     return;
   }
 
-  /* Création de session */
+  /* Création de la session */
   localStorage.setItem("cizahealth_session", email);
 
-  /* Redirection volontaire vers index */
+  /* Retour index (aligné avec le flow) */
   window.location.href = "index.html";
 }
 
 /* SIGNUP */
 function signup(){
-  login(); // même logique en mode test
+  login(); // même logique en phase test
 }
 </script>
 
