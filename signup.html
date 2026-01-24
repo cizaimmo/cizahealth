@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Création compte patient</title>
+<title>CizaHealth+ | Créer un compte</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -19,6 +19,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
@@ -28,22 +29,12 @@ body{
   flex-direction:column;
 }
 
-/* TOP */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
-/* LOGO */
-.logo{
+/* HEADER */
+.header{
   text-align:center;
-  padding:10px 20px 0;
+  padding:40px 20px 10px;
 }
-.logo img{
+.header img{
   height:120px;
 }
 
@@ -52,24 +43,25 @@ body{
   padding:24px 20px;
 }
 h1{
-  font-size:20px;
-  margin-bottom:8px;
   text-align:center;
+  font-size:20px;
+  margin-bottom:6px;
 }
 .subtitle{
-  font-size:14px;
   text-align:center;
-  opacity:.85;
-  margin-bottom:24px;
+  font-size:14px;
+  opacity:.8;
+  margin-bottom:28px;
 }
 
+/* FORM */
 label{
   display:block;
   margin-top:18px;
   font-size:14px;
   font-weight:600;
 }
-input, select{
+input{
   width:100%;
   margin-top:8px;
   padding:14px;
@@ -77,16 +69,13 @@ input, select{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-input[type="tel"]{
-  inputmode:tel;
-}
 
-/* CHECKBOX PRO */
+/* CHECKBOX */
 .checkbox{
   margin-top:18px;
   display:flex;
-  align-items:flex-start;
   gap:10px;
+  align-items:flex-start;
   font-size:13px;
 }
 .checkbox input{
@@ -99,20 +88,29 @@ input[type="tel"]{
 
 /* CTA */
 .cta{
-  margin-top:28px;
+  margin-top:30px;
 }
 .cta button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:#b7c3dd;
+  background:var(--blue);
   color:#fff;
   font-weight:600;
   font-size:15px;
+  cursor:pointer;
 }
-.cta button.active{
-  background:var(--blue);
+
+/* LINKS */
+.links{
+  margin-top:18px;
+  text-align:center;
+  font-size:13px;
+}
+.links a{
+  color:var(--blue);
+  text-decoration:none;
 }
 
 /* FOOTER */
@@ -121,51 +119,45 @@ input[type="tel"]{
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 
 <script>
-function generatePatientId(){
-  return "P-" + Math.floor(100000 + Math.random()*900000);
-}
-
-function validateForm(){
-  const required = [
-    fullName.value,
-    birthYear.value,
-    province.value,
-    contact.value,
-    password.value
-  ];
-  let valid = required.every(v => v.trim() !== "");
-  if(!privacy.checked) valid = false;
-
-  submitBtn.disabled = !valid;
-  submitBtn.classList.toggle("active", valid);
-}
-
-function sanitizeContact(){
-  contact.value = contact.value.replace(/[^0-9+@._a-zA-Z]/g,"");
-}
-
 function signup(){
-  const patientProfile = {
-    patientId: generatePatientId(),
-    fullName: fullName.value,
-    birthYear: birthYear.value,
-    province: province.value,
-    contact: contact.value, // privé (non visible au pro)
-    createdAt: new Date().toISOString()
-  };
+  const identifier = document.getElementById("identifier").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const confirm = document.getElementById("confirm").value.trim();
+  const privacy = document.getElementById("privacy").checked;
 
-  // ⚠️ Simulation locale (Firebase plus tard)
-  localStorage.setItem("patientProfile", JSON.stringify(patientProfile));
-  localStorage.setItem("patientAuth", JSON.stringify({
-    contact: contact.value,
-    password: password.value
+  if(!identifier || !password || !confirm){
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
+
+  if(password.length < 6){
+    alert("Mot de passe trop court (min 6 caractères)");
+    return;
+  }
+
+  if(password !== confirm){
+    alert("Les mots de passe ne correspondent pas");
+    return;
+  }
+
+  if(!privacy){
+    alert("Veuillez accepter la politique de confidentialité");
+    return;
+  }
+
+  // ✅ Création COMPTE D’ACCÈS (soft)
+  localStorage.setItem("softAuth", "true");
+  localStorage.setItem("accountAccess", JSON.stringify({
+    identifier,
+    createdAt: new Date().toISOString()
   }));
 
+  // 🚀 Redirection login (ou index direct)
   window.location.href = "login.html";
 }
 </script>
@@ -175,56 +167,40 @@ function signup(){
 
 <div class="app">
 
-  <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
-  </div>
-
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
   <div class="content">
-    <h1>Créer mon compte patient</h1>
+    <h1>Créer un compte</h1>
     <div class="subtitle">
-      Identité médicale sécurisée • Usage santé uniquement
+      Accès sécurisé à la plateforme CizaHealth+
     </div>
 
-    <label>Nom complet</label>
-    <input id="fullName" oninput="validateForm()">
-
-    <label>Année de naissance</label>
-    <input type="number" id="birthYear" placeholder="ex: 1994" oninput="validateForm()">
-
-    <label>Province</label>
-    <select id="province" onchange="validateForm()">
-      <option value="">Choisir</option>
-      <option>Bujumbura</option>
-      <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
-      <option>Kayanza</option>
-    </select>
-
     <label>Email ou téléphone</label>
-    <input id="contact" placeholder="email ou +257…" oninput="sanitizeContact();validateForm()">
+    <input id="identifier" placeholder="ex: nom@email.com ou +257…">
 
     <label>Mot de passe</label>
-    <input type="password" id="password" oninput="validateForm()">
+    <input id="password" type="password" placeholder="••••••••">
+
+    <label>Confirmer le mot de passe</label>
+    <input id="confirm" type="password" placeholder="••••••••">
 
     <div class="checkbox">
-      <input type="checkbox" id="privacy" onchange="validateForm()">
+      <input type="checkbox" id="privacy">
       <label for="privacy">
-        J’accepte les conditions, la politique de confidentialité
-        et l’utilisation médicale responsable de CizaHealth+.
+        J’accepte la politique de confidentialité et les conditions
+        d’utilisation de CizaHealth+.
       </label>
     </div>
 
     <div class="cta">
-      <button id="submitBtn" disabled onclick="signup()">
-        Créer mon compte
-      </button>
+      <button onclick="signup()">Créer mon compte</button>
     </div>
 
+    <div class="links">
+      <a href="login.html">Déjà un compte ? Se connecter</a>
+    </div>
   </div>
 
   <div class="footer">
