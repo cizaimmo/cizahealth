@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Demande de service</title>
+<title>CizaHealth+ | Demande médicale</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -19,6 +19,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
@@ -28,7 +29,7 @@ body{
   flex-direction:column;
 }
 
-/* TOP */
+/* HEADER */
 .topbar{
   padding:18px 20px;
 }
@@ -38,22 +39,22 @@ body{
   font-weight:600;
 }
 
-/* HEADER */
-.header{
+/* LOGO */
+.logo{
   text-align:center;
   padding:10px 20px 0;
 }
-.header img{
+.logo img{
   height:120px;
 }
 
 /* CONTENT */
 .content{
-  padding:24px 20px;
+  padding:26px 20px;
 }
 h1{
   font-size:20px;
-  margin-bottom:14px;
+  margin-bottom:18px;
 }
 
 label{
@@ -77,7 +78,6 @@ input[readonly]{
 }
 
 textarea{min-height:110px}
-.hidden{display:none}
 
 /* CHECKBOX PRO */
 .checkbox{
@@ -97,7 +97,7 @@ textarea{min-height:110px}
 
 /* CTA */
 .cta{
-  margin-top:28px;
+  margin-top:30px;
 }
 .cta button{
   width:100%;
@@ -114,16 +114,12 @@ textarea{min-height:110px}
 }
 
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 
@@ -132,69 +128,51 @@ let dossierNumber = null;
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  if(localStorage.getItem("patientSession") !== "active"){
-    window.location.href = "login.html";
-    return;
-  }
-
+  // 🔐 Sécurité : accès uniquement via dashboard
   const profile = JSON.parse(localStorage.getItem("patientProfile"));
   if(!profile){
     window.location.href = "signup.html";
     return;
   }
 
+  // 🆔 Injection identité patient
   fullName.value = profile.fullName;
-  patientId.value = profile.patientId;
+  age.value = profile.age + " ans";
   province.value = profile.province;
+  patientId.value = profile.patientId;
 
-  // 🔐 Numéro de dossier UNIQUE
-  dossierNumber = "CH-2026-" + Math.floor(100000 + Math.random()*900000);
+  // 🆔 Numéro de dossier UNIQUE
+  dossierNumber = "CH-" + Date.now();
   dossier.innerText = dossierNumber;
 });
 
-function toggleRdv(){
-  rdvFields.style.display = (serviceType.value === "rdv") ? "block" : "none";
-  validateForm();
-}
-
-function validatePhone(){
-  phone.value = phone.value.replace(/[^0-9+]/g,"");
-}
-
 function validateForm(){
-  let valid =
+  const valid =
     serviceType.value &&
     description.value.trim() &&
-    phone.value.trim() &&
     ordonnance.value &&
     privacy.checked;
-
-  if(serviceType.value === "rdv"){
-    if(!date.value || !time.value) valid = false;
-  }
 
   continueBtn.disabled = !valid;
   continueBtn.classList.toggle("active", valid);
 }
 
-function saveAndContinue(){
+function submitRequest(){
+
   const request = {
     dossierNumber,
     patientId: patientId.value,
     fullName: fullName.value,
+    age: age.value,
     province: province.value,
     serviceType: serviceType.value,
-    date: date.value,
-    time: time.value,
     description: description.value,
-    phone: phone.value,
     ordonnanceDestination: ordonnance.value,
-    status: "created"
+    status: "created",
+    createdAt: new Date().toISOString()
   };
 
   localStorage.setItem("activeRequest", JSON.stringify(request));
-
-  // 👉 ÉTAPE SUIVANTE
   window.location.href = "confirmation.html";
 }
 </script>
@@ -208,15 +186,22 @@ function saveAndContinue(){
     <a href="dashboard-client.html" class="back">← Retour</a>
   </div>
 
-  <div class="header">
+  <div class="logo">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <div class="content">
-    <h1>Demande de service</h1>
+    <h1>Nouvelle demande médicale</h1>
 
+    <!-- IDENTITÉ -->
     <label>Nom complet</label>
     <input id="fullName" readonly>
+
+    <label>Âge</label>
+    <input id="age" readonly>
+
+    <label>Province</label>
+    <input id="province" readonly>
 
     <label>ID patient</label>
     <input id="patientId" readonly>
@@ -224,55 +209,40 @@ function saveAndContinue(){
     <label>Numéro de dossier</label>
     <div id="dossier" style="margin-top:8px;font-weight:700;"></div>
 
-    <label>Province</label>
-    <input id="province" readonly>
-
+    <!-- DEMANDE -->
     <label>Type de service</label>
-    <select id="serviceType" onchange="toggleRdv()">
+    <select id="serviceType" onchange="validateForm()">
       <option value="">Sélectionner</option>
-      <option value="immediat">Téléconsultation immédiate</option>
-      <option value="rdv">Rendez-vous</option>
+      <option value="teleconsultation">Téléconsultation</option>
       <option value="domicile">Aide à domicile</option>
+      <option value="rdv">Rendez-vous programmé</option>
     </select>
-
-    <div id="rdvFields" class="hidden">
-      <label>Date souhaitée</label>
-      <input type="date" id="date" onchange="validateForm()">
-      <label>Heure souhaitée</label>
-      <input type="time" id="time" onchange="validateForm()">
-    </div>
 
     <label>Description médicale</label>
     <textarea id="description" oninput="validateForm()"></textarea>
 
-    <label>Numéro de contact (confidentiel)</label>
-    <input id="phone" inputmode="tel" placeholder="+257…" oninput="validatePhone();validateForm()">
-
-    <label>Destination de l’ordonnance (si nécessaire)</label>
+    <label>Ordonnance (si nécessaire)</label>
     <select id="ordonnance" onchange="validateForm()">
-      <option value="">Choisir</option>
-      <option value="pharmacie_province">Pharmacie partenaire (ma province)</option>
+      <option value="">Choisir une option</option>
+      <option value="pharmacie_partenaire">Pharmacie partenaire (recommandée)</option>
       <option value="decider_medecin">À décider avec le médecin</option>
     </select>
 
     <div class="checkbox">
       <input type="checkbox" id="privacy" onchange="validateForm()">
       <label for="privacy">
-        J’accepte que mes informations soient traitées de manière strictement
-        confidentielle, conformément aux normes médicales et à la politique
-        de confidentialité CizaHealth+.
+        J’accepte le traitement confidentiel de mes données médicales
+        conformément aux normes OMS et à la politique CizaHealth+.
       </label>
     </div>
 
     <div class="cta">
-      <button id="continueBtn" disabled onclick="saveAndContinue()">
+      <button id="continueBtn" disabled onclick="submitRequest()">
         Continuer
       </button>
     </div>
-
   </div>
 
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
