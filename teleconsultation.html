@@ -36,7 +36,6 @@ body{
 .topbar{
   padding:18px 22px;
   display:flex;
-  justify-content:space-between;
   align-items:center;
 }
 .back{
@@ -44,28 +43,25 @@ body{
   color:var(--blue);
   font-weight:500;
 }
-.menu-btn{
-  font-size:22px;
-  cursor:pointer;
-  color:var(--blue);
+
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:220px;
+  background:url("https://raw.githubusercontent.com/cizaimmo/cizahealth/36bdf09d6bea282a3b4d357a2c8e177dbf138090/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
 }
 
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:22px 20px 10px;
-}
-.logo img{height:100px}
-
-/* HERO */
+/* HERO TEXT */
 .hero{
-  text-align:center;
-  padding:22px 28px 16px;
+  padding:22px 26px 10px;
 }
 .hero h1{
   font-size:22px;
   line-height:1.45;
-  margin:6px 0 10px;
+  margin:0 0 8px;
   font-weight:600;
 }
 .hero p{
@@ -74,41 +70,67 @@ body{
   margin:0;
 }
 
-/* CARD */
-.info{
-  margin:24px;
-  padding:26px;
+/* SECTION */
+.section{
+  padding:22px 26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+.card{
+  background:#fff;
   border-radius:var(--radius);
-  background:linear-gradient(180deg,var(--blue-soft),#fff);
+  padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
+.card + .card{margin-top:16px}
 
-.icon-box{
-  width:54px;
-  height:54px;
-  border-radius:14px;
+/* STEPS */
+.step{
+  display:flex;
+  gap:14px;
+}
+.step-num{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--blue);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(18,60,138,.1);
-  margin-bottom:14px;
+  flex-shrink:0;
 }
-svg{width:28px;height:28px}
+.step p{
+  margin:0;
+  font-size:14px;
+  color:var(--text);
+}
 
-.info strong{
-  font-size:16px;
-  display:block;
-}
-.info span{
-  font-size:13px;
+/* INFO TEXT */
+.text{
+  font-size:13.5px;
+  line-height:1.6;
   color:var(--muted);
-  display:block;
-  margin-top:6px;
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+  color:#1a2f55;
 }
 
 /* CTA */
 .cta{
-  margin:26px;
+  margin:24px 26px 30px;
   padding:16px;
   border-radius:18px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
@@ -116,6 +138,7 @@ svg{width:28px;height:28px}
   text-align:center;
   font-weight:600;
   text-decoration:none;
+  display:block;
 }
 .note{
   text-align:center;
@@ -129,47 +152,83 @@ svg{width:28px;height:28px}
 <body>
 <div class="app">
 
-  <!-- TOP BAR -->
+  <!-- TOP -->
   <div class="topbar">
     <a href="index.html" class="back">← Accueil</a>
-    <div></div>
   </div>
 
-  <!-- LOGO -->
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
-  </div>
+  <!-- HERO IMAGE -->
+  <div class="hero-img"></div>
 
-  <!-- HERO -->
+  <!-- HERO TEXT -->
   <div class="hero">
     <h1>Téléconsultation médicale</h1>
-    <p>Consultez un professionnel de santé à distance</p>
+    <p>
+      Accédez à un professionnel de santé qualifié,
+      où que vous soyez, en toute confidentialité.
+    </p>
   </div>
 
-  <!-- INFO CARD -->
-  <div class="info">
-    <div class="icon-box">
-      <svg fill="none" stroke="#123c8a" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M4 3v5a4 4 0 008 0V3"/>
-        <path d="M12 13a5 5 0 005 5"/>
-        <circle cx="17" cy="18" r="3"/>
-      </svg>
+  <!-- ÉTAPES -->
+  <div class="section">
+    <h2>Comment ça fonctionne</h2>
+
+    <div class="card step">
+      <div class="step-num">1</div>
+      <p>
+        Vous formulez votre demande de téléconsultation
+        en précisant votre situation et vos besoins.
+      </p>
     </div>
 
-    <strong>Consultation audio ou vidéo</strong>
-    <span>
-      Parlez à un médecin ou infirmier qualifié,
-      selon vos besoins et votre disponibilité.
-    </span>
+    <div class="card step">
+      <div class="step-num">2</div>
+      <p>
+        Un professionnel de santé disponible est identifié
+        selon votre province et le type de consultation.
+      </p>
+    </div>
+
+    <div class="card step">
+      <div class="step-num">3</div>
+      <p>
+        La consultation se déroule par appel audio ou vidéo,
+        dans un cadre sécurisé et confidentiel.
+      </p>
+    </div>
+  </div>
+
+  <!-- UTILITÉ -->
+  <div class="section">
+    <h2>À quoi sert la téléconsultation</h2>
+    <div class="card text">
+      La téléconsultation permet d’obtenir un avis médical,
+      une orientation, un suivi ou des recommandations de santé
+      sans déplacement physique. Elle est adaptée aux situations
+      non urgentes et aux besoins de conseil médical.
+    </div>
+  </div>
+
+  <!-- NON RESPONSABILITÉ -->
+  <div class="section">
+    <h2>Information importante</h2>
+    <div class="disclaimer">
+      La téléconsultation proposée par CizaHealth+ ne remplace pas
+      une consultation médicale physique lorsque celle-ci est nécessaire.
+      Ce service ne prend pas en charge les urgences médicales.
+      En cas de symptômes graves ou urgents, veuillez contacter
+      immédiatement les services de secours locaux ou vous rendre
+      dans un centre de santé.
+    </div>
   </div>
 
   <!-- CTA -->
   <a href="#" class="cta">
-    Commencer une téléconsultation
+    Démarrer une téléconsultation
   </a>
 
   <div class="note">
-    Le service n’est pas destiné aux urgences médicales.
+    Service destiné uniquement aux situations non urgentes.
   </div>
 
 </div>
