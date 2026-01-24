@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Professionnel disponible</title>
+<title>CizaHealth+ | Recherche de professionnel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -12,16 +12,13 @@
   --text:#0a1a2f;
   --radius:22px;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -32,75 +29,75 @@ body{
 }
 
 /* HEADER */
-.header{
-  text-align:center;
-  padding:24px 20px 10px;
+.topbar{
+  padding:18px 20px;
 }
-.header img{
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* LOGO */
+.logo{
+  text-align:center;
+  padding:10px 20px 0;
+}
+.logo img{
   height:120px;
 }
 
 /* CONTENT */
 .content{
   padding:24px 20px;
-  text-align:center;
 }
-
 h1{
   font-size:20px;
   margin-bottom:10px;
 }
 
 .status{
-  margin-top:18px;
-  padding:18px;
-  border-radius:18px;
-  background:#e8f4ed;
-  color:#1b7f46;
-  font-weight:700;
-}
-
-.desc{
-  margin-top:14px;
-  font-size:14px;
-  opacity:.85;
-}
-
-.pro-card{
-  margin-top:22px;
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
+  margin-top:18px;
+  font-size:14px;
 }
 
-.pro-name{
-  font-weight:700;
+/* PRO CARD */
+.pro-card{
+  margin-top:20px;
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  display:none;
+}
+.pro-card h3{
+  margin:0 0 8px;
   font-size:16px;
 }
-.pro-role{
+.pro-card p{
+  margin:4px 0;
   font-size:14px;
-  opacity:.85;
-}
-.pro-province{
-  font-size:13px;
-  margin-top:6px;
-  opacity:.75;
+  opacity:.9;
 }
 
 /* CTA */
 .cta{
-  margin-top:28px;
+  margin-top:26px;
 }
 .cta button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#b7c3dd;
   color:#fff;
-  font-size:15px;
   font-weight:600;
-  cursor:pointer;
+  font-size:15px;
+}
+.cta button.active{
+  background:var(--blue);
 }
 
 /* FOOTER */
@@ -114,37 +111,48 @@ h1{
 </style>
 
 <script>
+let request = null;
+
 document.addEventListener("DOMContentLoaded", () => {
 
-  const request = JSON.parse(localStorage.getItem("activeRequest"));
+  request = JSON.parse(localStorage.getItem("activeRequest"));
 
   if(!request){
-    // sécurité : pas de demande → dashboard
     window.location.href = "dashboard-client.html";
     return;
   }
 
-  // ✅ SIMULATION PRO TOUJOURS DISPONIBLE
-  const pro = {
+  document.getElementById("province").innerText = request.province;
+
+  // ⏳ simulation courte
+  setTimeout(simulateProFound, 1200);
+});
+
+function simulateProFound(){
+
+  // ✅ PRO TOUJOURS TROUVÉ (SIMULATION)
+  request.status = "pro_found";
+  request.pro = {
     name: "Dr Alice M.",
     role: "Médecin généraliste",
     province: request.province
   };
 
-  // 🔒 Mise à jour de la demande
-  request.status = "pro_found";
-  request.proName = pro.name;
-  request.proRole = pro.role;
-  request.provinceMatched = pro.province;
-
   localStorage.setItem("activeRequest", JSON.stringify(request));
 
-  // Affichage dynamique
-  document.getElementById("proName").innerText = pro.name;
-  document.getElementById("proRole").innerText = pro.role;
-  document.getElementById("proProvince").innerText =
-    "Province : " + pro.province;
-});
+  document.getElementById("searchStatus").innerText =
+    "✔ Professionnel disponible trouvé";
+
+  document.getElementById("proName").innerText = request.pro.name;
+  document.getElementById("proRole").innerText = request.pro.role;
+  document.getElementById("proProvince").innerText = request.pro.province;
+
+  document.getElementById("proCard").style.display = "block";
+
+  const btn = document.getElementById("payBtn");
+  btn.disabled = false;
+  btn.classList.add("active");
+}
 
 function goToPayment(){
   window.location.href = "paiement.html";
@@ -156,40 +164,36 @@ function goToPayment(){
 
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <div class="topbar">
+    <a href="confirmation.html" class="back">← Retour</a>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
 
-    <h1>Professionnel disponible</h1>
+  <div class="content">
+    <h1>Recherche d’un professionnel</h1>
 
     <div class="status">
-      ✅ Un professionnel est disponible
+      Province sélectionnée : <strong id="province">—</strong><br><br>
+      <span id="searchStatus">Recherche d’un professionnel disponible…</span>
     </div>
 
-    <div class="desc">
-      Un professionnel de santé a été trouvé et est
-      <strong>réservé temporairement</strong> pour votre demande.
-    </div>
-
-    <div class="pro-card">
-      <div class="pro-name" id="proName">—</div>
-      <div class="pro-role" id="proRole">—</div>
-      <div class="pro-province" id="proProvince">—</div>
+    <div class="pro-card" id="proCard">
+      <h3 id="proName">—</h3>
+      <p><strong>Spécialité :</strong> <span id="proRole"></span></p>
+      <p><strong>Localisation :</strong> <span id="proProvince"></span></p>
     </div>
 
     <div class="cta">
-      <button onclick="goToPayment()">
-        Continuer vers le paiement
+      <button id="payBtn" disabled onclick="goToPayment()">
+        Procéder au paiement
       </button>
     </div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
