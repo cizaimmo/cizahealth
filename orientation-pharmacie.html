@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Orientation pharmacie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --purple:#6b5ca8;
+  --purple-soft:#f4f2fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--purple);
+  font-weight:500;
+}
+
+/* HERO IMAGE (AJOUT) */
+.hero-img{
+  width:100%;
+  height:220px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(90,80,140,.25),
+      rgba(90,80,140,.6)
+    ),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/023df40ea62f46be4b1fb4bd21aa78a8031d1aed/67CED584-E582-45AD-87E7-0498FC8ADF09.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+}
+
+/* CONTENT */
+.section{
+  padding:26px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+h1{
+  font-size:22px;
+  margin:0 0 10px;
+}
+p{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+  margin:0;
+}
+
+/* INFO */
+.info{
+  background:var(--purple-soft);
+  border-left:4px solid var(--purple);
+  padding:18px;
+  border-radius:16px;
+  font-size:13px;
+  line-height:1.6;
+  color:#2d2650;
+}
+
+/* ORD */
+.ord{
+  font-size:14px;
+}
+.ord strong{
+  display:block;
+  margin-bottom:6px;
+}
+
+/* CTA */
+.cta{
+  margin-top:18px;
+  padding:15px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#6b5ca8,#7b6cc2);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  display:block;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:36px;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:11.5px;
+  color:#8a95a8;
+}
+</style>
+
+<script>
+function getSession(){
+  return localStorage.getItem("cizahealth_session");
+}
+function getOrdonnance(){
+  return localStorage.getItem("cizahealth_ordonnance");
+}
+
+window.onload = function(){
+  const container = document.getElementById("dynamic");
+  const session = getSession();
+  const ordonnance = getOrdonnance();
+
+  if(!session){
+    container.innerHTML = `
+      <div class="card">
+        <h1>Accès aux pharmacies partenaires</h1>
+        <p>
+          Pour accéder aux pharmacies partenaires,
+          vous devez disposer d’une ordonnance issue
+          d’une téléconsultation CizaHealth+.
+        </p>
+        <a href="login.html" class="cta">Se connecter</a>
+        <a href="teleconsultation.html" class="cta" style="background:#3b8f6b;margin-top:10px">
+          Faire une téléconsultation
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  if(!ordonnance){
+    container.innerHTML = `
+      <div class="card">
+        <h1>Aucune ordonnance active</h1>
+        <p>
+          Aucune ordonnance issue d’une téléconsultation
+          n’est actuellement associée à votre dossier.
+        </p>
+        <a href="teleconsultation.html" class="cta">
+          Démarrer une téléconsultation
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card ord">
+      <h1>Votre ordonnance</h1>
+      <strong>Code ordonnance</strong>
+      <p>${ordonnance}</p>
+      <br>
+      <strong>Province choisie</strong>
+      <p>Bujumbura</p>
+    </div>
+
+    <div class="card info">
+      Les pharmacies partenaires peuvent vérifier cette
+      ordonnance à l’aide du code affiché.
+      CizaHealth+ n’est pas une pharmacie et ne vend
+      aucun médicament.
+    </div>
+
+    <div class="card">
+      <h1>Pharmacies partenaires</h1>
+      <p>
+        Présentez votre code ordonnance dans une
+        pharmacie partenaire de votre province.
+      </p>
+    </div>
+  `;
+};
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="pharmacie.html" class="back">← Retour</a>
+  </div>
+
+  <!-- HERO AJOUTÉ -->
+  <div class="hero-img"></div>
+
+  <div class="section" id="dynamic">
+    <!-- CONTENU DYNAMIQUE -->
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Service d’orientation pharmaceutique
+  </div>
+
+</div>
+</body>
+</html>
