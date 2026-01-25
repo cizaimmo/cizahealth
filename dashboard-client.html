@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Espace patient</title>
+<title>CizaHealth+ | Espace patient (TEST)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -38,23 +38,10 @@ body{
   align-items:center;
   border-bottom:1px solid #eef1f6;
 }
-.header strong{
-  font-size:15px;
-  font-weight:600;
-}
 .logout{
   color:#8a1f1f;
   font-size:13px;
   cursor:pointer;
-}
-
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:18px 20px 6px;
-}
-.logo img{
-  height:96px;
 }
 
 /* CONTENT */
@@ -62,15 +49,15 @@ body{
   padding:24px 20px;
 }
 
-/* PROFILE CARD */
+/* PROFILE */
 .profile-card{
-  background:linear-gradient(180deg,#f8fafc,#ffffff);
+  background:#fff;
   border:1.5px solid #e6ebf5;
   border-radius:var(--radius);
   padding:20px;
 }
 .profile-name{
-  font-size:19px;
+  font-size:20px;
   font-weight:700;
 }
 .profile-meta{
@@ -86,42 +73,9 @@ body{
   font-size:13px;
 }
 .profile-id span{
-  color:var(--muted);
   display:block;
   font-size:12px;
-}
-
-/* SECTION CARD */
-.card{
-  border:1.5px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-top:20px;
-}
-.card h3{
-  margin:0 0 12px;
-  font-size:15px;
-  font-weight:600;
-}
-
-/* BUTTONS */
-.btn{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:18px;
-  font-weight:600;
-  font-size:15px;
-  margin-top:12px;
-  cursor:pointer;
-}
-.primary{
-  background:var(--blue);
-  color:#fff;
-}
-.secondary{
-  background:#eef2f8;
-  color:var(--blue);
+  color:var(--muted);
 }
 
 /* FOOTER */
@@ -135,37 +89,45 @@ body{
 </style>
 
 <script>
-/* =========================================
-   🔐 VERROU ABSOLU — ESPACE PATIENT
-   ========================================= */
 document.addEventListener("DOMContentLoaded", () => {
 
-  const sessionActive = localStorage.getItem("sessionActive");
-  const profileRaw = localStorage.getItem("patientProfile");
+  /* ============================
+     🔥 TEST FORCÉ — PLACEHOLDER
+     ============================ */
 
-  // ❌ Pas connecté → login
-  if(sessionActive !== "true"){
-    window.location.replace("login.html");
-    return;
+  const TEST_MODE = true; // ⬅️ laisse à true pour le test
+
+  let profile;
+
+  if(TEST_MODE){
+    profile = {
+      fullName: "TEST PATIENT",
+      age: 99,
+      province: "TEST-PROVINCE",
+      patientId: "TEST-ID-0001"
+    };
+  }else{
+    const sessionActive = localStorage.getItem("sessionActive");
+    const profileRaw = localStorage.getItem("patientProfile");
+
+    if(sessionActive !== "true"){
+      window.location.replace("login.html");
+      return;
+    }
+    if(!profileRaw){
+      window.location.replace("signup.html");
+      return;
+    }
+    profile = JSON.parse(profileRaw);
   }
 
-  // ❌ Connecté MAIS pas de compte médical → signup
-  if(!profileRaw){
-    window.location.replace("signup.html");
-    return;
-  }
-
-  // ✅ Profil médical officiel
-  const profile = JSON.parse(profileRaw);
-
+  /* INJECTION UI */
   document.getElementById("fullName").innerText = profile.fullName;
   document.getElementById("age").innerText = profile.age + " ans";
   document.getElementById("province").innerText = profile.province;
   document.getElementById("patientId").innerText = profile.patientId;
 });
 
-/* 🔒 DÉCONNEXION
-   (ne supprime jamais le profil médical) */
 function logout(){
   localStorage.removeItem("sessionActive");
   window.location.replace("index.html");
@@ -177,63 +139,28 @@ function logout(){
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <strong>Espace patient</strong>
+    <strong>Espace patient — TEST</strong>
     <span class="logout" onclick="logout()">Déconnexion</span>
   </div>
 
-  <!-- LOGO -->
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
-  </div>
-
-  <!-- CONTENT -->
   <div class="content">
 
-    <!-- PROFIL PATIENT -->
     <div class="profile-card">
       <div class="profile-name" id="fullName">—</div>
       <div class="profile-meta">
         Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
       </div>
       <div class="profile-id">
-        <span>Identifiant médical patient</span>
+        <span>Identifiant médical</span>
         <strong id="patientId">—</strong>
       </div>
     </div>
 
-    <!-- SERVICES -->
-    <div class="card">
-      <h3>Services médicaux</h3>
-
-      <button class="btn primary" onclick="location.href='demande-teleconsultation.html'">
-        🩺 Demander une téléconsultation
-      </button>
-
-      <button class="btn secondary" onclick="location.href='demande-aide-domicile.html'">
-        🏠 Demander une aide à domicile
-      </button>
-    </div>
-
-    <!-- DOSSIER -->
-    <div class="card">
-      <h3>Dossier médical</h3>
-      <p style="font-size:13px;color:var(--muted)">
-        Historique des consultations, rapports médicaux
-        et recommandations des professionnels de santé.
-      </p>
-      <button class="btn secondary" onclick="location.href='dossier.html'">
-        Consulter mon dossier
-      </button>
-    </div>
-
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP<br>
-    Plateforme de santé numérique • Usage non urgent
+    © 2026 CizaHealth+ — TEST TECHNIQUE
   </div>
 
 </div>
