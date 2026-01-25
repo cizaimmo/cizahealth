@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Consultation prête</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --green:#3b8f6b;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
+}
+
+/* TOP */
+.topbar{
+  padding:18px 22px;
+}
+
+/* CONTENT */
+.section{
+  padding:22px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+h1{
+  font-size:20px;
+  margin:0 0 10px;
+}
+p{
+  font-size:14px;
+  color:var(--muted);
+  margin:0;
+}
+
+/* DOCTOR */
+.doc{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#eef2f8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  color:var(--blue);
+}
+.doc strong{
+  font-size:15px;
+}
+.doc span{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* STATUS */
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+  color:var(--green);
+  font-weight:600;
+}
+
+/* CTA */
+.cta{
+  margin-top:18px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--green),#4da783);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+}
+.cta.secondary{
+  background:#eef2f8;
+  color:var(--text);
+}
+</style>
+
+<script>
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
+}
+if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
+  window.location.href="paiement.html";
+}
+
+/* DATA */
+const dossier = localStorage.getItem("cizahealth_dossier");
+const duration = localStorage.getItem("cizahealth_consult_duration");
+
+/* START CALL */
+function startCall(){
+  // simulation appel
+  window.location.href="appel.html";
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar"></div>
+
+  <div class="section">
+
+    <div class="card">
+      <h1>Consultation prête</h1>
+      <p>
+        Votre consultation est prête à démarrer.
+        Le professionnel de santé est disponible.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="doc">
+        <div class="avatar">Dr</div>
+        <div>
+          <strong>Dr Jean Ndayishimiye</strong>
+          <span>Médecine générale</span>
+          <span>Durée : <strong id="dur"></strong> minutes</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="status">
+        ✔ Paiement confirmé — Dossier <strong id="dos"></strong>
+      </div>
+    </div>
+
+    <button class="cta" onclick="startCall()">
+      Démarrer la consultation
+    </button>
+
+    <button class="cta secondary" onclick="window.location.href='dashboard.html'">
+      Revenir au tableau de bord
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+document.getElementById("dos").textContent = dossier || "—";
+document.getElementById("dur").textContent = duration || "—";
+</script>
+</body>
+</html>
