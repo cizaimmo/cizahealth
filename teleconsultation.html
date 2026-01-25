@@ -160,14 +160,24 @@ body{
 
 <script>
 function startTeleconsultation(){
-  const session = localStorage.getItem("sessionActive");
-  const profile = localStorage.getItem("patientProfile");
 
-  if(session === "true" && profile){
-    window.location.href = "dashboard-client.html";
-  }else{
-    window.location.href = "signup.html";
+  const sessionActive = localStorage.getItem("sessionActive");
+  const patientProfile = localStorage.getItem("patientProfile");
+
+  // 1️⃣ Pas connecté → login
+  if(sessionActive !== "true"){
+    window.location.href = "login.html";
+    return;
   }
+
+  // 2️⃣ Connecté MAIS pas de profil patient → signup
+  if(!patientProfile){
+    window.location.href = "signup.html";
+    return;
+  }
+
+  // 3️⃣ Connecté + profil patient → dashboard
+  window.location.href = "dashboard-client.html";
 }
 </script>
 </head>
