@@ -8,15 +8,18 @@
 <style>
 :root{
   --blue:#0a2a5e;
+  --blue-light:#1b4fa3;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
 .app{
@@ -24,188 +27,167 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
 }
 
-/* HEADER */
+/* TOP */
 .topbar{
-  padding:18px 20px;
+  padding:18px 22px;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
-  font-weight:600;
-}
-
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.logo img{
-  height:120px;
+  font-weight:500;
 }
 
 /* CONTENT */
-.content{
-  padding:24px 20px;
+.section{
+  padding:22px;
 }
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
 h1{
   font-size:20px;
-  margin-bottom:14px;
+  margin:0 0 10px;
 }
-
-/* INFO */
-.info{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
+.row{
   font-size:14px;
-  margin-bottom:20px;
+  margin-bottom:8px;
 }
-.info p{
-  margin:6px 0;
+.row span{
+  color:var(--muted);
+  display:block;
+  font-size:12.5px;
 }
 
-/* PAYMENT OPTIONS */
-.payments{
+/* METHODS */
+.methods{
   display:grid;
-  gap:14px;
+  gap:12px;
 }
-.payment-option{
-  border:2px solid #e6ebf5;
-  border-radius:18px;
-  padding:16px;
+.method{
+  border:1.5px solid #dfe5f0;
+  border-radius:16px;
+  padding:14px;
   cursor:pointer;
-  font-weight:600;
 }
-.payment-option.active{
+.method.active{
   border-color:var(--blue);
-  background:#eef3ff;
+  background:#eef2f8;
 }
 
 /* CTA */
 .cta{
-  margin-top:26px;
-}
-.cta button{
-  width:100%;
+  margin-top:18px;
   padding:16px;
-  border:none;
   border-radius:18px;
-  background:#b7c3dd;
+  background:linear-gradient(135deg,var(--blue),var(--blue-light));
   color:#fff;
+  text-align:center;
   font-weight:600;
+  border:none;
+  width:100%;
   font-size:15px;
 }
-.cta button.active{
-  background:var(--blue);
-}
-
-/* FOOTER */
-.footer{
-  margin-top:auto;
-  text-align:center;
-  padding:18px;
-  font-size:12px;
-  opacity:.65;
+.cta.secondary{
+  background:#eef2f8;
+  color:var(--text);
 }
 </style>
 
 <script>
-let request = null;
-let paymentMethod = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  request = JSON.parse(localStorage.getItem("activeRequest"));
-
-  if(!request || request.status !== "pro_found"){
-    window.location.href = "dashboard-client.html";
-    return;
-  }
-
-  document.getElementById("dossier").innerText = request.dossierNumber;
-  document.getElementById("pro").innerText = request.pro.name;
-  document.getElementById("province").innerText = request.pro.province;
-});
-
-function selectPayment(method){
-  paymentMethod = method;
-
-  document.querySelectorAll(".payment-option").forEach(el=>{
-    el.classList.remove("active");
-  });
-
-  document.getElementById(method).classList.add("active");
-
-  const btn = document.getElementById("payBtn");
-  btn.disabled = false;
-  btn.classList.add("active");
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
 }
 
-function confirmPayment(){
-  request.payment = {
-    method: paymentMethod,
-    status: "paid",
-    date: new Date().toISOString()
-  };
-  request.status = "paid";
+/* DATA */
+const dossier = localStorage.getItem("cizahealth_dossier");
+const duration = parseInt(localStorage.getItem("cizahealth_consult_duration") || "0",10);
 
-  localStorage.setItem("activeRequest", JSON.stringify(request));
+/* TARIFS (EXEMPLE) */
+function priceByDuration(min){
+  if(min===10) return 5000;
+  if(min===20) return 9000;
+  if(min===30) return 12000;
+  return 0;
+}
+const amount = priceByDuration(duration);
 
-  window.location.href = "appel.html";
+/* METHOD */
+let selected = "mobile";
+function selectMethod(el, val){
+  document.querySelectorAll(".method").forEach(m=>m.classList.remove("active"));
+  el.classList.add("active");
+  selected = val;
+}
+
+/* PAY */
+function pay(){
+  // simulation succès
+  localStorage.setItem("cizahealth_payment_status","paid");
+  localStorage.setItem("cizahealth_payment_method",selected);
+  localStorage.setItem("cizahealth_amount",amount);
+  window.location.href="consultation-prete.html";
 }
 </script>
 </head>
 
 <body>
-
 <div class="app">
 
   <div class="topbar">
-    <a href="recherche-pro.html" class="back">← Retour</a>
+    <a href="recherche-medecin.html" class="back">← Retour</a>
   </div>
 
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  </div>
+  <div class="section">
 
-  <div class="content">
-    <h1>Paiement de la consultation</h1>
-
-    <div class="info">
-      <p><strong>Dossier :</strong> <span id="dossier">—</span></p>
-      <p><strong>Professionnel :</strong> <span id="pro">—</span></p>
-      <p><strong>Province :</strong> <span id="province">—</span></p>
-    </div>
-
-    <div class="payments">
-      <div class="payment-option" id="lumicash" onclick="selectPayment('lumicash')">
-        💳 Lumicash
+    <div class="card">
+      <h1>Paiement de la consultation</h1>
+      <div class="row">
+        <span>Numéro de dossier</span>
+        <strong id="dos"></strong>
       </div>
-      <div class="payment-option" id="ecocash" onclick="selectPayment('ecocash')">
-        📱 EcoCash
+      <div class="row">
+        <span>Durée</span>
+        <strong id="dur"></strong> minutes
       </div>
-      <div class="payment-option" id="inoti" onclick="selectPayment('inoti')">
-        🏦 Inoti
+      <div class="row">
+        <span>Montant à payer</span>
+        <strong id="amt"></strong> BIF
       </div>
     </div>
 
-    <div class="cta">
-      <button id="payBtn" disabled onclick="confirmPayment()">
-        Confirmer le paiement
-      </button>
+    <div class="card">
+      <div class="methods">
+        <div class="method active" onclick="selectMethod(this,'mobile')">
+          Mobile Money
+        </div>
+        <div class="method" onclick="selectMethod(this,'carte')">
+          Carte bancaire
+        </div>
+      </div>
     </div>
 
-  </div>
+    <button class="cta" onclick="pay()">Payer et continuer</button>
+    <button class="cta secondary" onclick="window.location.href='confirmation.html'">
+      Annuler
+    </button>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
 
+<script>
+document.getElementById("dos").textContent = dossier || "—";
+document.getElementById("dur").textContent = duration || "—";
+document.getElementById("amt").textContent = amount.toLocaleString();
+</script>
 </body>
 </html>
