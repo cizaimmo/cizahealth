@@ -54,7 +54,6 @@ function logout(){
   <!-- (aucune modification visuelle) -->
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, addDoc, serverTimestamp } 
@@ -69,22 +68,28 @@ function logout(){
     appId: "1:86541899778:web:35f7cb537c378a68698afb"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const appFirebase = initializeApp(firebaseConfig);
+  const db = getFirestore(appFirebase);
 
   console.log("🔥 Firebase connecté");
 
-  // 🧪 TEST D’ÉCRITURE FIRESTORE (1 seule fois)
-  try{
-    const docRef = await addDoc(collection(db, "tests"), {
-      message: "Connexion Firestore OK",
-      page: "index.html",
-      createdAt: serverTimestamp()
-    });
-    console.log("✅ Test Firestore OK, ID :", docRef.id);
-  }catch(e){
-    console.error("❌ Erreur Firestore :", e);
+  // ✅ TEST FIRESTORE SAFE
+  async function testFirestore(){
+    try{
+      const ref = await addDoc(collection(db,"tests"),{
+        status:"ok",
+        page:"index.html",
+        createdAt:serverTimestamp()
+      });
+      console.log("✅ Firestore OK :", ref.id);
+    }catch(e){
+      console.error("❌ Firestore erreur", e);
+    }
   }
+
+  // Lancer APRÈS chargement page
+  window.addEventListener("load", testFirestore);
+</script>
 </script>
 
 </body>
