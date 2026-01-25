@@ -9,7 +9,6 @@
 :root{
   --blue:#0a2a5e;
   --blue-light:#1b4fa3;
-  --green:#3b8f6b;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
@@ -89,30 +88,37 @@ h1{
 <script>
 /* PROTECTION */
 if(!localStorage.getItem("cizahealth_session")){
-  window.location.href="login.html";
+  window.location.href = "login.html";
 }
 
 /* DATA */
-const service = localStorage.getItem("cizahealth_service_type");
-const dossier = localStorage.getItem("cizahealth_dossier");
-
+const service  = localStorage.getItem("cizahealth_service_type");
+const dossier  = localStorage.getItem("cizahealth_dossier");
 const province = localStorage.getItem("cizahealth_province");
-const reason = localStorage.getItem("cizahealth_reason");
+const reason   = localStorage.getItem("cizahealth_reason");
 
 /* TELECONSULTATION */
-const mode = localStorage.getItem("cizahealth_consult_mode");
+const mode     = localStorage.getItem("cizahealth_consult_type");
 const duration = localStorage.getItem("cizahealth_consult_duration");
 
 /* AIDE */
 const aideType = localStorage.getItem("cizahealth_aide_type");
-const period = localStorage.getItem("cizahealth_aide_period");
+const period   = localStorage.getItem("cizahealth_aide_period");
 
+/* REDIRECTION */
 function proceed(){
   if(service === "teleconsultation"){
-    window.location.href="recherche-medecin.html";
-  }else{
-    window.location.href="recherche-intervenant.html";
+    window.location.href = "recherche-medecin.html";
+    return;
   }
+
+  if(service === "aide"){
+    window.location.href = "recherche-intervenant.html";
+    return;
+  }
+
+  alert("Erreur : type de service introuvable. Veuillez recommencer.");
+  window.location.href = "dashboard.html";
 }
 </script>
 </head>
@@ -167,32 +173,34 @@ function proceed(){
 </div>
 
 <script>
-document.getElementById("dossier").textContent = dossier || "—";
+document.getElementById("dossier").textContent  = dossier  || "—";
 document.getElementById("province").textContent = province || "—";
-document.getElementById("reason").textContent = reason || "—";
+document.getElementById("reason").textContent   = reason   || "—";
 
 if(service === "teleconsultation"){
   document.getElementById("serviceLabel").textContent = "Téléconsultation médicale";
   document.getElementById("details").innerHTML = `
     <div class="row">
       <span>Mode de consultation</span>
-      <strong>${mode}</strong>
+      <strong>${mode || "—"}</strong>
     </div>
     <div class="row">
       <span>Durée</span>
-      <strong>${duration} minutes</strong>
+      <strong>${duration || "—"} minutes</strong>
     </div>
   `;
-}else{
+}
+
+if(service === "aide"){
   document.getElementById("serviceLabel").textContent = "Aide à domicile";
   document.getElementById("details").innerHTML = `
     <div class="row">
       <span>Type d’aide</span>
-      <strong>${aideType}</strong>
+      <strong>${aideType || "—"}</strong>
     </div>
     <div class="row">
       <span>Période souhaitée</span>
-      <strong>${period}</strong>
+      <strong>${period || "—"}</strong>
     </div>
   `;
 }
