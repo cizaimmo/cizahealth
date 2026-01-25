@@ -2,168 +2,147 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Téléconsultation</title>
+<title>CizaHealth+ | Consultation en cours</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --green:#3b8f6b;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#000;
-  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
 }
+
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
-  background:#000;
+  background:#fff;
   display:flex;
   flex-direction:column;
+  box-shadow:0 12px 40px rgba(10,42,94,.08);
 }
 
-/* TOP */
-.top{
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
+/* HEADER */
+.header{
+  padding:18px 22px;
+  text-align:center;
+}
+.header h1{
+  font-size:18px;
+  margin:0;
+}
+.header p{
   font-size:13px;
-  opacity:.85;
+  color:var(--muted);
+  margin-top:4px;
 }
 
-/* VIDEO */
+/* VIDEO PLACEHOLDER */
 .video{
   flex:1;
+  background:#0a1a2f;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
-  opacity:.7;
+  color:#fff;
+  font-size:15px;
 }
 
-/* CONTROLS */
-.controls{
-  padding:20px;
-  display:grid;
-  gap:14px;
-  background:#0a0a0a;
+/* FOOTER */
+.footer{
+  padding:22px;
+  border-top:1px solid #eef1f6;
 }
-.mode{
-  display:flex;
-  gap:10px;
-}
-.mode button{
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:16px;
-  background:#1b1b1b;
-  color:#fff;
+
+/* TIMER */
+.timer{
+  text-align:center;
+  font-size:16px;
   font-weight:600;
+  margin-bottom:14px;
 }
-.mode button.active{
-  background:var(--blue);
-}
-.end{
-  background:#8a1f1f;
+
+/* CTA */
+.cta{
+  width:100%;
   padding:16px;
-  border:none;
   border-radius:18px;
+  background:linear-gradient(135deg,#8a1f1f,#b23333);
   color:#fff;
-  font-weight:700;
+  border:none;
   font-size:15px;
+  font-weight:600;
 }
 </style>
 
 <script>
-let request = null;
-
-document.addEventListener("DOMContentLoaded", ()=>{
-
-  request = JSON.parse(localStorage.getItem("activeRequest"));
-
-  if(!request || request.status !== "paid"){
-    window.location.href = "dashboard-client.html";
-    return;
-  }
-
-  document.getElementById("dossier").innerText = request.dossierNumber;
-  document.getElementById("pro").innerText =
-    request.pro.name + " — " + request.pro.role;
-});
-
-function selectMode(mode){
-  document.getElementById("audio").classList.remove("active");
-  document.getElementById("video").classList.remove("active");
-  document.getElementById(mode).classList.add("active");
-
-  document.getElementById("screen").innerText =
-    mode === "video"
-      ? "📹 Consultation vidéo en cours"
-      : "🎧 Consultation audio en cours";
+/* PROTECTION */
+if(!localStorage.getItem("cizahealth_session")){
+  window.location.href="login.html";
+}
+if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
+  window.location.href="paiement.html";
 }
 
+/* DATA */
+const durationMin = parseInt(localStorage.getItem("cizahealth_consult_duration") || "0",10);
+let timeLeft = durationMin * 60;
+
+/* TIMER */
+function startTimer(){
+  const el = document.getElementById("timer");
+  const interval = setInterval(()=>{
+    const min = Math.floor(timeLeft/60);
+    const sec = timeLeft % 60;
+    el.textContent = `${min}:${sec<10?'0':''}${sec}`;
+    timeLeft--;
+
+    if(timeLeft < 0){
+      clearInterval(interval);
+      endCall();
+    }
+  },1000);
+}
+
+/* END */
 function endCall(){
-  // Résumé médical simulé
-  const resume = {
-    dossierNumber: request.dossierNumber,
-    pro: request.pro,
-    date: new Date().toLocaleString(),
-    conclusion: "Consultation effectuée avec succès.",
-    ordonnance: "Prescription envoyée à la pharmacie partenaire.",
-    recommandations: "Repos, hydratation, suivi si nécessaire."
-  };
-
-  // Enregistrement dans l’espace patient
-  let records = JSON.parse(localStorage.getItem("medicalRecords")) || [];
-  records.push(resume);
-  localStorage.setItem("medicalRecords", JSON.stringify(records));
-
-  request.status = "completed";
-  localStorage.setItem("activeRequest", JSON.stringify(request));
-
-  window.location.href = "dossier-sante.html";
+  window.location.href="rapport.html";
 }
+
+window.onload = startTimer;
 </script>
 </head>
 
 <body>
-
 <div class="app">
 
-  <div class="top">
-    <div>Dossier : <strong id="dossier">—</strong></div>
-    <div id="pro">—</div>
+  <div class="header">
+    <h1>Consultation en cours</h1>
+    <p>Connexion sécurisée avec le professionnel de santé</p>
   </div>
 
-  <div class="video" id="screen">
-    📹 Consultation vidéo en cours
+  <div class="video">
+    Appel audio / vidéo en cours…
   </div>
 
-  <div class="controls">
-
-    <div class="mode">
-      <button id="video" class="active" onclick="selectMode('video')">
-        🎥 Vidéo
-      </button>
-      <button id="audio" onclick="selectMode('audio')">
-        🎧 Audio
-      </button>
-    </div>
-
-    <button class="end" onclick="endCall()">
+  <div class="footer">
+    <div class="timer" id="timer">—</div>
+    <button class="cta" onclick="endCall()">
       Terminer la consultation
     </button>
-
   </div>
 
 </div>
-
 </body>
 </html>
