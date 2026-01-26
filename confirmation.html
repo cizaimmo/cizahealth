@@ -86,39 +86,24 @@ h1{
 </style>
 
 <script>
-/* PROTECTION */
-if(!localStorage.getItem("cizahealth_session")){
-  window.location.href = "login.html";
+/* 🔐 PROTECTION */
+if(localStorage.getItem("sessionActive") !== "true"){
+  window.location.replace("login.html");
 }
 
-/* DATA */
-const service  = localStorage.getItem("cizahealth_service_type");
-const dossier  = localStorage.getItem("cizahealth_dossier");
-const province = localStorage.getItem("cizahealth_province");
-const reason   = localStorage.getItem("cizahealth_reason");
+/* 📦 RÉCUPÉRATION DEMANDE */
+const raw = localStorage.getItem("currentRequest");
+if(!raw){
+  alert("Aucune demande trouvée. Veuillez recommencer.");
+  window.location.replace("dashboard-client.html");
+}
 
-/* TELECONSULTATION */
-const mode     = localStorage.getItem("cizahealth_consult_type");
-const duration = localStorage.getItem("cizahealth_consult_duration");
-
-/* AIDE */
-const aideType = localStorage.getItem("cizahealth_aide_type");
-const period   = localStorage.getItem("cizahealth_aide_period");
+const request = JSON.parse(raw);
 
 /* REDIRECTION */
 function proceed(){
-  if(service === "teleconsultation"){
-    window.location.href = "recherche-medecin.html";
-    return;
-  }
-
-  if(service === "aide"){
-    window.location.href = "recherche-intervenant.html";
-    return;
-  }
-
-  alert("Erreur : type de service introuvable. Veuillez recommencer.");
-  window.location.href = "dashboard.html";
+  // étape suivante simulée
+  window.location.href = "recherche-medecin.html";
 }
 </script>
 </head>
@@ -127,7 +112,7 @@ function proceed(){
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard.html" class="back">← Tableau de bord</a>
+    <a href="dashboard-client.html" class="back">← Tableau de bord</a>
   </div>
 
   <div class="section">
@@ -164,7 +149,7 @@ function proceed(){
       Confirmer et continuer
     </button>
 
-    <button class="cta secondary" onclick="window.location.href='dashboard.html'">
+    <button class="cta secondary" onclick="window.location.href='dashboard-client.html'">
       Modifier plus tard
     </button>
 
@@ -173,37 +158,21 @@ function proceed(){
 </div>
 
 <script>
-document.getElementById("dossier").textContent  = dossier  || "—";
-document.getElementById("province").textContent = province || "—";
-document.getElementById("reason").textContent   = reason   || "—";
+document.getElementById("dossier").textContent  = request.dossier;
+document.getElementById("province").textContent = request.province;
+document.getElementById("reason").textContent   = request.reason;
+document.getElementById("serviceLabel").textContent = "Téléconsultation médicale";
 
-if(service === "teleconsultation"){
-  document.getElementById("serviceLabel").textContent = "Téléconsultation médicale";
-  document.getElementById("details").innerHTML = `
-    <div class="row">
-      <span>Mode de consultation</span>
-      <strong>${mode || "—"}</strong>
-    </div>
-    <div class="row">
-      <span>Durée</span>
-      <strong>${duration || "—"} minutes</strong>
-    </div>
-  `;
-}
-
-if(service === "aide"){
-  document.getElementById("serviceLabel").textContent = "Aide à domicile";
-  document.getElementById("details").innerHTML = `
-    <div class="row">
-      <span>Type d’aide</span>
-      <strong>${aideType || "—"}</strong>
-    </div>
-    <div class="row">
-      <span>Période souhaitée</span>
-      <strong>${period || "—"}</strong>
-    </div>
-  `;
-}
+document.getElementById("details").innerHTML = `
+  <div class="row">
+    <span>Mode de consultation</span>
+    <strong>${request.mode}</strong>
+  </div>
+  <div class="row">
+    <span>Durée</span>
+    <strong>${request.duration} minutes</strong>
+  </div>
+`;
 </script>
 
 </body>
