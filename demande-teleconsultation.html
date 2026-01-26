@@ -71,7 +71,7 @@ textarea{
 /* RADIO */
 .radio-group{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
 }
 .radio{
@@ -102,45 +102,26 @@ textarea{
 }
 </style>
 
+<!-- 🔐 PROTECTION — VERSION DÉFINITIVE -->
 <script>
-/* 🔐 PROTECTION CORRECTE */
-if(localStorage.getItem("sessionActive") !== "true"){
-  window.location.replace("login.html");
-}
+(function () {
 
-/* 📦 RÉCUPÉRATION PROFIL */
-const profileRaw = localStorage.getItem("patientProfile");
-if(!profileRaw){
-  window.location.replace("signup.html");
-}
-const profile = JSON.parse(profileRaw);
+  const isLoggedIn = localStorage.getItem("sessionActive") === "true";
+  const profileRaw = localStorage.getItem("patientProfile");
 
-/* 📁 NUMÉRO DE DOSSIER */
-const dossier = "DOS-" + Date.now();
+  if (!isLoggedIn) {
+    window.location.replace("login.html");
+    return;
+  }
 
-/* RADIO */
-function selectRadio(el, value){
-  document.querySelectorAll(".radio").forEach(r=>r.classList.remove("active"));
-  el.classList.add("active");
-  document.getElementById("type").value = value;
-}
+  if (!profileRaw) {
+    window.location.replace("signup.html");
+    return;
+  }
 
-/* ✅ SOUMISSION */
-function submitRequest(){
-  const request = {
-    dossier,
-    patientId: profile.patientId,
-    fullName: profile.fullName,
-    province: document.getElementById("prov").value,
-    mode: document.getElementById("type").value,
-    duration: document.getElementById("duration").value,
-    reason: document.getElementById("reason").value,
-    createdAt: new Date().toISOString()
-  };
+  window.profile = JSON.parse(profileRaw);
 
-  localStorage.setItem("currentRequest", JSON.stringify(request));
-  window.location.href = "confirmation.html";
-}
+})();
 </script>
 </head>
 
@@ -180,7 +161,7 @@ function submitRequest(){
         <div class="radio active" onclick="selectRadio(this,'audio')">Audio</div>
         <div class="radio" onclick="selectRadio(this,'video')">Vidéo</div>
       </div>
-      <input type="hidden" id="type" value="audio">
+      <input type="hidden" id="mode" value="audio">
     </div>
 
     <div class="group">
@@ -206,9 +187,37 @@ function submitRequest(){
 </div>
 
 <script>
+/* 🔘 RADIO */
+function selectRadio(el, value){
+  document.querySelectorAll(".radio").forEach(r=>r.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("mode").value = value;
+}
+
+/* 🧠 PRÉREMPLISSAGE */
 document.getElementById("pname").value = profile.fullName;
-document.getElementById("pid").value = profile.patientId;
-document.getElementById("prov").value = profile.province;
+document.getElementById("pid").value   = profile.patientId;
+document.getElementById("prov").value  = profile.province;
+
+/* 📤 SOUMISSION */
+function submitRequest(){
+
+  const request = {
+    dossier: "DOS-" + Date.now(),
+    service: "teleconsultation",
+    patientId: profile.patientId,
+    fullName: profile.fullName,
+    province: document.getElementById("prov").value,
+    mode: document.getElementById("mode").value,
+    duration: document.getElementById("duration").value,
+    reason: document.getElementById("reason").value,
+    createdAt: new Date().toISOString()
+  };
+
+  localStorage.setItem("currentRequest", JSON.stringify(request));
+
+  window.location.href = "confirmation.html";
+}
 </script>
 
 </body>
