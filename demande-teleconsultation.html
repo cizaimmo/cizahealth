@@ -102,7 +102,7 @@ textarea{
 }
 </style>
 
-<!-- 🔐 PROTECTION — VERSION DÉFINITIVE -->
+<!-- 🔐 PROTECTION — VERSION STABLE -->
 <script>
 (function () {
 
@@ -199,23 +199,28 @@ document.getElementById("pname").value = profile.fullName;
 document.getElementById("pid").value   = profile.patientId;
 document.getElementById("prov").value  = profile.province;
 
-/* 📤 SOUMISSION */
+/* 📤 SOUMISSION — VERSION COMPLÈTE */
 function submitRequest(){
 
   const request = {
     dossier: "DOS-" + Date.now(),
     service: "teleconsultation",
+
+    /* 🔑 IDENTITÉ PATIENT (COMPLÈTE) */
     patientId: profile.patientId,
     fullName: profile.fullName,
+    age: profile.age,
     province: document.getElementById("prov").value,
+
+    /* 🩺 CONSULTATION */
     mode: document.getElementById("mode").value,
     duration: document.getElementById("duration").value,
     reason: document.getElementById("reason").value,
+
     createdAt: new Date().toISOString()
   };
 
   localStorage.setItem("currentRequest", JSON.stringify(request));
-
   window.location.href = "confirmation.html";
 }
 </script>
