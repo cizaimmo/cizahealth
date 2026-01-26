@@ -27,22 +27,33 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 12px 40px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
 }
 
 /* TOP */
 .topbar{
   padding:18px 22px;
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 .back{
   text-decoration:none;
   color:var(--blue);
   font-weight:500;
 }
+.logo{
+  margin:0 auto;
+}
+.logo img{
+  height:40px;
+}
 
 /* CONTENT */
 .section{
   padding:22px;
+  flex:1;
 }
 .card{
   background:#fff;
@@ -52,10 +63,6 @@ body{
 }
 .card + .card{margin-top:16px}
 
-h1{
-  font-size:20px;
-  margin:0 0 10px;
-}
 .row{
   font-size:14px;
   margin-bottom:8px;
@@ -67,10 +74,6 @@ h1{
 }
 
 /* METHODS */
-.methods{
-  display:grid;
-  gap:12px;
-}
 .method{
   border:1.5px solid #dfe5f0;
   border-radius:16px;
@@ -89,57 +92,71 @@ h1{
   border-radius:18px;
   background:linear-gradient(135deg,var(--blue),var(--blue-light));
   color:#fff;
-  text-align:center;
   font-weight:600;
   border:none;
   width:100%;
   font-size:15px;
+  cursor:pointer;
 }
-.cta.secondary{
-  background:#eef2f8;
-  color:var(--text);
+.cta:active{opacity:.85}
+
+/* FOOTER MINIMAL */
+.footer-min{
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer-min img{
+  height:40px;
+  margin-bottom:8px;
 }
 </style>
 
 <script>
-/* 🔐 PROTECTION — FLOW OFFICIEL */
-if (localStorage.getItem("sessionActive") !== "true") {
+/* 🔐 PROTECTION UNIFIÉE */
+if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
 
-/* 📦 RÉCUPÉRATION DEMANDE */
+/* 📦 DONNÉES DE DEMANDE */
 const requestRaw = localStorage.getItem("currentRequest");
-if (!requestRaw) {
-  alert("Aucune demande trouvée. Veuillez recommencer.");
+if(!requestRaw){
   window.location.replace("dashboard-client.html");
 }
-
 const request = JSON.parse(requestRaw);
 
 /* 💰 TARIFICATION */
 function priceByDuration(min){
-  if(min == 10) return 5000;
-  if(min == 20) return 9000;
-  if(min == 30) return 12000;
+  if(min==10) return 5000;
+  if(min==20) return 9000;
+  if(min==30) return 12000;
   return 0;
 }
-const amount = priceByDuration(parseInt(request.duration, 10));
+const amount = priceByDuration(Number(request.duration));
 
-/* 💳 MÉTHODE */
-let selected = "mobile";
+let method = "mobile";
+
 function selectMethod(el, val){
   document.querySelectorAll(".method").forEach(m=>m.classList.remove("active"));
   el.classList.add("active");
-  selected = val;
+  method = val;
 }
 
-/* ✅ PAIEMENT (SIMULATION) */
+/* ✅ PAIEMENT — NON STATIQUE */
 function pay(){
-  localStorage.setItem("paymentStatus", "paid");
-  localStorage.setItem("paymentMethod", selected);
-  localStorage.setItem("paymentAmount", amount);
+  const btn = document.getElementById("payBtn");
+  btn.textContent = "Paiement en cours…";
+  btn.disabled = true;
 
-  window.location.href = "consultation-prete.html";
+  // simulation paiement réussi
+  localStorage.setItem("cizahealth_payment_status","paid");
+  localStorage.setItem("cizahealth_payment_method",method);
+  localStorage.setItem("cizahealth_amount",amount);
+
+  setTimeout(()=>{
+    window.location.href = "confirmation-paiement.html";
+  }, 600);
 }
 </script>
 </head>
@@ -147,25 +164,26 @@ function pay(){
 <body>
 <div class="app">
 
+  <!-- TOP -->
   <div class="topbar">
     <a href="recherche-medecin.html" class="back">← Retour</a>
+    <div class="logo">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    </div>
   </div>
 
+  <!-- CONTENT -->
   <div class="section">
 
     <div class="card">
-      <h1>Paiement de la consultation</h1>
-
       <div class="row">
         <span>Numéro de dossier</span>
         <strong id="dos"></strong>
       </div>
-
       <div class="row">
         <span>Durée</span>
         <strong id="dur"></strong> minutes
       </div>
-
       <div class="row">
         <span>Montant à payer</span>
         <strong id="amt"></strong> BIF
@@ -173,22 +191,28 @@ function pay(){
     </div>
 
     <div class="card">
-      <div class="methods">
-        <div class="method active" onclick="selectMethod(this,'mobile')">
-          Mobile Money
-        </div>
-        <div class="method" onclick="selectMethod(this,'carte')">
-          Carte bancaire
-        </div>
+      <div class="method active" onclick="selectMethod(this,'mobile')">
+        Mobile Money
+      </div>
+      <div class="method" onclick="selectMethod(this,'carte')" style="margin-top:12px">
+        Carte bancaire
       </div>
     </div>
 
-    <button class="cta" onclick="pay()">Payer et continuer</button>
-    <button class="cta secondary" onclick="window.location.href='confirmation.html'">
-      Annuler
+    <button id="payBtn" class="cta" onclick="pay()">
+      Payer et continuer
     </button>
 
   </div>
+
+  <!-- FOOTER MINIMAL -->
+  <footer class="footer-min">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
 
 </div>
 
