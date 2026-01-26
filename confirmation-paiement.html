@@ -30,25 +30,27 @@ body{
   display:flex;
   flex-direction:column;
   justify-content:center;
+  align-items:center;
   text-align:center;
   padding:26px;
 }
 
 .logo img{
-  height:80px;
-  margin-bottom:18px;
+  height:70px;
+  margin-bottom:20px;
 }
 
 .card{
+  width:100%;
   background:#fff;
   border-radius:var(--radius);
-  padding:24px;
+  padding:26px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
 
 h1{
   font-size:20px;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 p{
   font-size:14px;
@@ -57,7 +59,7 @@ p{
 }
 
 .loader{
-  margin:20px auto 0;
+  margin:22px auto;
   width:36px;
   height:36px;
   border:4px solid #eef2f8;
@@ -70,14 +72,26 @@ p{
   to{transform:rotate(360deg)}
 }
 
-/* FOOTER MINIMAL */
+.cta{
+  margin-top:18px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--blue),#1b4fa3);
+  color:#fff;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+  cursor:pointer;
+}
+
 .footer-min{
   margin-top:30px;
   font-size:12px;
   color:#8a95a8;
 }
 .footer-min img{
-  height:40px;
+  height:32px;
   margin-bottom:6px;
 }
 </style>
@@ -93,10 +107,11 @@ if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
   window.location.replace("paiement.html");
 }
 
-/* ⏩ REDIRECTION AUTOMATIQUE */
-setTimeout(()=>{
-  window.location.replace("consultation-en-cours.html");
-}, 2500);
+/* ▶️ DÉMARRER CONSULTATION */
+function startConsultation(){
+  // ⚠️ ce fichier DOIT exister sur GitHub Pages
+  window.location.href = "consultation-en-cours.html";
+}
 </script>
 </head>
 
@@ -112,10 +127,14 @@ setTimeout(()=>{
     <h1>Paiement confirmé</h1>
     <p>
       Votre paiement a été effectué avec succès.<br>
-      Vous allez être mis en relation avec votre médecin.
+      Vous pouvez maintenant démarrer votre consultation.
     </p>
 
     <div class="loader"></div>
+
+    <button class="cta" onclick="startConsultation()">
+      Démarrer la consultation
+    </button>
   </div>
 
   <footer class="footer-min">
