@@ -103,27 +103,43 @@ textarea{
 </style>
 
 <script>
-/* PROTECTION */
-if(!localStorage.getItem("cizahealth_session")){
-  window.location.href="login.html";
+/* 🔐 PROTECTION CORRECTE */
+if(localStorage.getItem("sessionActive") !== "true"){
+  window.location.replace("login.html");
 }
 
-/* DOSSIER */
+/* 📦 RÉCUPÉRATION PROFIL */
+const profileRaw = localStorage.getItem("patientProfile");
+if(!profileRaw){
+  window.location.replace("signup.html");
+}
+const profile = JSON.parse(profileRaw);
+
+/* 📁 NUMÉRO DE DOSSIER */
 const dossier = "DOS-" + Date.now();
 
+/* RADIO */
 function selectRadio(el, value){
   document.querySelectorAll(".radio").forEach(r=>r.classList.remove("active"));
   el.classList.add("active");
   document.getElementById("type").value = value;
 }
 
+/* ✅ SOUMISSION */
 function submitRequest(){
-  localStorage.setItem("cizahealth_dossier", dossier);
-  localStorage.setItem("cizahealth_consult_type", document.getElementById("type").value);
-  localStorage.setItem("cizahealth_consult_duration", document.getElementById("duration").value);
-  localStorage.setItem("cizahealth_consult_province", document.getElementById("prov").value);
-  localStorage.setItem("cizahealth_consult_reason", document.getElementById("reason").value);
-  window.location.href="confirmation-teleconsultation.html";
+  const request = {
+    dossier,
+    patientId: profile.patientId,
+    fullName: profile.fullName,
+    province: document.getElementById("prov").value,
+    mode: document.getElementById("type").value,
+    duration: document.getElementById("duration").value,
+    reason: document.getElementById("reason").value,
+    createdAt: new Date().toISOString()
+  };
+
+  localStorage.setItem("currentRequest", JSON.stringify(request));
+  window.location.href = "confirmation.html";
 }
 </script>
 </head>
@@ -132,7 +148,7 @@ function submitRequest(){
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard.html" class="back">← Retour</a>
+    <a href="dashboard-client.html" class="back">← Retour</a>
   </div>
 
   <div class="form">
@@ -181,22 +197,19 @@ function submitRequest(){
       <textarea id="reason" placeholder="Décrivez brièvement votre situation"></textarea>
     </div>
 
-  <button class="cta"
-  onclick="window.location.href='confirmation.html'">
-  Valider la demande
-</button>
+    <button class="cta" onclick="submitRequest()">
+      Valider la demande
+    </button>
 
   </div>
 
 </div>
 
 <script>
-document.getElementById("pname").value =
-  localStorage.getItem("cizahealth_name") || "Patient";
-document.getElementById("pid").value =
-  localStorage.getItem("cizahealth_patient_id") || "—";
-document.getElementById("prov").value =
-  localStorage.getItem("cizahealth_province") || "Bujumbura";
+document.getElementById("pname").value = profile.fullName;
+document.getElementById("pid").value = profile.patientId;
+document.getElementById("prov").value = profile.province;
 </script>
+
 </body>
 </html>
