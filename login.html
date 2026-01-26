@@ -78,27 +78,36 @@ input:focus{
 
 <script>
 function login(){
-  const contact = document.getElementById("contact").value.trim();
-  const password = document.getElementById("password").value.trim();
 
-  if(!contact || !password){
+  const contactInput = document.getElementById("contact").value.trim();
+  const passwordInput = document.getElementById("password").value.trim();
+
+  if(!contactInput || !passwordInput){
     alert("Veuillez entrer vos informations de connexion");
     return;
   }
 
-  // 🔐 SIMULATION LOGIN OK
-  localStorage.setItem("sessionActive", "true");
-
-  // 🔍 Vérifier si le profil médical existe déjà
+  // 🔐 Récupération des identifiants créés via SIGNUP
+  const storedContact = localStorage.getItem("authContact");
+  const storedPassword = localStorage.getItem("authPassword");
   const profile = localStorage.getItem("patientProfile");
 
-  if(profile){
-    // ✅ Profil patient déjà créé
-    window.location.replace("dashboard-client.html");
-  }else{
-    // ❌ Pas encore de profil médical
+  // ❌ Aucun compte créé
+  if(!storedContact || !storedPassword || !profile){
+    alert("Aucun compte trouvé. Veuillez créer un compte.");
     window.location.replace("signup.html");
+    return;
   }
+
+  // ❌ Mauvais identifiants
+  if(contactInput !== storedContact || passwordInput !== storedPassword){
+    alert("Identifiants incorrects");
+    return;
+  }
+
+  // ✅ Connexion validée
+  localStorage.setItem("sessionActive", "true");
+  window.location.replace("dashboard-client.html");
 }
 </script>
 </head>
