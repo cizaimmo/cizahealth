@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Paiement confirmé</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --green:#2e8b57;
+  --green-soft:#eaf6f0;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  padding:28px 20px 10px;
+}
+.check{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:var(--green-soft);
+  color:var(--green);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;
+  margin:0 auto 14px;
+}
+
+/* CONTENT */
+.section{
+  padding:26px;
+  flex:1;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+
+h1{
+  font-size:20px;
+  margin-bottom:8px;
+}
+.row{
+  margin-top:12px;
+  font-size:14px;
+}
+.row span{
+  display:block;
+  font-size:12.5px;
+  color:var(--muted);
+}
+
+/* CTA */
+.cta{
+  margin-top:22px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#2e8b57,#3fa370);
+  color:#fff;
+  font-weight:600;
+  border:none;
+  width:100%;
+  font-size:15px;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  padding:22px;
+  font-size:12px;
+  color:#8a95a8;
+  border-top:1px solid #eef1f6;
+}
+</style>
+
+<script>
+/* 🔐 PROTECTION */
+if(localStorage.getItem("sessionActive") !== "true"){
+  window.location.replace("login.html");
+}
+
+/* 🔐 VÉRIFIER PAIEMENT */
+if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
+  window.location.replace("dashboard-client.html");
+}
+
+const request = JSON.parse(localStorage.getItem("currentRequest"));
+const amount  = localStorage.getItem("cizahealth_amount");
+const method  = localStorage.getItem("cizahealth_payment_method");
+
+function continueFlow(){
+  window.location.href = "consultation-prete.html";
+}
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="check">✓</div>
+    <h1>Paiement confirmé</h1>
+    <p style="font-size:14px;color:var(--muted)">
+      Votre paiement a été traité avec succès
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="card">
+
+      <div class="row">
+        <span>Numéro de dossier</span>
+        <strong id="dos"></strong>
+      </div>
+
+      <div class="row">
+        <span>Montant payé</span>
+        <strong id="amt"></strong> BIF
+      </div>
+
+      <div class="row">
+        <span>Méthode de paiement</span>
+        <strong id="meth"></strong>
+      </div>
+
+      <button class="cta" onclick="continueFlow()">
+        Continuer vers la consultation
+      </button>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Transaction sécurisée
+  </div>
+
+</div>
+
+<script>
+document.getElementById("dos").textContent  = request.dossier;
+document.getElementById("amt").textContent  = Number(amount).toLocaleString();
+document.getElementById("meth").textContent = method === "mobile"
+  ? "Mobile Money"
+  : "Carte bancaire";
+</script>
+
+</body>
+</html>
