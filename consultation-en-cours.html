@@ -29,81 +29,105 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
-  padding:22px;
 }
 
 /* HEADER */
 .header{
-  text-align:center;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #eef1f6;
 }
 .header img{
-  height:48px;
-  margin-bottom:10px;
+  height:34px;
 }
-.header h1{
-  font-size:18px;
-  margin:0;
+.status{
+  font-size:12px;
+  font-weight:600;
+  color:#1f7a3a;
 }
 
-/* CALL AREA */
-.call{
-  flex:1;
+/* VIDEO AREA */
+.video-area{
+  padding:16px;
+}
+.video-main{
+  position:relative;
+  height:260px;
+  background:#0e1f3a;
+  border-radius:18px;
   display:flex;
-  flex-direction:column;
+  align-items:center;
   justify-content:center;
-  gap:18px;
+  color:#fff;
+}
+.video-main .label{
+  position:absolute;
+  bottom:12px;
+  left:12px;
+  font-size:13px;
+  background:rgba(0,0,0,.4);
+  padding:6px 10px;
+  border-radius:12px;
 }
 
-/* PARTICIPANT */
-.participant{
-  background:#f8fafc;
-  border:1.5px solid #e6ebf5;
+/* PATIENT VIDEO */
+.video-patient{
+  position:absolute;
+  bottom:12px;
+  right:12px;
+  width:110px;
+  height:140px;
+  background:#1b2f55;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+}
+
+/* INFO CARD */
+.section{
+  padding:16px;
+}
+.card{
+  background:#fff;
   border-radius:var(--radius);
   padding:18px;
-  text-align:left;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.participant span{
-  font-size:12px;
-  color:var(--muted);
-}
-.participant strong{
-  display:block;
-  font-size:16px;
-  margin-top:4px;
-}
+.card + .card{margin-top:14px}
 
-/* STATUS */
-.status{
-  text-align:center;
-  font-size:14px;
-  color:#1f7a4f;
-  font-weight:600;
+.row{
+  font-size:13.5px;
+  margin-bottom:6px;
+}
+.row span{
+  color:var(--muted);
+  display:block;
+  font-size:12px;
 }
 
 /* TIMER */
 .timer{
-  text-align:center;
-  font-size:15px;
+  margin-top:10px;
+  font-size:13px;
   font-weight:600;
   color:#8a1f1f;
-}
-
-/* SECURITY */
-.security{
   text-align:center;
-  font-size:12.5px;
-  color:var(--muted);
 }
 
 /* FOOTER */
 .footer-min{
+  margin-top:auto;
   text-align:center;
+  padding:16px;
   font-size:12px;
   color:#8a95a8;
 }
 .footer-min img{
-  height:40px;
+  height:34px;
   margin-bottom:6px;
 }
 </style>
@@ -114,7 +138,6 @@ if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
 
-/* 📦 DATA */
 const profile = JSON.parse(localStorage.getItem("patientProfile") || "{}");
 const request = JSON.parse(localStorage.getItem("currentRequest") || "{}");
 
@@ -122,10 +145,10 @@ const request = JSON.parse(localStorage.getItem("currentRequest") || "{}");
 let seconds = 0;
 setInterval(()=>{
   seconds++;
-  const min = Math.floor(seconds/60);
-  const sec = seconds%60;
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
   document.getElementById("timer").textContent =
-    `Durée : ${min}:${sec<10?'0':''}${sec}`;
+    `Consultation en cours depuis ${min}:${sec < 10 ? "0" : ""}${sec}`;
 },1000);
 </script>
 </head>
@@ -137,33 +160,51 @@ setInterval(()=>{
   <!-- HEADER -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <h1>Consultation médicale en cours</h1>
+    <div class="status">● Consultation en cours</div>
   </div>
 
-  <!-- CALL -->
-  <div class="call">
+  <!-- VIDEO -->
+  <div class="video-area">
+    <div class="video-main">
+      Simulation vidéo médecin
+      <div class="label">
+        Dr Jean Ndayishimiye • Médecine générale
+      </div>
 
-    <div class="participant">
-      <span>Patient</span>
-      <strong id="patientName">—</strong>
+      <div class="video-patient">
+        Patient
+      </div>
+    </div>
+  </div>
+
+  <!-- INFOS -->
+  <div class="section">
+
+    <div class="card">
+      <div class="row">
+        <span>Patient</span>
+        <strong id="pname"></strong>
+      </div>
+      <div class="row">
+        <span>Âge</span>
+        <strong id="age"></strong>
+      </div>
+      <div class="row">
+        <span>Identifiant médical</span>
+        <strong id="pid"></strong>
+      </div>
     </div>
 
-    <div class="participant">
-      <span>Médecin</span>
-      <strong>Dr Jean Ndayishimiye</strong>
-      <span>Médecine générale</span>
-    </div>
-
-    <div class="status">
-      🔒 Connexion médicale sécurisée
-    </div>
-
-    <div class="timer" id="timer">
-      Durée : 0:00
-    </div>
-
-    <div class="security">
-      Les échanges sont strictement confidentiels
+    <div class="card">
+      <div class="row">
+        <span>Numéro de dossier</span>
+        <strong id="dos"></strong>
+      </div>
+      <div class="row">
+        <span>Province</span>
+        <strong id="prov"></strong>
+      </div>
+      <div class="timer" id="timer"></div>
     </div>
 
   </div>
@@ -180,8 +221,11 @@ setInterval(()=>{
 </div>
 
 <script>
-document.getElementById("patientName").textContent =
-  profile.fullName || "Patient";
+document.getElementById("pname").textContent = profile.fullName || "—";
+document.getElementById("age").textContent   = profile.age ? profile.age + " ans" : "—";
+document.getElementById("pid").textContent   = profile.patientId || "—";
+document.getElementById("dos").textContent   = request.dossier || "—";
+document.getElementById("prov").textContent  = request.province || "—";
 </script>
 
 </body>
