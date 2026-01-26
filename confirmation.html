@@ -30,7 +30,6 @@ body{
   box-shadow:0 12px 40px rgba(10,42,94,.08);
 }
 
-/* TOP */
 .topbar{
   padding:18px 22px;
 }
@@ -40,7 +39,6 @@ body{
   font-weight:500;
 }
 
-/* CONTENT */
 .section{
   padding:22px;
 }
@@ -66,7 +64,6 @@ h1{
   font-size:12.5px;
 }
 
-/* CTA */
 .cta{
   margin-top:18px;
   padding:16px;
@@ -91,18 +88,19 @@ if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
 
-/* 📦 RÉCUPÉRATION DEMANDE */
-const raw = localStorage.getItem("currentRequest");
-if(!raw){
-  alert("Aucune demande trouvée. Veuillez recommencer.");
+/* 📦 RÉCUPÉRATION DES DONNÉES */
+const requestRaw = localStorage.getItem("currentRequest");
+const profileRaw = localStorage.getItem("patientProfile");
+
+if(!requestRaw || !profileRaw){
+  alert("Données manquantes. Veuillez recommencer.");
   window.location.replace("dashboard-client.html");
 }
 
-const request = JSON.parse(raw);
+const request = JSON.parse(requestRaw);
+const profile = JSON.parse(profileRaw);
 
-/* REDIRECTION */
 function proceed(){
-  // étape suivante simulée
   window.location.href = "recherche-medecin.html";
 }
 </script>
@@ -117,6 +115,27 @@ function proceed(){
 
   <div class="section">
 
+    <!-- 🧍 IDENTITÉ MÉDICALE PATIENT -->
+    <div class="card">
+      <h1>Identité du patient</h1>
+
+      <div class="row">
+        <span>Nom complet</span>
+        <strong id="fullName"></strong>
+      </div>
+
+      <div class="row">
+        <span>Âge</span>
+        <strong id="age"></strong>
+      </div>
+
+      <div class="row">
+        <span>Identifiant médical</span>
+        <strong id="patientId"></strong>
+      </div>
+    </div>
+
+    <!-- 📄 DEMANDE -->
     <div class="card">
       <h1>Confirmation de la demande</h1>
 
@@ -127,7 +146,7 @@ function proceed(){
 
       <div class="row">
         <span>Service demandé</span>
-        <strong id="serviceLabel"></strong>
+        <strong>Téléconsultation médicale</strong>
       </div>
 
       <div class="row">
@@ -136,8 +155,20 @@ function proceed(){
       </div>
     </div>
 
-    <div class="card" id="details"></div>
+    <!-- ⚙️ DÉTAILS -->
+    <div class="card">
+      <div class="row">
+        <span>Mode de consultation</span>
+        <strong id="mode"></strong>
+      </div>
 
+      <div class="row">
+        <span>Durée</span>
+        <strong id="duration"></strong>
+      </div>
+    </div>
+
+    <!-- 📝 MOTIF -->
     <div class="card">
       <div class="row">
         <span>Description de la demande</span>
@@ -158,21 +189,15 @@ function proceed(){
 </div>
 
 <script>
-document.getElementById("dossier").textContent  = request.dossier;
-document.getElementById("province").textContent = request.province;
-document.getElementById("reason").textContent   = request.reason;
-document.getElementById("serviceLabel").textContent = "Téléconsultation médicale";
+document.getElementById("fullName").textContent = profile.fullName;
+document.getElementById("age").textContent = profile.age + " ans";
+document.getElementById("patientId").textContent = profile.patientId;
 
-document.getElementById("details").innerHTML = `
-  <div class="row">
-    <span>Mode de consultation</span>
-    <strong>${request.mode}</strong>
-  </div>
-  <div class="row">
-    <span>Durée</span>
-    <strong>${request.duration} minutes</strong>
-  </div>
-`;
+document.getElementById("dossier").textContent = request.dossier;
+document.getElementById("province").textContent = request.province;
+document.getElementById("mode").textContent = request.mode;
+document.getElementById("duration").textContent = request.duration + " minutes";
+document.getElementById("reason").textContent = request.reason || "—";
 </script>
 
 </body>
