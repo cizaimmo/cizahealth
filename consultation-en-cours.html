@@ -29,106 +29,76 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
+  justify-content:space-between;
+  padding:22px;
 }
 
-/* TOP */
-.top{
-  padding:20px;
+/* HEADER */
+.header{
   text-align:center;
 }
-.top img{
-  height:60px;
+.header img{
+  height:48px;
+  margin-bottom:10px;
+}
+.header h1{
+  font-size:18px;
+  margin:0;
 }
 
-/* CONTENT */
-.section{
+/* CALL AREA */
+.call{
   flex:1;
-  padding:22px;
-}
-
-.card{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:22px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-}
-.card + .card{margin-top:16px}
-
-h1{
-  font-size:20px;
-  margin-bottom:6px;
-}
-p{
-  font-size:14px;
-  color:var(--muted);
-  line-height:1.6;
-}
-
-/* MEDIA */
-.media{
   display:flex;
-  gap:12px;
-  margin-top:14px;
+  flex-direction:column;
+  justify-content:center;
+  gap:18px;
 }
-.media button{
-  flex:1;
-  padding:14px;
-  border-radius:16px;
-  border:1.5px solid #dfe5f0;
-  background:#fff;
+
+/* PARTICIPANT */
+.participant{
+  background:#f8fafc;
+  border:1.5px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:18px;
+  text-align:left;
+}
+.participant span{
+  font-size:12px;
+  color:var(--muted);
+}
+.participant strong{
+  display:block;
+  font-size:16px;
+  margin-top:4px;
+}
+
+/* STATUS */
+.status{
+  text-align:center;
+  font-size:14px;
+  color:#1f7a4f;
   font-weight:600;
-  cursor:pointer;
-}
-.media button.active{
-  border-color:var(--blue);
-  background:#eef2f8;
 }
 
 /* TIMER */
 .timer{
-  margin-top:12px;
+  text-align:center;
+  font-size:15px;
   font-weight:600;
-  color:#0a2a5e;
+  color:#8a1f1f;
 }
 
-/* NOTES */
-textarea{
-  width:100%;
-  margin-top:10px;
-  padding:14px;
-  border-radius:16px;
-  border:1.5px solid #dfe5f0;
-  resize:none;
-  height:90px;
-}
-
-/* ACTIONS */
-.actions{
-  display:flex;
-  gap:12px;
-  margin-top:14px;
-}
-.actions button{
-  flex:1;
-  padding:14px;
-  border-radius:16px;
-  border:none;
-  font-weight:600;
-  cursor:pointer;
-}
-.primary{
-  background:linear-gradient(135deg,#0a2a5e,#1b4fa3);
-  color:#fff;
-}
-.secondary{
-  background:#eef2f8;
-  color:var(--text);
+/* SECURITY */
+.security{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
 }
 
 /* FOOTER */
 .footer-min{
   text-align:center;
-  padding:18px;
   font-size:12px;
   color:#8a95a8;
 }
@@ -144,34 +114,19 @@ if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
 
-/* 💳 VERIF PAIEMENT */
-if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
-  window.location.replace("dashboard-client.html");
-}
+/* 📦 DATA */
+const profile = JSON.parse(localStorage.getItem("patientProfile") || "{}");
+const request = JSON.parse(localStorage.getItem("currentRequest") || "{}");
 
-/* ⏱ TIMER CONSULTATION (20 MIN PAR DÉFAUT) */
-let timeLeft = 20 * 60;
-
-function startTimer(){
-  const el = document.getElementById("timer");
-  setInterval(()=>{
-    const min = Math.floor(timeLeft/60);
-    const sec = timeLeft%60;
-    el.textContent = `Temps restant : ${min}:${sec<10?'0':''}${sec}`;
-    timeLeft--;
-    if(timeLeft <= 0){
-      el.textContent = "Consultation terminée";
-    }
-  },1000);
-}
-
-window.onload = startTimer;
-
-/* 🎧🎥 SIMULATION MEDIA */
-function selectMedia(btn){
-  document.querySelectorAll(".media button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-}
+/* ⏱ TIMER */
+let seconds = 0;
+setInterval(()=>{
+  seconds++;
+  const min = Math.floor(seconds/60);
+  const sec = seconds%60;
+  document.getElementById("timer").textContent =
+    `Durée : ${min}:${sec<10?'0':''}${sec}`;
+},1000);
 </script>
 </head>
 
@@ -179,43 +134,36 @@ function selectMedia(btn){
 
 <div class="app">
 
-  <!-- LOGO -->
-  <div class="top">
+  <!-- HEADER -->
+  <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <h1>Consultation médicale en cours</h1>
   </div>
 
-  <!-- CONTENT -->
-  <div class="section">
+  <!-- CALL -->
+  <div class="call">
 
-    <div class="card">
-      <h1>Consultation en cours</h1>
-      <p>
-        Votre médecin est actuellement en ligne.<br>
-        Merci de rester disponible.
-      </p>
-
-      <div class="media">
-        <button class="active" onclick="selectMedia(this)">🎧 Audio</button>
-        <button onclick="selectMedia(this)">🎥 Vidéo</button>
-      </div>
-
-      <div class="timer" id="timer"></div>
+    <div class="participant">
+      <span>Patient</span>
+      <strong id="patientName">—</strong>
     </div>
 
-    <div class="card">
-      <p><strong>Rapport du médecin</strong></p>
-      <textarea placeholder="Notes médicales en cours…"></textarea>
+    <div class="participant">
+      <span>Médecin</span>
+      <strong>Dr Jean Ndayishimiye</strong>
+      <span>Médecine générale</span>
     </div>
 
-    <div class="card">
-      <div class="actions">
-        <button class="secondary" onclick="window.location.href='historique.html'">
-          📁 Historique
-        </button>
-        <button class="primary" onclick="alert('Consultation terminée')">
-          Terminer
-        </button>
-      </div>
+    <div class="status">
+      🔒 Connexion médicale sécurisée
+    </div>
+
+    <div class="timer" id="timer">
+      Durée : 0:00
+    </div>
+
+    <div class="security">
+      Les échanges sont strictement confidentiels
     </div>
 
   </div>
@@ -230,6 +178,11 @@ function selectMedia(btn){
   </footer>
 
 </div>
+
+<script>
+document.getElementById("patientName").textContent =
+  profile.fullName || "Patient";
+</script>
 
 </body>
 </html>
