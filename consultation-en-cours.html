@@ -12,6 +12,7 @@
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:22px;
+  --danger:#8a1f1f;
 }
 *{box-sizing:border-box}
 
@@ -71,8 +72,6 @@ body{
   padding:6px 10px;
   border-radius:12px;
 }
-
-/* PATIENT VIDEO */
 .video-patient{
   position:absolute;
   bottom:12px;
@@ -87,7 +86,7 @@ body{
   font-size:12px;
 }
 
-/* INFO CARD */
+/* INFO */
 .section{
   padding:16px;
 }
@@ -117,6 +116,23 @@ body{
   color:#8a1f1f;
   text-align:center;
 }
+
+/* END BUTTON */
+.end-wrap{
+  padding:16px;
+}
+.end-btn{
+  width:100%;
+  padding:16px;
+  border-radius:18px;
+  border:none;
+  background:var(--danger);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+.end-btn:active{opacity:.85}
 
 /* FOOTER */
 .footer-min{
@@ -150,6 +166,13 @@ setInterval(()=>{
   document.getElementById("timer").textContent =
     `Consultation en cours depuis ${min}:${sec < 10 ? "0" : ""}${sec}`;
 },1000);
+
+/* 🔴 FIN CONSULTATION */
+function endConsultation(){
+  localStorage.setItem("consultationStatus","completed");
+  localStorage.setItem("consultationEndedAt", new Date().toISOString());
+  window.location.href = "consultation-terminee.html";
+}
 </script>
 </head>
 
@@ -157,27 +180,21 @@ setInterval(()=>{
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div class="status">● Consultation en cours</div>
   </div>
 
-  <!-- VIDEO -->
   <div class="video-area">
     <div class="video-main">
       Simulation vidéo médecin
       <div class="label">
         Dr Jean Ndayishimiye • Médecine générale
       </div>
-
-      <div class="video-patient">
-        Patient
-      </div>
+      <div class="video-patient">Patient</div>
     </div>
   </div>
 
-  <!-- INFOS -->
   <div class="section">
 
     <div class="card">
@@ -209,7 +226,13 @@ setInterval(()=>{
 
   </div>
 
-  <!-- FOOTER -->
+  <!-- 🔴 TERMINER -->
+  <div class="end-wrap">
+    <button class="end-btn" onclick="endConsultation()">
+      Terminer la consultation
+    </button>
+  </div>
+
   <footer class="footer-min">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
