@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Consultation audio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:#fff;
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:24px 0 10px;
+  text-align:center;
+}
+.header img{height:44px}
+
+/* CENTER */
+.center{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.card{
+  width:100%;
+  background:#fff;
+  border-radius:var(--radius);
+  padding:26px;
+  text-align:center;
+  box-shadow:0 12px 32px rgba(10,42,94,.08);
+}
+
+h1{
+  font-size:20px;
+  margin-bottom:6px;
+}
+p{
+  font-size:14px;
+  color:var(--muted);
+}
+
+/* AVATAR */
+.avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#eef2f8;
+  margin:20px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:var(--blue);
+  font-size:20px;
+}
+
+/* CONTROLS */
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  margin-top:20px;
+}
+.btn{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  border:none;
+  font-size:20px;
+  cursor:pointer;
+}
+.end{
+  background:#c62828;
+  color:#fff;
+}
+.mic{
+  background:#0a2a5e;
+  color:#fff;
+}
+</style>
+
+<script>
+/* 🔐 PROTECTION */
+if(localStorage.getItem("sessionActive") !== "true"){
+  window.location.replace("login.html");
+}
+
+/* DATA */
+const request = JSON.parse(localStorage.getItem("currentRequest") || "{}");
+</script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <div class="center">
+    <div class="card">
+      <h1>Consultation audio</h1>
+      <p>En ligne avec votre médecin</p>
+
+      <div class="avatar">Dr</div>
+
+      <strong>Dr Jean Ndayishimiye</strong>
+      <p>Médecine générale</p>
+
+      <div class="controls">
+        <button class="btn mic">🎤</button>
+        <button class="btn end" onclick="endCall()">⛔</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function endCall(){
+  window.location.href = "rapport-medecin.html";
+}
+</script>
+
+</body>
+</html>
