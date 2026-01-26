@@ -102,25 +102,31 @@ h1{
 </style>
 
 <script>
-/* PROTECTION */
-if(!localStorage.getItem("cizahealth_session")){
-  window.location.href="login.html";
+/* 🔐 PROTECTION — STANDARD CIZAHEALTH */
+if (localStorage.getItem("sessionActive") !== "true") {
+  window.location.replace("login.html");
+  return;
 }
 
-/* DATA */
-const dossier = localStorage.getItem("cizahealth_dossier");
-const duration = parseInt(localStorage.getItem("cizahealth_consult_duration") || "0",10);
+const requestRaw = localStorage.getItem("currentRequest");
+if (!requestRaw) {
+  window.location.replace("dashboard-client.html");
+  return;
+}
 
-/* TARIFS (EXEMPLE) */
+const request = JSON.parse(requestRaw);
+
+/* 💰 TARIFS */
 function priceByDuration(min){
-  if(min===10) return 5000;
-  if(min===20) return 9000;
-  if(min===30) return 12000;
+  if(min === 10) return 5000;
+  if(min === 20) return 9000;
+  if(min === 30) return 12000;
   return 0;
 }
-const amount = priceByDuration(duration);
 
-/* METHOD */
+const amount = priceByDuration(parseInt(request.duration, 10));
+
+/* 💳 MÉTHODE */
 let selected = "mobile";
 function selectMethod(el, val){
   document.querySelectorAll(".method").forEach(m=>m.classList.remove("active"));
@@ -128,13 +134,19 @@ function selectMethod(el, val){
   selected = val;
 }
 
-/* PAY */
+/* ✅ PAIEMENT (SIMULÉ) */
 function pay(){
-  // simulation succès
-  localStorage.setItem("cizahealth_payment_status","paid");
-  localStorage.setItem("cizahealth_payment_method",selected);
-  localStorage.setItem("cizahealth_amount",amount);
-  window.location.href="consultation-prete.html";
+
+  request.payment = {
+    status: "paid",
+    method: selected,
+    amount,
+    paidAt: new Date().toISOString()
+  };
+
+  localStorage.setItem("currentRequest", JSON.stringify(request));
+
+  window.location.href = "consultation-prete.html";
 }
 </script>
 </head>
@@ -150,14 +162,17 @@ function pay(){
 
     <div class="card">
       <h1>Paiement de la consultation</h1>
+
       <div class="row">
         <span>Numéro de dossier</span>
         <strong id="dos"></strong>
       </div>
+
       <div class="row">
         <span>Durée</span>
         <strong id="dur"></strong> minutes
       </div>
+
       <div class="row">
         <span>Montant à payer</span>
         <strong id="amt"></strong> BIF
@@ -176,6 +191,7 @@ function pay(){
     </div>
 
     <button class="cta" onclick="pay()">Payer et continuer</button>
+
     <button class="cta secondary" onclick="window.location.href='confirmation.html'">
       Annuler
     </button>
@@ -185,9 +201,10 @@ function pay(){
 </div>
 
 <script>
-document.getElementById("dos").textContent = dossier || "—";
-document.getElementById("dur").textContent = duration || "—";
+document.getElementById("dos").textContent = request.dossier;
+document.getElementById("dur").textContent = request.duration;
 document.getElementById("amt").textContent = amount.toLocaleString();
 </script>
+
 </body>
 </html>
