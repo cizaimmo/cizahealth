@@ -102,28 +102,27 @@ h1{
 </style>
 
 <script>
-/* 🔐 PROTECTION — STANDARD CIZAHEALTH */
+/* 🔐 PROTECTION — FLOW OFFICIEL */
 if (localStorage.getItem("sessionActive") !== "true") {
   window.location.replace("login.html");
-  return;
 }
 
+/* 📦 RÉCUPÉRATION DEMANDE */
 const requestRaw = localStorage.getItem("currentRequest");
 if (!requestRaw) {
+  alert("Aucune demande trouvée. Veuillez recommencer.");
   window.location.replace("dashboard-client.html");
-  return;
 }
 
 const request = JSON.parse(requestRaw);
 
-/* 💰 TARIFS */
+/* 💰 TARIFICATION */
 function priceByDuration(min){
-  if(min === 10) return 5000;
-  if(min === 20) return 9000;
-  if(min === 30) return 12000;
+  if(min == 10) return 5000;
+  if(min == 20) return 9000;
+  if(min == 30) return 12000;
   return 0;
 }
-
 const amount = priceByDuration(parseInt(request.duration, 10));
 
 /* 💳 MÉTHODE */
@@ -134,17 +133,11 @@ function selectMethod(el, val){
   selected = val;
 }
 
-/* ✅ PAIEMENT (SIMULÉ) */
+/* ✅ PAIEMENT (SIMULATION) */
 function pay(){
-
-  request.payment = {
-    status: "paid",
-    method: selected,
-    amount,
-    paidAt: new Date().toISOString()
-  };
-
-  localStorage.setItem("currentRequest", JSON.stringify(request));
+  localStorage.setItem("paymentStatus", "paid");
+  localStorage.setItem("paymentMethod", selected);
+  localStorage.setItem("paymentAmount", amount);
 
   window.location.href = "consultation-prete.html";
 }
@@ -191,7 +184,6 @@ function pay(){
     </div>
 
     <button class="cta" onclick="pay()">Payer et continuer</button>
-
     <button class="cta secondary" onclick="window.location.href='confirmation.html'">
       Annuler
     </button>
