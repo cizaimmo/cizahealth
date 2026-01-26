@@ -87,12 +87,12 @@ function login(){
     return;
   }
 
-  // 🔐 Récupération des identifiants créés via SIGNUP
+  // 🔐 Identifiants créés lors du signup
   const storedContact = localStorage.getItem("authContact");
   const storedPassword = localStorage.getItem("authPassword");
   const profile = localStorage.getItem("patientProfile");
 
-  // ❌ Aucun compte créé
+  // ❌ Aucun compte existant
   if(!storedContact || !storedPassword || !profile){
     alert("Aucun compte trouvé. Veuillez créer un compte.");
     window.location.replace("signup.html");
