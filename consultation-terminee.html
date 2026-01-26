@@ -87,6 +87,27 @@ p{
 if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
+
+/* 📝 CRÉATION DU RAPPORT MÉDICAL (SIMULATION) */
+const requestRaw = localStorage.getItem("currentRequest");
+if(requestRaw){
+  const request = JSON.parse(requestRaw);
+
+  const report = {
+    reportId: "RPT-" + Date.now(),
+    date: new Date().toLocaleDateString(),
+    doctor: "Dr Jean Ndayishimiye",
+    speciality: "Médecine générale",
+    patientName: request.fullName || "—",
+    patientId: request.patientId || "—",
+    motif: request.reason || "Consultation générale",
+    conclusion: "Consultation effectuée avec succès. Recommandations transmises au patient.",
+    createdAt: new Date().toISOString()
+  };
+
+  // Sauvegarde dans l’historique médical
+  localStorage.setItem("lastMedicalReport", JSON.stringify(report));
+}
 </script>
 </head>
 
@@ -102,7 +123,7 @@ if(localStorage.getItem("sessionActive") !== "true"){
     <h1>Consultation terminée</h1>
     <p>
       Nous vous remercions d’avoir utilisé <strong>CizaHealth+</strong>.<br><br>
-      Le rapport médical de votre consultation sera déposé
+      Le rapport médical de votre consultation sera disponible
       dans votre espace patient sous peu.
     </p>
 
