@@ -29,27 +29,34 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-  padding:26px;
 }
 
-.logo img{
-  height:70px;
-  margin-bottom:20px;
+/* TOP */
+.top{
+  padding:20px;
+  text-align:center;
+}
+.top img{
+  height:60px;
+}
+
+/* CONTENT */
+.section{
+  flex:1;
+  padding:22px;
 }
 
 .card{
   background:#fff;
   border-radius:var(--radius);
-  padding:26px;
+  padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
+.card + .card{margin-top:16px}
 
 h1{
   font-size:20px;
-  margin-bottom:10px;
+  margin-bottom:6px;
 }
 p{
   font-size:14px;
@@ -57,8 +64,71 @@ p{
   line-height:1.6;
 }
 
+/* MEDIA */
+.media{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+}
+.media button{
+  flex:1;
+  padding:14px;
+  border-radius:16px;
+  border:1.5px solid #dfe5f0;
+  background:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+.media button.active{
+  border-color:var(--blue);
+  background:#eef2f8;
+}
+
+/* TIMER */
+.timer{
+  margin-top:12px;
+  font-weight:600;
+  color:#0a2a5e;
+}
+
+/* NOTES */
+textarea{
+  width:100%;
+  margin-top:10px;
+  padding:14px;
+  border-radius:16px;
+  border:1.5px solid #dfe5f0;
+  resize:none;
+  height:90px;
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+}
+.actions button{
+  flex:1;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+}
+.primary{
+  background:linear-gradient(135deg,#0a2a5e,#1b4fa3);
+  color:#fff;
+}
+.secondary{
+  background:#eef2f8;
+  color:var(--text);
+}
+
+/* FOOTER */
 .footer-min{
-  margin-top:30px;
+  text-align:center;
+  padding:18px;
   font-size:12px;
   color:#8a95a8;
 }
@@ -73,6 +143,35 @@ p{
 if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
+
+/* 💳 VERIF PAIEMENT */
+if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
+  window.location.replace("dashboard-client.html");
+}
+
+/* ⏱ TIMER CONSULTATION (20 MIN PAR DÉFAUT) */
+let timeLeft = 20 * 60;
+
+function startTimer(){
+  const el = document.getElementById("timer");
+  setInterval(()=>{
+    const min = Math.floor(timeLeft/60);
+    const sec = timeLeft%60;
+    el.textContent = `Temps restant : ${min}:${sec<10?'0':''}${sec}`;
+    timeLeft--;
+    if(timeLeft <= 0){
+      el.textContent = "Consultation terminée";
+    }
+  },1000);
+}
+
+window.onload = startTimer;
+
+/* 🎧🎥 SIMULATION MEDIA */
+function selectMedia(btn){
+  document.querySelectorAll(".media button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
 </script>
 </head>
 
@@ -80,18 +179,48 @@ if(localStorage.getItem("sessionActive") !== "true"){
 
 <div class="app">
 
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <!-- LOGO -->
+  <div class="top">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <div class="card">
-    <h1>Consultation en cours</h1>
-    <p>
-      Votre médecin est en train de vous contacter.<br>
-      Merci de rester disponible.
-    </p>
+  <!-- CONTENT -->
+  <div class="section">
+
+    <div class="card">
+      <h1>Consultation en cours</h1>
+      <p>
+        Votre médecin est actuellement en ligne.<br>
+        Merci de rester disponible.
+      </p>
+
+      <div class="media">
+        <button class="active" onclick="selectMedia(this)">🎧 Audio</button>
+        <button onclick="selectMedia(this)">🎥 Vidéo</button>
+      </div>
+
+      <div class="timer" id="timer"></div>
+    </div>
+
+    <div class="card">
+      <p><strong>Rapport du médecin</strong></p>
+      <textarea placeholder="Notes médicales en cours…"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="actions">
+        <button class="secondary" onclick="window.location.href='historique.html'">
+          📁 Historique
+        </button>
+        <button class="primary" onclick="alert('Consultation terminée')">
+          Terminer
+        </button>
+      </div>
+    </div>
+
   </div>
 
+  <!-- FOOTER -->
   <footer class="footer-min">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
