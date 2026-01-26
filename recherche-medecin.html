@@ -117,35 +117,42 @@ p{
 </style>
 
 <script>
-/* PROTECTION */
-if(!localStorage.getItem("cizahealth_session")){
-  window.location.href="login.html";
+/* 🔐 PROTECTION — VERSION CIZAHEALTH VALIDÉE */
+if (localStorage.getItem("sessionActive") !== "true") {
+  window.location.replace("login.html");
+  return;
 }
 
-/* DATA */
-const dossier = localStorage.getItem("cizahealth_dossier");
-const province = localStorage.getItem("cizahealth_province");
-const duration = localStorage.getItem("cizahealth_consult_duration") || "—";
+const profileRaw = localStorage.getItem("patientProfile");
+const requestRaw = localStorage.getItem("currentRequest");
 
-/* TIMER 5 MIN */
+if (!profileRaw || !requestRaw) {
+  window.location.replace("dashboard-client.html");
+  return;
+}
+
+const profile = JSON.parse(profileRaw);
+const request = JSON.parse(requestRaw);
+
+/* ⏱ TIMER 5 MIN */
 let timeLeft = 300;
 function startTimer(){
   const el = document.getElementById("timer");
   const interval = setInterval(()=>{
-    const min = Math.floor(timeLeft/60);
-    const sec = timeLeft%60;
-    el.textContent = `Réservation valable ${min}:${sec<10?'0':''}${sec}`;
+    const min = Math.floor(timeLeft / 60);
+    const sec = timeLeft % 60;
+    el.textContent = `Réservation valable ${min}:${sec < 10 ? '0' : ''}${sec}`;
     timeLeft--;
     if(timeLeft < 0){
       clearInterval(interval);
       alert("La réservation a expiré.");
-      window.location.href="confirmation.html";
+      window.location.replace("confirmation.html");
     }
-  },1000);
+  }, 1000);
 }
 
 function proceed(){
-  window.location.href="paiement.html";
+  window.location.href = "paiement.html";
 }
 
 window.onload = startTimer;
@@ -202,9 +209,10 @@ window.onload = startTimer;
 </div>
 
 <script>
-document.getElementById("prov").textContent = province || "—";
-document.getElementById("dur").textContent = duration;
-document.getElementById("dos").textContent = dossier || "—";
+document.getElementById("prov").textContent = request.province;
+document.getElementById("dur").textContent  = request.duration;
+document.getElementById("dos").textContent  = request.dossier;
 </script>
+
 </body>
 </html>
