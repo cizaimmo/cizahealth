@@ -7,8 +7,8 @@
 
 <style>
 :root{
-  --green:#2e8b57;
-  --green-soft:#eaf6f0;
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:22px;
@@ -29,31 +29,16 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-}
-
-/* HEADER */
-.header{
-  text-align:center;
-  padding:28px 20px 10px;
-}
-.check{
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:var(--green-soft);
-  color:var(--green);
-  display:flex;
-  align-items:center;
   justify-content:center;
-  font-size:34px;
-  margin:0 auto 14px;
+  text-align:center;
+  padding:26px;
 }
 
-/* CONTENT */
-.section{
-  padding:26px;
-  flex:1;
+.logo img{
+  height:80px;
+  margin-bottom:18px;
 }
+
 .card{
   background:#fff;
   border-radius:var(--radius);
@@ -63,38 +48,37 @@ body{
 
 h1{
   font-size:20px;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
-.row{
-  margin-top:12px;
+p{
   font-size:14px;
-}
-.row span{
-  display:block;
-  font-size:12.5px;
   color:var(--muted);
+  line-height:1.6;
 }
 
-/* CTA */
-.cta{
-  margin-top:22px;
-  padding:16px;
-  border-radius:18px;
-  background:linear-gradient(135deg,#2e8b57,#3fa370);
-  color:#fff;
-  font-weight:600;
-  border:none;
-  width:100%;
-  font-size:15px;
+.loader{
+  margin:20px auto 0;
+  width:36px;
+  height:36px;
+  border:4px solid #eef2f8;
+  border-top:4px solid var(--blue);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
 }
 
-/* FOOTER */
-.footer{
-  text-align:center;
-  padding:22px;
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* FOOTER MINIMAL */
+.footer-min{
+  margin-top:30px;
   font-size:12px;
   color:#8a95a8;
-  border-top:1px solid #eef1f6;
+}
+.footer-min img{
+  height:40px;
+  margin-bottom:6px;
 }
 </style>
 
@@ -104,71 +88,45 @@ if(localStorage.getItem("sessionActive") !== "true"){
   window.location.replace("login.html");
 }
 
-/* 🔐 VÉRIFIER PAIEMENT */
+/* 🔍 VÉRIFICATION PAIEMENT */
 if(localStorage.getItem("cizahealth_payment_status") !== "paid"){
-  window.location.replace("dashboard-client.html");
+  window.location.replace("paiement.html");
 }
 
-const request = JSON.parse(localStorage.getItem("currentRequest"));
-const amount  = localStorage.getItem("cizahealth_amount");
-const method  = localStorage.getItem("cizahealth_payment_method");
-
-function continueFlow(){
-  window.location.href = "consultation-en-cours.html";
-}
+/* ⏩ REDIRECTION AUTOMATIQUE */
+setTimeout(()=>{
+  window.location.replace("consultation-en-cours.html");
+}, 2500);
 </script>
 </head>
 
 <body>
+
 <div class="app">
 
-  <div class="header">
-    <div class="check">✓</div>
+  <div class="logo">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  </div>
+
+  <div class="card">
     <h1>Paiement confirmé</h1>
-    <p style="font-size:14px;color:var(--muted)">
-      Votre paiement a été traité avec succès
+    <p>
+      Votre paiement a été effectué avec succès.<br>
+      Vous allez être mis en relation avec votre médecin.
     </p>
+
+    <div class="loader"></div>
   </div>
 
-  <div class="section">
-    <div class="card">
-
-      <div class="row">
-        <span>Numéro de dossier</span>
-        <strong id="dos"></strong>
-      </div>
-
-      <div class="row">
-        <span>Montant payé</span>
-        <strong id="amt"></strong> BIF
-      </div>
-
-      <div class="row">
-        <span>Méthode de paiement</span>
-        <strong id="meth"></strong>
-      </div>
-
-      <button class="cta" onclick="continueFlow()">
-        Continuer vers la consultation
-      </button>
-
+  <footer class="footer-min">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
     </div>
-  </div>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP<br>
-    Transaction sécurisée
-  </div>
+  </footer>
 
 </div>
-
-<script>
-document.getElementById("dos").textContent  = request.dossier;
-document.getElementById("amt").textContent  = Number(amount).toLocaleString();
-document.getElementById("meth").textContent = method === "mobile"
-  ? "Mobile Money"
-  : "Carte bancaire";
-</script>
 
 </body>
 </html>
