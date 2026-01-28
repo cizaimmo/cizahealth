@@ -88,18 +88,19 @@ body{
   display:grid;
   gap:10px;
 }
-.actions a{
-  display:block;
-  text-align:center;
+.actions button{
   padding:12px;
   border-radius:14px;
-  background:var(--blue);
-  color:#fff;
+  border:none;
   font-size:13.5px;
   font-weight:600;
-  text-decoration:none;
+  cursor:pointer;
 }
-.actions .secondary{
+.primary{
+  background:var(--blue);
+  color:#fff;
+}
+.secondary{
   background:#eef1f6;
   color:var(--blue);
 }
@@ -116,12 +117,34 @@ body{
 
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
-  const data = JSON.parse(localStorage.getItem("cizaRequest"));
-  if(!data) return;
 
-  document.getElementById("ref").innerText = data.dossierNumber;
-  document.getElementById("service").innerText = data.serviceType;
-  document.getElementById("province").innerText = data.province;
+  /* 🔐 ROLE PROFESSIONNEL (simulation) */
+  const proRole = localStorage.getItem("proRole") || "doctor";
+  const request = JSON.parse(localStorage.getItem("currentRequest"));
+
+  if(!request) return;
+
+  document.getElementById("ref").innerText = request.dossier;
+  document.getElementById("service").innerText = request.service || "—";
+  document.getElementById("province").innerText = request.province;
+
+  const actionBtn = document.getElementById("primaryAction");
+  const resumeBtn = document.getElementById("resumeBtn");
+
+  if(proRole === "aide"){
+    actionBtn.innerText = "Démarrer l’intervention";
+    actionBtn.onclick = () => {
+      localStorage.setItem("interventionStatus","in_progress");
+      window.location.href = "intervention-domicile-en-cours.html";
+    };
+    resumeBtn.style.display = "none";
+  }else{
+    actionBtn.innerText = "Démarrer la téléconsultation";
+    actionBtn.onclick = () => {
+      localStorage.setItem("consultationStatus","in_progress");
+      window.location.href = "appel-pro.html";
+    };
+  }
 });
 </script>
 </head>
@@ -151,18 +174,19 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
 
       <div class="actions">
-        <a href="appel-pro.html">
-          Démarrer l’appel
-        </a>
-        <a href="resume-consultation.html" class="secondary">
+        <button id="primaryAction" class="primary">
+          —
+        </button>
+
+        <button id="resumeBtn" class="secondary"
+          onclick="location.href='resume-consultation.html'">
           Rédiger le résumé médical
-        </a>
+        </button>
       </div>
     </div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
