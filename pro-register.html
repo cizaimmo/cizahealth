@@ -83,6 +83,11 @@ input[type="file"]{
   padding:12px;
 }
 
+/* DYNAMIC BLOCK */
+.hidden{
+  display:none;
+}
+
 /* CHECKBOX */
 .checkbox{
   margin-top:20px;
@@ -133,43 +138,56 @@ input[type="file"]{
   opacity:.65;
 }
 </style>
+
+<script>
+function handleProfessionChange(value){
+  const diploma = document.getElementById("diplomaBlock");
+  const aide = document.getElementById("aideBlock");
+
+  if(value === "Intervenant aide à domicile"){
+    diploma.classList.add("hidden");
+    aide.classList.remove("hidden");
+  }else{
+    diploma.classList.remove("hidden");
+    aide.classList.add("hidden");
+  }
+}
+</script>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <a href="pro-login.html" class="back">← Retour</a>
   </div>
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <h1>Inscription professionnelle</h1>
     <div class="subtitle">
-      Médecins & Infirmiers uniquement
+      Professionnels de santé & intervenants
     </div>
 
     <label>Nom complet</label>
     <input placeholder="Nom et prénom">
 
     <label>Email professionnel</label>
-    <input type="email" placeholder="ex: nom@hopital.bi">
+    <input type="email" placeholder="ex: nom@service.bi">
 
     <label>Téléphone</label>
     <input inputmode="tel" placeholder="+257 …">
 
     <label>Profession</label>
-    <select>
+    <select onchange="handleProfessionChange(this.value)">
       <option value="">Sélectionner</option>
       <option>Médecin</option>
       <option>Infirmier / Infirmière</option>
+      <option>Intervenant aide à domicile</option>
     </select>
 
     <label>Province d’exercice</label>
@@ -182,8 +200,23 @@ input[type="file"]{
       <option>Kayanza</option>
     </select>
 
-    <label>Diplôme ou autorisation professionnelle (PDF / image)</label>
-    <input type="file" accept=".pdf,image/*">
+    <!-- AIDE À DOMICILE -->
+    <div id="aideBlock" class="hidden">
+      <label>Type d’intervention</label>
+      <select>
+        <option value="">Sélectionner</option>
+        <option>Assistance personne âgée</option>
+        <option>Soins de base</option>
+        <option>Accompagnement handicap</option>
+        <option>Aide quotidienne</option>
+      </select>
+    </div>
+
+    <!-- DIPLÔME -->
+    <div id="diplomaBlock">
+      <label>Diplôme ou autorisation professionnelle</label>
+      <input type="file" accept=".pdf,image/*">
+    </div>
 
     <label>Pièce d’identité</label>
     <input type="file" accept=".pdf,image/*">
@@ -200,9 +233,7 @@ input[type="file"]{
     </div>
 
     <div class="cta">
-      <button>
-        Soumettre ma demande
-      </button>
+      <button>Soumettre ma demande</button>
     </div>
 
     <div class="info-box">
@@ -212,7 +243,6 @@ input[type="file"]{
     </div>
   </div>
 
-  <!-- FOOTER -->
   <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
