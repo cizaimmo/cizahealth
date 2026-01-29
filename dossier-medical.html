@@ -124,7 +124,7 @@ h1{
 
   <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
   <!-- CONTENT -->
@@ -135,13 +135,12 @@ h1{
     </div>
 
     <!-- IDENTITÉ -->
-    <div class="card">
+    <div class="card" id="patientCard">
       <h3>Identité du patient</h3>
-      <p><strong>Nom :</strong> Jean Dupont</p>
-      <p><strong>Date de naissance :</strong> 12 / 05 / 1990</p>
-      <p><strong>Âge :</strong> 35 ans</p>
-      <p><strong>Sexe :</strong> Homme</p>
-      <p><strong>Province :</strong> Bujumbura</p>
+      <p><strong>Nom :</strong> —</p>
+      <p><strong>Âge :</strong> —</p>
+      <p><strong>Province :</strong> —</p>
+      <p><strong>Identifiant :</strong> —</p>
     </div>
 
     <!-- INFORMATIONS MÉDICALES -->
@@ -153,7 +152,7 @@ h1{
       <span class="tag">Données déclaratives</span>
     </div>
 
-    <!-- HISTORIQUE TÉLÉCONSULTATIONS -->
+    <!-- HISTORIQUE -->
     <div class="card">
       <h3>Historique des téléconsultations</h3>
 
@@ -180,28 +179,59 @@ h1{
 
 </div>
 
-<!-- SCRIPT PRÉPARATION FIRESTORE -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  // Simulation temporaire (sera remplacée par Firestore)
-  const consultations = []; // vide = aucun dossier
-
-  const container = document.getElementById("consultationList");
-
-  if (!consultations.length) {
-    return;
+<!-- 🔥 FIRESTORE (LECTURE SEULE) -->
+<script type="module">
+  if(localStorage.getItem("sessionActive") !== "true"){
+    window.location.href = "login.html";
   }
 
-  container.innerHTML = "";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, query, where, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  consultations.forEach(c => {
-    const p = document.createElement("p");
-    p.innerText = `• Téléconsultation — ${c.date}`;
-    container.appendChild(p);
-  });
+  const firebaseConfig = {
+    apiKey: "TON_API_KEY",
+    authDomain: "TON_PROJECT.firebaseapp.com",
+    projectId: "TON_PROJECT_ID"
+  };
 
-});
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const patientId = localStorage.getItem("patientId");
+
+  // 🧑 Patient
+  const patientSnap = await getDoc(doc(db,"patients",patientId));
+  if(patientSnap.exists()){
+    const p = patientSnap.data();
+    document.getElementById("patientCard").innerHTML = `
+      <h3>Identité du patient</h3>
+      <p><strong>Nom :</strong> ${p.fullName}</p>
+      <p><strong>Âge :</strong> ${p.age} ans</p>
+      <p><strong>Province :</strong> ${p.province}</p>
+      <p><strong>Identifiant :</strong> ${p.patientId}</p>
+    `;
+  }
+
+  // 🩺 Historique téléconsultations
+  const q = query(
+    collection(db,"requests"),
+    where("patientId","==",patientId),
+    where("serviceType","==","teleconsultation"),
+    where("status","==","completed")
+  );
+
+  const snap = await getDocs(q);
+  const list = document.getElementById("consultationList");
+
+  if(!snap.empty){
+    list.innerHTML = "";
+    snap.forEach(d=>{
+      const p = document.createElement("p");
+      p.innerText = `• Téléconsultation — ${new Date(d.data().updatedAt.seconds*1000).toLocaleDateString()}`;
+      list.appendChild(p);
+    });
+  }
 </script>
 
 </body>
