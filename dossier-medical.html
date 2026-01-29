@@ -153,12 +153,17 @@ h1{
       <span class="tag">Données déclaratives</span>
     </div>
 
-    <!-- HISTORIQUE -->
+    <!-- HISTORIQUE TÉLÉCONSULTATIONS -->
     <div class="card">
-      <h3>Historique médical</h3>
-      <p>• Téléconsultation — 12 mars 2026</p>
-      <p>• Aide à domicile — 18 mars 2026</p>
-      <span class="tag">Historique CizaHealth+</span>
+      <h3>Historique des téléconsultations</h3>
+
+      <div id="consultationList">
+        <p style="font-size:13.5px;opacity:.7">
+          Aucune téléconsultation enregistrée pour le moment.
+        </p>
+      </div>
+
+      <span class="tag">Téléconsultations CizaHealth+</span>
     </div>
 
     <div class="note">
@@ -174,6 +179,30 @@ h1{
   </div>
 
 </div>
+
+<!-- SCRIPT PRÉPARATION FIRESTORE -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Simulation temporaire (sera remplacée par Firestore)
+  const consultations = []; // vide = aucun dossier
+
+  const container = document.getElementById("consultationList");
+
+  if (!consultations.length) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  consultations.forEach(c => {
+    const p = document.createElement("p");
+    p.innerText = `• Téléconsultation — ${c.date}`;
+    container.appendChild(p);
+  });
+
+});
+</script>
 
 </body>
 </html>
