@@ -142,13 +142,9 @@ h1{ font-size:20px; margin-bottom:6px; }
   if (localStorage.getItem("sessionActive") !== "true") {
     window.location.href = "login.html";
   }
-
-  const patientDocId = localStorage.getItem("patientDocId");
-  if (!patientDocId) {
-    document.getElementById("patientCard").innerHTML =
-      "<p>Dossier patient introuvable.</p>";
-    throw new Error("patientDocId manquant");
-  }
+const userId = localStorage.getItem("userId");
+  
+}
 
   // 👤 Patient
   const snap = await getDoc(doc(db, "patients", patientDocId));
