@@ -8,7 +8,8 @@ const firebaseConfig = {
   apiKey: "AIzaSyBR7qDT3a56XqCBu-XeZB6IDR9po9CQX-w",
   authDomain: "cizahealth.firebaseapp.com",
   projectId: "cizahealth",
-  storageBucket: "cizahealth.firebasestorage.app",};
+  storageBucket: "cizahealth.firebasestorage.app",
+};
 
 // 🔥 Initialisation
 const app = initializeApp(firebaseConfig);
