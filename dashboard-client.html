@@ -180,7 +180,6 @@ function logout(){
 
   <div class="content">
 
-    <!-- IDENTITÉ -->
     <div class="profile-card">
       <div class="profile-name" id="fullName">—</div>
       <div class="profile-meta">
@@ -192,20 +191,16 @@ function logout(){
       </div>
     </div>
 
-    <!-- SERVICES -->
     <div class="card">
       <h3>Services médicaux</h3>
-
       <button class="btn primary" onclick="location.href='demande-teleconsultation.html'">
         🩺 Demander une téléconsultation
       </button>
-
       <button class="btn secondary" onclick="location.href='demande-aide-domicile.html'">
         🏠 Demander une aide à domicile
       </button>
     </div>
 
-    <!-- DOSSIER MEDICAL -->
     <div class="card">
       <h3>Dossier médical</h3>
       <p style="font-size:13px;color:var(--muted)">
@@ -216,7 +211,6 @@ function logout(){
       </button>
     </div>
 
-    <!-- HISTORIQUE AIDE À DOMICILE -->
     <div class="card">
       <h3>Historique des services</h3>
       <p style="font-size:13px;color:var(--muted)">
@@ -235,6 +229,9 @@ function logout(){
   </div>
 
 </div>
+
+<!-- ✅ AJOUT UNIQUE ET OFFICIEL -->
+<script type="module" src="./resolve-patient.js"></script>
 
 </body>
 </html>
