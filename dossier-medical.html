@@ -30,9 +30,7 @@ body{
 }
 
 /* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
+.topbar{ padding:18px 20px; }
 .back{
   text-decoration:none;
   color:var(--blue);
@@ -44,23 +42,12 @@ body{
   text-align:center;
   padding:10px 20px 0;
 }
-.header img{
-  height:120px;
-}
+.header img{ height:120px; }
 
 /* CONTENT */
-.content{
-  padding:24px 20px;
-}
-h1{
-  font-size:20px;
-  margin-bottom:6px;
-}
-.subtitle{
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:20px;
-}
+.content{ padding:24px 20px; }
+h1{ font-size:20px; margin-bottom:6px; }
+.subtitle{ font-size:14px; opacity:.85; margin-bottom:20px; }
 
 /* CARD */
 .card{
@@ -69,15 +56,8 @@ h1{
   padding:18px;
   margin-bottom:16px;
 }
-.card h3{
-  font-size:15px;
-  margin:0 0 10px;
-}
-.card p{
-  font-size:13.5px;
-  margin:6px 0;
-  line-height:1.5;
-}
+.card h3{ font-size:15px; margin:0 0 10px; }
+.card p{ font-size:13.5px; margin:6px 0; }
 
 /* TAG */
 .tag{
@@ -90,21 +70,9 @@ h1{
   color:var(--blue);
 }
 
-/* NOTE */
-.note{
-  margin-top:20px;
-  font-size:12.5px;
-  opacity:.75;
-  text-align:center;
-}
-
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
@@ -117,17 +85,14 @@ h1{
 
 <div class="app">
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <a href="dashboard-client.html" class="back">← Retour</a>
   </div>
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <h1>Dossier médical</h1>
     <div class="subtitle">
@@ -140,36 +105,25 @@ h1{
       <p>Chargement…</p>
     </div>
 
-    <!-- INFORMATIONS MÉDICALES -->
+    <!-- INFOS -->
     <div class="card">
       <h3>Informations médicales</h3>
-      <p><strong>Allergies connues :</strong> Aucune déclarée</p>
+      <p><strong>Allergies :</strong> —</p>
       <p><strong>Maladies chroniques :</strong> —</p>
-      <p><strong>Traitements en cours :</strong> —</p>
+      <p><strong>Traitements :</strong> —</p>
       <span class="tag">Données déclaratives</span>
     </div>
 
     <!-- HISTORIQUE -->
     <div class="card">
       <h3>Historique des téléconsultations</h3>
-
       <div id="consultationList">
-        <p style="font-size:13.5px;opacity:.7">
-          Aucune téléconsultation enregistrée pour le moment.
-        </p>
+        <p style="opacity:.7">Aucune téléconsultation enregistrée.</p>
       </div>
-
-      <span class="tag">Téléconsultations CizaHealth+</span>
+      <span class="tag">Téléconsultations</span>
     </div>
-
-    <div class="note">
-      Les informations médicales sont fournies à titre informatif.
-      Elles ne remplacent pas un dossier médical hospitalier officiel.
-    </div>
-
   </div>
 
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
@@ -178,67 +132,58 @@ h1{
 
 <!-- 🔥 FIRESTORE – LECTURE SEULE -->
 <script type="module">
+  import { db } from "./firebase.js";
+  import {
+    doc, getDoc,
+    collection, query, where, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
   // 🔐 Sécurité session
   if (localStorage.getItem("sessionActive") !== "true") {
     window.location.href = "login.html";
   }
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    collection,
-    query,
-    where,
-    getDocs
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  // ⚠️ À REMPLACER PAR TES VRAIES CLÉS
-  const firebaseConfig = {
-    apiKey: "TON_API_KEY",
-    authDomain: "TON_PROJECT.firebaseapp.com",
-    projectId: "TON_PROJECT_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const patientDocId = localStorage.getItem("patientDocId");
-
-  // 🧑 Identité patient
-  const patientSnap = await getDoc(doc(db, "patients", patientDocId));
-  if (patientSnap.exists()) {
-    const p = patientSnap.data();
-    document.getElementById("patientCard").innerHTML = `
-      <h3>Identité du patient</h3>
-      <p><strong>Nom :</strong> ${p.fullName || "—"}</p>
-      <p><strong>Âge :</strong> ${p.age || "—"} ans</p>
-      <p><strong>Province :</strong> ${p.province || "—"}</p>
-      <p><strong>Identifiant :</strong> ${p.patientId || "—"}</p>
-    `;
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    document.getElementById("patientCard").innerHTML =
+      "<p>Dossier patient introuvable.</p>";
+    throw new Error("userId manquant");
   }
 
-  // 🩺 Historique téléconsultations
+  // 👤 PATIENT
+  const snap = await getDoc(doc(db, "patients", userId));
+  if (!snap.exists()) {
+    document.getElementById("patientCard").innerHTML =
+      "<p>Dossier patient introuvable.</p>";
+    throw new Error("patient inexistant");
+  }
+
+  const p = snap.data();
+  document.getElementById("patientCard").innerHTML = `
+    <h3>Identité du patient</h3>
+    <p><strong>Nom :</strong> ${p.fullName || "—"}</p>
+    <p><strong>Âge :</strong> ${p.age || "—"} ans</p>
+    <p><strong>Province :</strong> ${p.province || "—"}</p>
+    <p><strong>ID :</strong> ${p.patientId || "—"}</p>
+  `;
+
+  // 📄 HISTORIQUE TÉLÉCONSULTATIONS
   const q = query(
-    collection(db, "requests"),
-    where("patientId", "==", patientSnap.data().patientId),
-    where("serviceType", "==", "teleconsultation"),
-    where("status", "==", "completed")
+    collection(db,"requests"),
+    where("patientId","==",p.patientId),
+    where("serviceType","==","teleconsultation"),
+    where("status","==","completed")
   );
 
-  const snap = await getDocs(q);
+  const res = await getDocs(q);
   const list = document.getElementById("consultationList");
 
-  if (!snap.empty) {
+  if (!res.empty) {
     list.innerHTML = "";
-    snap.forEach(d => {
-      const p = document.createElement("p");
-      const date = d.data().updatedAt?.seconds
-        ? new Date(d.data().updatedAt.seconds * 1000).toLocaleDateString()
-        : "—";
-      p.innerText = `• Téléconsultation — ${date}`;
-      list.appendChild(p);
+    res.forEach(d => {
+      const el = document.createElement("p");
+      el.textContent = "• Téléconsultation terminée";
+      list.appendChild(el);
     });
   }
 </script>
