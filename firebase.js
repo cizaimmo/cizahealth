@@ -7,12 +7,13 @@
   // Configuration Firebase — CizaHealth
   const firebaseConfig = {
 
-    authDomain: "cizahealth.firebaseapp.com",
-    projectId: "cizahealth",
-    storageBucket: "cizahealth.firebasestorage.app",
-    messagingSenderId: "86541899778",
-    appId: "1:86541899778:web:35f7cb537c378a68698afb"
-  };
+     apiKey: "AIzaSyBR7qDT3a56XqCBu-XeZB6IDR9po9CQX-w",
+  authDomain: "cizahealth.firebaseapp.com",
+  projectId: "cizahealth",
+  storageBucket: "cizahealth.firebasestorage.app",
+  messagingSenderId: "86541899778",
+  appId: "1:86541899778:web:35f7c537c378a68698af1b"
+};
 
   // Initialisation
   const app = initializeApp(firebaseConfig);
