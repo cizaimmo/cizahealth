@@ -141,7 +141,6 @@ body{
 
   <div class="header">
     <strong>Espace patient</strong>
-    <!-- ✅ FIX : ID au lieu de onclick -->
     <span class="logout" id="logoutBtn">Déconnexion</span>
   </div>
 
@@ -151,6 +150,7 @@ body{
 
   <div class="content">
 
+    <!-- IDENTITÉ -->
     <div class="profile-card">
       <div class="profile-name" id="fullName">—</div>
       <div class="profile-meta">
@@ -162,6 +162,7 @@ body{
       </div>
     </div>
 
+    <!-- SERVICES -->
     <div class="card">
       <h3>Services médicaux</h3>
 
@@ -174,6 +175,7 @@ body{
       </button>
     </div>
 
+    <!-- DOSSIER MEDICAL -->
     <div class="card">
       <h3>Dossier médical</h3>
       <p style="font-size:13px;color:var(--muted)">
@@ -193,70 +195,48 @@ body{
 
 </div>
 
-<!-- 🔥 AUTH + PATIENT + LOGOUT (CORRIGÉ) -->
+<!-- ✅ AUTH RÉEL + FIRESTORE PROPRE -->
 <script type="module">
   import { auth, db } from "./firebase.js";
-  import {
-    collection,
-    query,
-    where,
-    getDocs,
-    addDoc,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  auth.onAuthStateChanged(async (user) => {
+  // Déconnexion (fix : avant ta fonction était dans module donc pas globale)
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    try { await signOut(auth); } catch(e) {}
+    localStorage.clear();
+    window.location.href = "index.html";
+  });
+
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = "login.html";
       return;
     }
 
-    const q = query(
-      collection(db, "patients"),
-      where("userId", "==", user.uid)
-    );
+    localStorage.setItem("sessionActive","true");
+    localStorage.setItem("patientDocId", user.uid); // ✅ docId = uid
 
-    const snap = await getDocs(q);
-    let patientData;
+    // Lire patients/{uid}
+    const patientSnap = await getDoc(doc(db, "patients", user.uid));
 
-    if (!snap.empty) {
-      const docSnap = snap.docs[0];
-      patientData = docSnap.data();
-      localStorage.setItem("patientDocId", docSnap.id);
-      localStorage.setItem("patientId", patientData.patientId);
-    } else {
-      const newPatientId = "CZP-" + Date.now();
-      const ref = await addDoc(collection(db, "patients"), {
-        userId: user.uid,
-        patientId: newPatientId,
-        fullName: "",
-        age: null,
-        province: "",
-        createdAt: serverTimestamp()
-      });
-
-      patientData = { patientId: newPatientId };
-      localStorage.setItem("patientDocId", ref.id);
-      localStorage.setItem("patientId", newPatientId);
+    if (!patientSnap.exists()) {
+      // Si ce patient n'existe pas, c'est que signup n'a pas créé correctement
+      console.error("❌ patients/{uid} introuvable. Assure-toi que signup crée patients/{uid}.");
+      document.getElementById("fullName").innerText = "Profil incomplet";
+      document.getElementById("age").innerText = "—";
+      document.getElementById("province").innerText = "—";
+      document.getElementById("patientId").innerText = "—";
+      return;
     }
 
-    localStorage.setItem("sessionActive", "true");
+    const p = patientSnap.data();
+    localStorage.setItem("patientId", p.patientId || "");
 
-    document.getElementById("fullName").innerText = patientData.fullName || "—";
-    document.getElementById("age").innerText = patientData.age ? patientData.age + " ans" : "—";
-    document.getElementById("province").innerText = patientData.province || "—";
-    document.getElementById("patientId").innerText = patientData.patientId;
-  });
-
-  // ✅ LOGOUT FIX (MODULE SAFE)
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    try {
-      await auth.signOut();
-    } catch (e) {
-      console.warn("Firebase logout:", e);
-    }
-    localStorage.clear();
-    window.location.href = "index.html";
+    document.getElementById("fullName").innerText = p.fullName || "—";
+    document.getElementById("age").innerText = p.age ? (p.age + " ans") : "—";
+    document.getElementById("province").innerText = p.province || "—";
+    document.getElementById("patientId").innerText = p.patientId || "—";
   });
 </script>
 
