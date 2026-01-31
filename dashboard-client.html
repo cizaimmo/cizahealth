@@ -133,36 +133,6 @@ body{
   color:var(--muted);
 }
 </style>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  const profileRaw = localStorage.getItem("patientProfile");
-
-  let profile = {
-    fullName: "TEST PATIENT",
-    age: 99,
-    province: "TEST-PROVINCE",
-    patientId: "TEST-ID-0001"
-  };
-
-  if(profileRaw){
-    try{
-      profile = JSON.parse(profileRaw);
-    }catch(e){}
-  }
-
-  document.getElementById("fullName").innerText = profile.fullName;
-  document.getElementById("age").innerText = profile.age + " ans";
-  document.getElementById("province").innerText = profile.province;
-  document.getElementById("patientId").innerText = profile.patientId;
-});
-
-function logout(){
-  localStorage.clear();
-  window.location.href = "index.html";
-}
-</script>
 </head>
 
 <body>
@@ -180,6 +150,7 @@ function logout(){
 
   <div class="content">
 
+    <!-- IDENTITÉ -->
     <div class="profile-card">
       <div class="profile-name" id="fullName">—</div>
       <div class="profile-meta">
@@ -191,16 +162,20 @@ function logout(){
       </div>
     </div>
 
+    <!-- SERVICES -->
     <div class="card">
       <h3>Services médicaux</h3>
+
       <button class="btn primary" onclick="location.href='demande-teleconsultation.html'">
         🩺 Demander une téléconsultation
       </button>
+
       <button class="btn secondary" onclick="location.href='demande-aide-domicile.html'">
         🏠 Demander une aide à domicile
       </button>
     </div>
 
+    <!-- DOSSIER MEDICAL -->
     <div class="card">
       <h3>Dossier médical</h3>
       <p style="font-size:13px;color:var(--muted)">
@@ -208,16 +183,6 @@ function logout(){
       </p>
       <button class="btn secondary" onclick="location.href='dossier-sante.html'">
         Consulter mon dossier
-      </button>
-    </div>
-
-    <div class="card">
-      <h3>Historique des services</h3>
-      <p style="font-size:13px;color:var(--muted)">
-        Suivi de vos demandes d’aide à domicile.
-      </p>
-      <button class="btn secondary" onclick="location.href='historique-aide.html'">
-        Voir mes demandes
       </button>
     </div>
 
@@ -230,8 +195,83 @@ function logout(){
 
 </div>
 
-<!-- ✅ AJOUT UNIQUE ET OFFICIEL -->
-<script type="module" src="./resolve-patient.js"></script>
+<!-- 🔥 LOGIQUE AUTH + PATIENT (POINT CLÉ) -->
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import {
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    try {
+      // 🔍 Cherche patient lié à ce user
+      const q = query(
+        collection(db, "patients"),
+        where("userId", "==", user.uid)
+      );
+
+      const snap = await getDocs(q);
+
+      let patientData;
+
+      if (!snap.empty) {
+        const docSnap = snap.docs[0];
+        patientData = docSnap.data();
+
+        localStorage.setItem("patientDocId", docSnap.id);
+        localStorage.setItem("patientId", patientData.patientId);
+      } else {
+        // ➕ Création automatique du patient
+        const newPatientId = "CZP-" + Date.now();
+
+        const ref = await addDoc(collection(db, "patients"), {
+          userId: user.uid,
+          patientId: newPatientId,
+          fullName: "",
+          age: null,
+          province: "",
+          createdAt: serverTimestamp()
+        });
+
+        patientData = {
+          patientId: newPatientId,
+          fullName: "",
+          age: "",
+          province: ""
+        };
+
+        localStorage.setItem("patientDocId", ref.id);
+        localStorage.setItem("patientId", newPatientId);
+      }
+
+      localStorage.setItem("sessionActive", "true");
+
+      // 🖥️ Affichage UI
+      document.getElementById("fullName").innerText = patientData.fullName || "—";
+      document.getElementById("age").innerText = patientData.age ? patientData.age + " ans" : "—";
+      document.getElementById("province").innerText = patientData.province || "—";
+      document.getElementById("patientId").innerText = patientData.patientId;
+
+    } catch (e) {
+      console.error("Erreur dashboard patient :", e);
+    }
+  });
+
+  function logout(){
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+</script>
 
 </body>
 </html>
