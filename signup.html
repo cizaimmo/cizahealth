@@ -43,7 +43,7 @@ input{
   font-size:14px;
 }
 button{
-  margin-top:28px;
+  margin-top:24px;
   width:100%;
   padding:16px;
   border:none;
@@ -53,6 +53,16 @@ button{
   font-weight:600;
   font-size:15px;
   cursor:pointer;
+}
+.link{
+  margin-top:18px;
+  text-align:center;
+  font-size:13px;
+}
+.link a{
+  color:var(--blue);
+  text-decoration:none;
+  font-weight:600;
 }
 </style>
 </head>
@@ -74,60 +84,62 @@ button{
 
   <button id="signupBtn">Créer mon compte</button>
 
+  <div class="link">
+    Déjà un compte ?
+    <a href="login.html">Se connecter</a>
+  </div>
+
 </div>
 
-<!-- 🔥 SIGNUP RÉEL FIREBASE -->
 <script type="module">
-  import { auth, db } from "./firebase.js";
-  import { createUserWithEmailAndPassword } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { doc, setDoc, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { createUserWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  document.getElementById("signupBtn").addEventListener("click", async () => {
+document.getElementById("signupBtn").addEventListener("click", async () => {
 
-    const fullName = document.getElementById("fullName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-    if(!fullName || !email || !password){
-      alert("Veuillez remplir tous les champs");
-      return;
-    }
+  if (!fullName || !email || !password) {
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
 
-    try{
-      // 🔐 1) Création AUTH Firebase
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
+  try {
+    // 1️⃣ Auth Firebase
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
 
-      // 👤 2) users/{uid}
-      await setDoc(doc(db,"users",uid),{
-        role: "patient",
-        status: "active",
-        createdAt: serverTimestamp()
-      });
+    // 2️⃣ users/{uid}
+    await setDoc(doc(db, "users", uid), {
+      role: "patient",
+      status: "active",
+      email,
+      createdAt: serverTimestamp()
+    });
 
-      // 🧑 3) patients/{uid}
-      await setDoc(doc(db,"patients",uid),{
-        userId: uid,
-        fullName: fullName,
-        age: null,
-        province: "",
-        patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
-        createdAt: serverTimestamp()
-      });
+    // 3️⃣ patients/{uid} → dossier médical
+    await setDoc(doc(db, "patients", uid), {
+      userId: uid,
+      fullName,
+      age: null,
+      province: "",
+      patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
+      createdAt: serverTimestamp()
+    });
 
-      // 🔐 4) Session locale (support UI)
-      localStorage.setItem("sessionActive","true");
-      localStorage.setItem("userId", uid);
+    // 4️⃣ Redirection LOGIN (PRO)
+    alert("Compte créé avec succès. Veuillez vous connecter.");
+    window.location.href = "login.html";
 
-      // ➡️ 5) Redirection dashboard
-      window.location.href = "dashboard-client.html";
-
-    }catch(e){
-      alert(e.message);
-    }
-  });
+  } catch (e) {
+    alert(e.message);
+  }
+});
 </script>
 
 </body>
