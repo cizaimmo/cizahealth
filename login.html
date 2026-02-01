@@ -67,6 +67,12 @@ input:focus{
   font-size:15px;
   cursor:pointer;
 }
+.error{
+  margin-top:14px;
+  font-size:13px;
+  color:#8a1f1f;
+  display:none;
+}
 .footer{
   margin-top:auto;
   text-align:center;
@@ -75,75 +81,69 @@ input:focus{
   opacity:.6;
 }
 </style>
-
-<script>
-function login(){
-
-  const contactInput = document.getElementById("contact").value.trim();
-  const passwordInput = document.getElementById("password").value.trim();
-
-  if(!contactInput || !passwordInput){
-    alert("Veuillez entrer vos informations de connexion");
-    return;
-  }
-
-  // 🔐 Identifiants créés lors du signup
-  const storedContact = localStorage.getItem("authContact");
-  const storedPassword = localStorage.getItem("authPassword");
-  const profile = localStorage.getItem("patientProfile");
-
-  // ❌ Aucun compte existant
-  if(!storedContact || !storedPassword || !profile){
-    alert("Aucun compte trouvé. Veuillez créer un compte.");
-    window.location.replace("signup.html");
-    return;
-  }
-
-  // ❌ Mauvais identifiants
-  if(contactInput !== storedContact || passwordInput !== storedPassword){
-    alert("Identifiants incorrects");
-    return;
-  }
-
-  // ✅ Connexion validée
-  localStorage.setItem("sessionActive", "true");
-  window.location.replace("dashboard-client.html");
-}
-</script>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <h1>Connexion</h1>
     <p>Accéder à votre espace santé sécurisé</p>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
 
-    <label>Email ou téléphone</label>
-    <input id="contact" placeholder="email ou +257…">
+    <label>Email</label>
+    <input id="email" type="email" placeholder="exemple@email.com">
 
     <label>Mot de passe</label>
     <input id="password" type="password" placeholder="••••••••">
 
     <div class="cta">
-      <button onclick="login()">Se connecter</button>
+      <button id="loginBtn">Se connecter</button>
     </div>
+
+    <div class="error" id="errorMsg"></div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
+
+<!-- 🔐 AUTH FIREBASE RÉEL -->
+<script type="module">
+  import { auth } from "./firebase.js";
+  import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const btn = document.getElementById("loginBtn");
+  const errorMsg = document.getElementById("errorMsg");
+
+  btn.addEventListener("click", async () => {
+    errorMsg.style.display = "none";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+      errorMsg.innerText = "Veuillez remplir tous les champs.";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = "dashboard-client.html";
+    } catch (e) {
+      errorMsg.innerText = "Email ou mot de passe incorrect.";
+      errorMsg.style.display = "block";
+    }
+  });
+</script>
 
 </body>
 </html>
