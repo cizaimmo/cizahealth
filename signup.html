@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Inscription</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  padding:24px;
+}
+h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:24px;
+}
+label{
+  display:block;
+  margin-top:16px;
+  font-weight:600;
+  font-size:14px;
+}
+input{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #e6ebf5;
+  font-size:14px;
+}
+button{
+  margin-top:24px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+.link{
+  margin-top:18px;
+  text-align:center;
+  font-size:13px;
+}
+.link a{
+  color:var(--blue);
+  text-decoration:none;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>Créer un compte</h1>
+
+  <label>Nom complet</label>
+  <input id="fullName" placeholder="Nom et prénom">
+
+  <label>Email</label>
+  <input id="email" type="email" placeholder="ex: nom@email.com">
+
+  <label>Mot de passe</label>
+  <input id="password" type="password" placeholder="••••••••">
+
+  <button id="signupBtn">Créer mon compte</button>
+
+  <div class="link">
+    Déjà un compte ?
+    <a href="login.html">Se connecter</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { createUserWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+document.getElementById("signupBtn").addEventListener("click", async () => {
+
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!fullName || !email || !password) {
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
+
+  try {
+    // 1️⃣ Auth Firebase
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    // 2️⃣ users/{uid}
+    await setDoc(doc(db, "users", uid), {
+      role: "patient",
+      status: "active",
+      email,
+      createdAt: serverTimestamp()
+    });
+
+    // 3️⃣ patients/{uid} → dossier médical
+    await setDoc(doc(db, "patients", uid), {
+      userId: uid,
+      fullName,
+      age: null,
+      province: "",
+      patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
+      createdAt: serverTimestamp()
+    });
+
+    // 4️⃣ Redirection LOGIN (PRO)
+    alert("Compte créé avec succès. Veuillez vous connecter.");
+    window.location.href = "login.html";
+
+  } catch (e) {
+    alert(e.message);
+  }
+});
+</script>
+
+</body>
+</html>
