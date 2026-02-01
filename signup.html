@@ -2,174 +2,111 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Création de compte patient</title>
+<title>CizaHealth+ | Inscription</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#0a2a5e;
   --bg:#f4f7fb;
-  --text:#0a1a2f;
-  --radius:22px;
 }
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
-  color:var(--text);
 }
 .app{
   max-width:430px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
+  padding:24px;
 }
-.header{
-  text-align:center;
-  padding:42px 20px 14px;
+h1{font-size:20px;text-align:center}
+label{display:block;margin-top:16px;font-weight:600}
+input{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #e6ebf5;
 }
-.header img{height:120px}
-.header h1{font-size:20px;margin:14px 0 6px}
-.header p{font-size:14px;opacity:.8}
-.content{padding:26px 20px}
-label{display:block;margin-top:18px;font-size:14px;font-weight:600}
-input,select{
-  width:100%;margin-top:8px;padding:15px;
-  border-radius:16px;border:1.8px solid #e6ebf5;font-size:14px
-}
-.checkbox{
-  margin-top:22px;display:flex;gap:10px;font-size:13px
-}
-.cta{margin-top:30px}
-.cta button{
-  width:100%;padding:16px;border:none;border-radius:18px;
-  background:var(--blue);color:#fff;font-weight:600;font-size:15px
-}
-.footer{
-  margin-top:auto;text-align:center;padding:18px;font-size:12px;opacity:.6
+button{
+  margin-top:24px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
 }
 </style>
-
-<script>
-/* =========================================
-   🆔 ID PATIENT PERMANENT
-   ========================================= */
-function generatePatientId(){
-  return "CZH-" + Date.now().toString(36).toUpperCase();
-}
-
-function calculateAge(birth){
-  const d = new Date(birth);
-  const diff = Date.now() - d.getTime();
-  return new Date(diff).getUTCFullYear() - 1970;
-}
-
-/* =========================================
-   📝 SIGNUP PATIENT OFFICIEL
-   ========================================= */
-function signup(){
-
-  // 🔒 Empêcher la création multiple
-  if(localStorage.getItem("patientProfile")){
-    alert("Un compte patient existe déjà sur cet appareil.");
-    window.location.replace("dashboard-client.html");
-    return;
-  }
-
-  const fullName = document.getElementById("fullName").value.trim();
-  const birthDate = document.getElementById("birthDate").value;
-  const province = document.getElementById("province").value;
-  const contact = document.getElementById("contact").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const privacy = document.getElementById("privacy").checked;
-
-  if(!fullName || !birthDate || !province || !contact || !password){
-    alert("Veuillez remplir tous les champs");
-    return;
-  }
-  if(!privacy){
-    alert("Veuillez accepter la politique de confidentialité");
-    return;
-  }
-
-  // 🧠 PROFIL MÉDICAL PATIENT
-  const profile = {
-    patientId: generatePatientId(),
-    fullName,
-    birthDate,
-    age: calculateAge(birthDate),
-    province,
-    contact,
-    createdAt: new Date().toISOString()
-  };
-
-  // 🔐 AUTHENTIFICATION (pour login)
-  localStorage.setItem("authContact", contact);
-  localStorage.setItem("authPassword", password);
-
-  // 💾 PROFIL PATIENT
-  localStorage.setItem("patientProfile", JSON.stringify(profile));
-
-  // ✅ SESSION ACTIVE
-  localStorage.setItem("sessionActive", "true");
-
-  // 🚀 ESPACE PATIENT
-  window.location.replace("dashboard-client.html");
-}
-</script>
 </head>
 
 <body>
 <div class="app">
 
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <h1>Créer mon compte patient</h1>
-    <p>Informations médicales de base sécurisées</p>
-  </div>
+<h1>Créer un compte</h1>
 
-  <div class="content">
-    <label>Nom complet</label>
-    <input id="fullName">
+<label>Nom complet</label>
+<input id="fullName">
 
-    <label>Date de naissance</label>
-    <input type="date" id="birthDate">
+<label>Email</label>
+<input id="email" type="email">
 
-    <label>Province</label>
-    <select id="province">
-      <option value="">Sélectionner</option>
-      <option>Bujumbura</option>
-      <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
-      <option>Kayanza</option>
-    </select>
+<label>Mot de passe</label>
+<input id="password" type="password">
 
-    <label>Email ou téléphone</label>
-    <input id="contact">
-
-    <label>Mot de passe</label>
-    <input id="password" type="password">
-
-    <div class="checkbox">
-      <input type="checkbox" id="privacy">
-      <label for="privacy">
-        J’accepte le traitement confidentiel de mes données médicales.
-      </label>
-    </div>
-
-    <div class="cta">
-      <button onclick="signup()">Créer mon compte</button>
-    </div>
-  </div>
-
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
+<button id="signupBtn">Créer mon compte</button>
 
 </div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+document.getElementById("signupBtn").addEventListener("click", async () => {
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if(!fullName || !email || !password){
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
+
+  try{
+    // 🔐 Firebase Auth
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    // 👤 users/{uid}
+    await setDoc(doc(db,"users",uid),{
+      role:"patient",
+      status:"active",
+      createdAt: serverTimestamp()
+    });
+
+    // 🧑 patients/{uid}
+    await setDoc(doc(db,"patients",uid),{
+      fullName,
+      age:null,
+      province:"",
+      patientId:"CZP-"+uid.slice(0,6).toUpperCase(),
+      createdAt: serverTimestamp()
+    });
+
+    // ➡️ Dashboard
+    window.location.href="dashboard-client.html";
+
+  }catch(e){
+    alert(e.message);
+  }
+});
+</script>
+
 </body>
 </html>
