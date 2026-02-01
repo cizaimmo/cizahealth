@@ -72,6 +72,22 @@ input:focus{
   color:#8a1f1f;
   display:none;
 }
+
+/* ✅ SIGNUP LINK */
+.signup-link{
+  margin-top:18px;
+  text-align:center;
+  font-size:13.5px;
+}
+.signup-link a{
+  color:var(--blue);
+  font-weight:600;
+  text-decoration:none;
+}
+.signup-link a:hover{
+  text-decoration:underline;
+}
+
 .footer{
   margin-top:auto;
   text-align:center;
@@ -106,6 +122,12 @@ input:focus{
 
     <div class="error" id="errorMsg"></div>
 
+    <!-- ✅ SIGNUP -->
+    <div class="signup-link">
+      Vous n’avez pas de compte ?
+      <a href="signup.html">Créer un compte</a>
+    </div>
+
   </div>
 
   <div class="footer">
@@ -139,20 +161,15 @@ input:focus{
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-
-      // 🔐 session UI (support seulement)
       localStorage.setItem("sessionActive","true");
-
-      // ➡️ dashboard
       window.location.href = "dashboard-client.html";
-
     } catch (e) {
       errorMsg.innerText = "Email ou mot de passe incorrect.";
       errorMsg.style.display = "block";
     }
   });
 
-  // ✅ Sécurité : déjà connecté → dashboard
+  // ✅ Déjà connecté → dashboard
   onAuthStateChanged(auth, (user) => {
     if (user) {
       window.location.href = "dashboard-client.html";
