@@ -10,6 +10,7 @@
   --blue:#0a2a5e;
   --bg:#f4f7fb;
 }
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
@@ -22,17 +23,27 @@ body{
   background:#fff;
   padding:24px;
 }
-h1{font-size:20px;text-align:center}
-label{display:block;margin-top:16px;font-weight:600}
+h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:24px;
+}
+label{
+  display:block;
+  margin-top:16px;
+  font-weight:600;
+  font-size:14px;
+}
 input{
   width:100%;
   margin-top:8px;
   padding:14px;
   border-radius:14px;
   border:1.5px solid #e6ebf5;
+  font-size:14px;
 }
 button{
-  margin-top:24px;
+  margin-top:28px;
   width:100%;
   padding:16px;
   border:none;
@@ -41,71 +52,82 @@ button{
   color:#fff;
   font-weight:600;
   font-size:15px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
+
 <div class="app">
 
-<h1>Créer un compte</h1>
+  <h1>Créer un compte</h1>
 
-<label>Nom complet</label>
-<input id="fullName">
+  <label>Nom complet</label>
+  <input id="fullName" placeholder="Nom et prénom">
 
-<label>Email</label>
-<input id="email" type="email">
+  <label>Email</label>
+  <input id="email" type="email" placeholder="ex: nom@email.com">
 
-<label>Mot de passe</label>
-<input id="password" type="password">
+  <label>Mot de passe</label>
+  <input id="password" type="password" placeholder="••••••••">
 
-<button id="signupBtn">Créer mon compte</button>
+  <button id="signupBtn">Créer mon compte</button>
 
 </div>
 
+<!-- 🔥 SIGNUP RÉEL FIREBASE -->
 <script type="module">
-import { auth, db } from "./firebase.js";
-import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { auth, db } from "./firebase.js";
+  import { createUserWithEmailAndPassword } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, setDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.getElementById("signupBtn").addEventListener("click", async () => {
-  const fullName = document.getElementById("fullName").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+  document.getElementById("signupBtn").addEventListener("click", async () => {
 
-  if(!fullName || !email || !password){
-    alert("Veuillez remplir tous les champs");
-    return;
-  }
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-  try{
-    // 🔐 Firebase Auth
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+    if(!fullName || !email || !password){
+      alert("Veuillez remplir tous les champs");
+      return;
+    }
 
-    // 👤 users/{uid}
-    await setDoc(doc(db,"users",uid),{
-      role:"patient",
-      status:"active",
-      createdAt: serverTimestamp()
-    });
+    try{
+      // 🔐 1) Création AUTH Firebase
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
 
-    // 🧑 patients/{uid}
-    await setDoc(doc(db,"patients",uid),{
-      fullName,
-      age:null,
-      province:"",
-      patientId:"CZP-"+uid.slice(0,6).toUpperCase(),
-      createdAt: serverTimestamp()
-    });
+      // 👤 2) users/{uid}
+      await setDoc(doc(db,"users",uid),{
+        role: "patient",
+        status: "active",
+        createdAt: serverTimestamp()
+      });
 
-    // ➡️ Dashboard
-    window.location.href="dashboard-client.html";
+      // 🧑 3) patients/{uid}
+      await setDoc(doc(db,"patients",uid),{
+        userId: uid,
+        fullName: fullName,
+        age: null,
+        province: "",
+        patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
+        createdAt: serverTimestamp()
+      });
 
-  }catch(e){
-    alert(e.message);
-  }
-});
+      // 🔐 4) Session locale (support UI)
+      localStorage.setItem("sessionActive","true");
+      localStorage.setItem("userId", uid);
+
+      // ➡️ 5) Redirection dashboard
+      window.location.href = "dashboard-client.html";
+
+    }catch(e){
+      alert(e.message);
+    }
+  });
 </script>
 
 </body>
