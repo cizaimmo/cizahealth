@@ -85,8 +85,9 @@ textarea{
   cursor:pointer;
 }
 .cta:active{opacity:.85}
+.cta[disabled]{opacity:.6;cursor:not-allowed}
 
-/* FOOTER */
+/* FOOTER MINIMAL */
 .footer-min{
   margin-top:auto;
   text-align:center;
@@ -112,18 +113,17 @@ textarea{
 
     <div class="group">
       <label>Identité du patient</label>
-      <input type="text" id="fullName" readonly>
+      <input type="text" id="fullName" readonly value="Chargement…">
     </div>
 
     <div class="group">
       <label>Identifiant médical</label>
-      <input type="text" id="patientId" readonly>
+      <input type="text" id="patientId" readonly value="—">
     </div>
 
     <div class="group">
       <label>Province</label>
       <select id="province">
-        <option value="">— Sélectionner —</option>
         <option>Bujumbura</option>
         <option>Gitega</option>
         <option>Ngozi</option>
@@ -156,7 +156,7 @@ textarea{
       </select>
     </div>
 
-    <button class="cta" id="submitBtn">
+    <button class="cta" id="submitBtn" disabled>
       Valider la demande d’aide à domicile
     </button>
 
@@ -172,48 +172,92 @@ textarea{
 
 </div>
 
-<!-- 🔐 AUTH + FIRESTORE – PRODUCTION -->
+<!-- 🔥 PRODUCTION: AUTH + PATIENT + CREATE REQUEST -->
 <script type="module">
   import { auth, db } from "./firebase.js";
-  import { onAuthStateChanged } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { doc, getDoc } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import {
+    doc, getDoc,
+    collection, addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const fullNameEl  = document.getElementById("fullName");
+  const patientIdEl = document.getElementById("patientId");
+  const provinceEl  = document.getElementById("province");
+  const addressEl   = document.getElementById("address");
+  const needEl      = document.getElementById("need");
+  const periodEl    = document.getElementById("period");
+  const submitBtn   = document.getElementById("submitBtn");
 
   let patientData = null;
 
-  // ✅ Protection réelle
   onAuthStateChanged(auth, async (user) => {
-    if(!user){
-      window.location.href = "login.html";
+    if (!user) {
+      window.location.replace("login.html");
       return;
     }
 
-    const snap = await getDoc(doc(db,"patients",user.uid));
-    if(!snap.exists()){
-      alert("Votre dossier patient est incomplet.");
-      window.location.href = "dashboard-client.html";
+    // Charge patients/{uid}
+    const snap = await getDoc(doc(db, "patients", user.uid));
+    if (!snap.exists()) {
+      alert("Profil patient introuvable. Veuillez recréer votre compte.");
+      window.location.replace("signup.html");
       return;
     }
 
     patientData = snap.data();
 
-    document.getElementById("fullName").value  = patientData.fullName || "";
-    document.getElementById("patientId").value = patientData.patientId || "";
-    if(patientData.province){
-      document.getElementById("province").value = patientData.province;
-    }
+    // UI
+    fullNameEl.value  = patientData.fullName || "—";
+    patientIdEl.value = patientData.patientId || "—";
+    if (patientData.province) provinceEl.value = patientData.province;
+
+    submitBtn.disabled = false;
   });
 
-  // 📤 Soumission (étape suivante → Firestore)
-  document.getElementById("submitBtn").addEventListener("click", () => {
-    if(!patientData){
+  submitBtn.addEventListener("click", async () => {
+    if (!auth.currentUser) {
+      window.location.replace("login.html");
+      return;
+    }
+    if (!patientData) {
       alert("Patient non chargé.");
       return;
     }
 
-    alert("Demande prête à être enregistrée (Firestore – étape suivante).");
-    // 👉 prochaine étape : addDoc(collection(db,"requests"), {...})
+    const province = provinceEl.value;
+    const address  = addressEl.value.trim();
+    const need     = needEl.value;
+    const period   = periodEl.value;
+
+    if (!province || !address) {
+      alert("Veuillez compléter la province et l’adresse.");
+      return;
+    }
+
+    submitBtn.disabled = true;
+
+    try {
+      await addDoc(collection(db, "requests"), {
+        serviceType: "aide-domicile",
+        userId: auth.currentUser.uid,
+        patientId: patientData.patientId || "",
+        fullName: patientData.fullName || "",
+        province,
+        payload: { address, need, period },
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Votre demande d’aide à domicile a été envoyée avec succès.");
+      window.location.href = "dashboard-client.html";
+
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l’envoi. Vérifie les règles Firestore.");
+      submitBtn.disabled = false;
+    }
   });
 </script>
 
