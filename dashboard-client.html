@@ -7,40 +7,45 @@
 
 <style>
 :root{
-  --blue:#0a2a5e;
-  --blue-soft:#eef2f8;
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:22px;
+  --radius:24px;
 }
+
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:var(--bg);
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
 .app{
-  max-width:430px;
+  max-width:960px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
 
-/* HEADER */
-.header{
-  padding:18px 20px;
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
   display:flex;
   justify-content:space-between;
   align-items:center;
   border-bottom:1px solid #eef1f6;
 }
-.header strong{
-  font-size:15px;
-  font-weight:600;
+.topbar a{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
 }
 .logout{
   color:#8a1f1f;
@@ -48,29 +53,54 @@ body{
   cursor:pointer;
 }
 
-/* LOGO */
-.logo{
-  text-align:center;
-  padding:18px 20px 6px;
+/* HERO */
+.hero{
+  padding:28px 26px 18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
 }
-.logo img{
-  height:96px;
+.hero h1{
+  font-size:22px;
+  margin:0 0 6px;
+}
+.hero p{
+  font-size:14px;
+  opacity:.9;
+  margin:0;
 }
 
 /* CONTENT */
 .content{
-  padding:24px 20px;
+  padding:26px;
 }
 
-/* PROFILE CARD */
-.profile-card{
-  background:linear-gradient(180deg,#f8fafc,#ffffff);
-  border:1.5px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:20px;
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
 }
+@media(min-width:768px){
+  .grid{
+    grid-template-columns:1.2fr .8fr;
+  }
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+
+/* PROFILE */
 .profile-name{
-  font-size:19px;
+  font-size:20px;
   font-weight:700;
 }
 .profile-meta{
@@ -79,29 +109,16 @@ body{
   color:var(--muted);
 }
 .profile-id{
-  margin-top:10px;
-  padding:10px 12px;
+  margin-top:14px;
+  padding:12px;
   background:var(--blue-soft);
-  border-radius:14px;
+  border-radius:16px;
   font-size:13px;
 }
 .profile-id span{
-  color:var(--muted);
   display:block;
   font-size:12px;
-}
-
-/* SECTION CARD */
-.card{
-  border:1.5px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
-  margin-top:22px;
-}
-.card h3{
-  margin:0 0 12px;
-  font-size:15px;
-  font-weight:600;
+  color:var(--muted);
 }
 
 /* BUTTONS */
@@ -112,11 +129,11 @@ body{
   border-radius:18px;
   font-weight:600;
   font-size:15px;
-  margin-top:12px;
   cursor:pointer;
+  margin-top:12px;
 }
 .primary{
-  background:var(--blue);
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
 }
 .secondary{
@@ -124,73 +141,86 @@ body{
   color:var(--blue);
 }
 
+/* INFO */
+.info{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
 /* FOOTER */
 .footer{
   margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
   text-align:center;
-  padding:18px;
   font-size:12px;
-  color:var(--muted);
+  color:#8a95a8;
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <strong>Espace patient</strong>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html">← Accueil</a>
     <span class="logout" id="logoutBtn">Déconnexion</span>
   </div>
 
-  <!-- LOGO -->
-  <div class="logo">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Espace patient</h1>
+    <p>Gérez vos services de santé en toute sécurité.</p>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
+    <div class="grid">
 
-    <!-- IDENTITÉ -->
-    <div class="profile-card">
-      <div class="profile-name" id="fullName">—</div>
-      <div class="profile-meta">
-        Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
+      <!-- PROFIL -->
+      <div class="card">
+        <div class="profile-name" id="fullName">—</div>
+        <div class="profile-meta">
+          Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
+        </div>
+
+        <div class="profile-id">
+          <span>Identifiant médical</span>
+          <strong id="patientId">—</strong>
+        </div>
       </div>
-      <div class="profile-id">
-        <span>Identifiant médical</span>
-        <strong id="patientId">—</strong>
+
+      <!-- ACTIONS -->
+      <div class="card">
+        <h3>Services médicaux</h3>
+
+        <button class="btn primary" onclick="location.href='teleconsultation.html'">
+          🩺 Parler à un professionnel de santé
+        </button>
+
+        <button class="btn secondary" onclick="location.href='aide-domicile.html'">
+          🏠 Demander une aide à domicile
+        </button>
       </div>
-    </div>
 
-    <!-- SERVICES -->
-    <div class="card">
-      <h3>Services médicaux</h3>
-
-      <button class="btn primary" onclick="location.href='demande-teleconsultation.html'">
-        🩺 Demander une téléconsultation
-      </button>
-
-      <button class="btn secondary" onclick="location.href='demande-aide-domicile.html'">
-        🏠 Demander une aide à domicile
-      </button>
     </div>
 
     <!-- DOSSIER -->
-    <div class="card">
+    <div class="card" style="margin-top:22px">
       <h3>Dossier médical</h3>
-      <p style="font-size:13px;color:var(--muted)">
-        Historique des consultations et rapports médicaux.
+      <p class="info">
+        Consultez l’historique de vos demandes et les informations
+        liées à vos services médicaux CizaHealth+.
       </p>
       <button class="btn secondary" onclick="location.href='dossier-sante.html'">
         Consulter mon dossier
       </button>
     </div>
-
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP<br>
     Plateforme de santé numérique • Service non urgent
@@ -198,7 +228,7 @@ body{
 
 </div>
 
-<!-- 🔥 AUTH + FIRESTORE – PRODUCTION STRICT -->
+<!-- 🔐 AUTH + FIRESTORE – STABLE -->
 <script type="module">
   import { auth, db } from "./firebase.js";
   import { onAuthStateChanged, signOut } 
@@ -206,39 +236,23 @@ body{
   import { doc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // 🔓 Déconnexion (100 % fonctionnelle)
   document.getElementById("logoutBtn").addEventListener("click", async () => {
-    try {
-      await signOut(auth);
-    } catch (e) {
-      console.warn("Erreur logout:", e);
-    }
-    window.location.href = "login.html";
+    try{ await signOut(auth); }catch(e){}
+    window.location.href = "index.html";
   });
 
-  // 🔐 Session Firebase réelle
   onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "login.html";
+    if(!user){
+      window.location.href="login.html";
       return;
     }
 
-    const uid = user.uid;
-
-    // 📄 Lecture du dossier patient (patients/{uid})
-    const snap = await getDoc(doc(db, "patients", uid));
-
-    if (!snap.exists()) {
-      console.error("❌ Dossier patient manquant pour uid:", uid);
-      document.getElementById("fullName").innerText = "Profil incomplet";
-      return;
-    }
+    const snap = await getDoc(doc(db,"patients",user.uid));
+    if(!snap.exists()) return;
 
     const p = snap.data();
-
-    // 🖥️ Affichage UI
     document.getElementById("fullName").innerText = p.fullName || "—";
-    document.getElementById("age").innerText = p.age ? `${p.age} ans` : "—";
+    document.getElementById("age").innerText = p.age ? p.age+" ans" : "—";
     document.getElementById("province").innerText = p.province || "—";
     document.getElementById("patientId").innerText = p.patientId || "—";
   });
