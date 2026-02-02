@@ -41,9 +41,10 @@ body{
 }
 .hero{padding:22px 26px 10px;}
 .hero h1{font-size:22px;margin:0 0 8px;font-weight:600;}
-.hero p{font-size:14.5px;color:var(--muted);margin:0;}
+.hero p{font-size:14.5px;color:var(--muted);margin:0;line-height:1.75;}
 .section{padding:22px 26px;}
 .section h2{font-size:17px;margin-bottom:14px;}
+.section p{font-size:14.2px;color:#1a2f55;line-height:1.75;}
 .card{
   background:#fff;
   border-radius:var(--radius);
@@ -63,6 +64,8 @@ body{
   padding:18px;
   border-radius:16px;
   font-size:12.8px;
+  line-height:1.75;
+  color:#1a2f55;
 }
 .cta{
   margin:24px 26px 30px;
@@ -82,7 +85,15 @@ body{
 .footer-min img{height:48px;margin-bottom:10px;}
 .footer-min .links{font-size:12.5px;}
 .footer-min .links a{color:#6b7a90;text-decoration:none;margin:0 6px;}
-.footer-min .legal{font-size:11.5px;color:#8a95a8;}
+.footer-min .legal{font-size:11.5px;color:#8a95a8;line-height:1.6;}
+
+/* ✅ RESPONSIVE TABLET & DESKTOP */
+@media (min-width: 768px){
+  .app{max-width:720px;}
+}
+@media (min-width: 1200px){
+  .app{max-width:920px;}
+}
 </style>
 </head>
 
@@ -97,24 +108,64 @@ body{
 
   <div class="hero">
     <h1>Téléconsultation médicale</h1>
-    <p>Accédez à un professionnel de santé qualifié en toute confidentialité.</p>
+    <p>
+      Consultez un professionnel de santé à distance,
+      en toute confidentialité, sans vous déplacer.
+    </p>
   </div>
 
+  <!-- 🔹 EXPLICATION -->
+  <div class="section">
+    <h2>Qu’est-ce que la téléconsultation médicale ?</h2>
+    <p>
+      La téléconsultation médicale est une consultation réalisée à distance
+      avec un professionnel de santé qualifié (médecin ou infirmier),
+      par appel téléphonique ou vidéo.
+      <br><br>
+      Elle permet d’obtenir un avis médical, des conseils de santé
+      et une orientation vers un centre de santé si nécessaire.
+    </p>
+  </div>
+
+  <!-- 🔹 FONCTIONNEMENT -->
   <div class="section">
     <h2>Comment ça fonctionne</h2>
-    <div class="card step"><div class="step-num">1</div><p>Vous formulez votre demande.</p></div>
-    <div class="card step"><div class="step-num">2</div><p>Un professionnel est identifié.</p></div>
-    <div class="card step"><div class="step-num">3</div><p>La consultation démarre.</p></div>
+    <div class="card step"><div class="step-num">1</div><p>Vous soumettez votre demande de téléconsultation.</p></div>
+    <div class="card step"><div class="step-num">2</div><p>Un professionnel de santé disponible est identifié.</p></div>
+    <div class="card step"><div class="step-num">3</div><p>La consultation se déroule par appel audio ou vidéo.</p></div>
   </div>
 
+  <!-- 🔹 LIMITES -->
+  <div class="section">
+    <h2>À savoir</h2>
+    <p>
+      La téléconsultation est recommandée pour des symptômes légers,
+      un suivi médical ou une première orientation.
+      <br><br>
+      Elle ne remplace pas une consultation physique lorsque
+      des examens médicaux ou une intervention sont nécessaires.
+    </p>
+  </div>
+
+  <!-- 🔹 ENGAGEMENT & NON-RESPONSABILITÉ -->
   <div class="section">
     <h2>Information importante</h2>
     <div class="disclaimer">
-      Ce service ne prend pas en charge les urgences médicales.
+      <strong>CizaHealth+ n’est pas un service d’urgence médicale.</strong><br><br>
+      En cas de douleur intense, perte de connaissance,
+      difficulté respiratoire ou hémorragie,
+      veuillez contacter immédiatement un centre de santé
+      ou les services d’urgence locaux au Burundi.
+      <br><br>
+      Les informations fournies lors d’une téléconsultation
+      sont des avis médicaux et ne remplacent pas
+      un diagnostic clinique en présentiel.
     </div>
   </div>
 
-  <a href="#" class="cta" id="startBtn">Démarrer une téléconsultation</a>
+  <a href="#" class="cta" id="startBtn">
+    Parler à un professionnel de santé
+  </a>
 
   <footer class="footer-min">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
@@ -124,13 +175,14 @@ body{
       <a href="contact.html">Contact</a>
     </div>
     <div class="legal">
-      © 2026 CizaHealth+ — CIZA GROUP
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
     </div>
   </footer>
 
 </div>
 
-<!-- 🔐 LOGIQUE PRODUCTION AUTH -->
+<!-- 🔐 LOGIQUE PRODUCTION AUTH (INCHANGÉE) -->
 <script type="module">
   import { auth } from "./firebase.js";
   import { onAuthStateChanged } 
@@ -139,10 +191,8 @@ body{
   document.getElementById("startBtn").addEventListener("click", () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // ✅ déjà connecté → dashboard
         window.location.href = "dashboard-client.html";
       } else {
-        // ❌ pas connecté → login
         window.location.href = "login.html";
       }
     });
