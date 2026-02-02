@@ -86,15 +86,22 @@ button{
 
 </div>
 
-<!-- 🔥 SIGNUP FIREBASE — MODE PRODUCTION -->
+<!-- 🔐 SIGNUP — MODE PRODUCTION -->
 <script type="module">
   import { auth, db } from "./firebase.js";
-  import { createUserWithEmailAndPassword }
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { doc, setDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    createUserWithEmailAndPassword,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import {
+    doc,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  document.getElementById("signupBtn").addEventListener("click", async () => {
+  const signupBtn = document.getElementById("signupBtn");
+
+  signupBtn.addEventListener("click", async () => {
 
     const fullName = document.getElementById("fullName").value.trim();
     const email = document.getElementById("email").value.trim();
@@ -105,8 +112,11 @@ button{
       return;
     }
 
+    signupBtn.disabled = true;
+    signupBtn.innerText = "Création du compte…";
+
     try {
-      // 1️⃣ Création AUTH Firebase
+      // 1️⃣ Auth Firebase
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
 
@@ -118,22 +128,27 @@ button{
         createdAt: serverTimestamp()
       });
 
-      // 3️⃣ patients/{uid} — dossier médical minimal
+      // 3️⃣ patients/{uid} — dossier médical
       await setDoc(doc(db, "patients", uid), {
         userId: uid,
-        fullName,
+        fullName: fullName,
         age: null,
         province: "",
         patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
         createdAt: serverTimestamp()
       });
 
-      // 4️⃣ Redirection LOGIN (OBLIGATOIRE)
+      // 4️⃣ Déconnexion obligatoire
+      await signOut(auth);
+
+      // 5️⃣ Redirection LOGIN
       alert("Compte créé avec succès. Veuillez vous connecter.");
       window.location.href = "login.html";
 
     } catch (e) {
       alert(e.message);
+      signupBtn.disabled = false;
+      signupBtn.innerText = "Créer mon compte";
     }
   });
 </script>
