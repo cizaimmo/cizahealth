@@ -47,6 +47,11 @@ body{
   color:var(--blue);
   font-weight:500;
 }
+.topbar .right{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
 .logout{
   color:#8a1f1f;
   font-size:13px;
@@ -148,6 +153,17 @@ body{
   color:var(--muted);
 }
 
+/* PROFILE WARNING */
+.warn{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:16px;
+  border-radius:16px;
+  font-size:13px;
+  color:#1a2f55;
+  line-height:1.6;
+}
+
 /* FOOTER */
 .footer{
   margin-top:auto;
@@ -166,7 +182,9 @@ body{
   <!-- TOP BAR -->
   <div class="topbar">
     <a href="index.html">← Accueil</a>
-    <span class="logout" id="logoutBtn">Déconnexion</span>
+    <div class="right">
+      <span class="logout" id="logoutBtn">Déconnexion</span>
+    </div>
   </div>
 
   <!-- HERO -->
@@ -177,6 +195,19 @@ body{
 
   <!-- CONTENT -->
   <div class="content">
+
+    <!-- ✅ Alerte profil incomplet (caché par défaut) -->
+    <div class="card" id="profileMissingCard" style="display:none;margin-bottom:22px;">
+      <h3>Compléter mon profil</h3>
+      <div class="warn">
+        Pour une prise en charge adaptée, veuillez renseigner votre <strong>âge</strong> et votre <strong>province</strong>.
+        Cela améliore l’orientation vers un professionnel et l’organisation des services au Burundi.
+      </div>
+      <button class="btn primary" onclick="location.href='completer-profil.html'">
+        Compléter mon profil
+      </button>
+    </div>
+
     <div class="grid">
 
       <!-- PROFIL -->
@@ -196,32 +227,41 @@ body{
       <div class="card">
         <h3>Services médicaux</h3>
 
-        <!-- ✅ CORRIGÉ : ACTION DIRECTE -->
-        <button class="btn primary"
-          onclick="location.href='demande-teleconsultation.html'">
+        <!-- ✅ PRO : Auth check avant d'ouvrir la demande -->
+        <button class="btn primary" id="btnTele">
           🩺 Demander une téléconsultation
         </button>
 
-        <button class="btn secondary"
-          onclick="location.href='demande-aide-domicile.html'">
+        <button class="btn secondary" id="btnHomeCare">
           🏠 Demander une aide à domicile
         </button>
       </div>
 
     </div>
 
-    <!-- DOSSIER -->
+    <!-- DOSSIER MEDICAL -->
     <div class="card" style="margin-top:22px">
       <h3>Dossier médical</h3>
       <p class="info">
         Consultez l’historique de vos demandes et les informations
         liées à vos services médicaux CizaHealth+.
       </p>
-      <button class="btn secondary"
-        onclick="location.href='dossier-sante.html'">
+      <button class="btn secondary" onclick="location.href='dossier-sante.html'">
         Consulter mon dossier
       </button>
     </div>
+
+    <!-- ✅ HISTORIQUE AIDE À DOMICILE (dossier aide) -->
+    <div class="card" style="margin-top:22px">
+      <h3>Historique aide à domicile</h3>
+      <p class="info">
+        Suivi de vos demandes d’aide à domicile : en attente, confirmée, terminée.
+      </p>
+      <button class="btn secondary" onclick="location.href='historique-aide.html'">
+        Voir mes demandes d’aide à domicile
+      </button>
+    </div>
+
   </div>
 
   <!-- FOOTER -->
@@ -240,11 +280,31 @@ body{
   import { doc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // ✅ Déconnexion
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     try{ await signOut(auth); }catch(e){}
     window.location.href = "index.html";
   });
 
+  // ✅ Navigation PRO (évite les redirections signup bizarres)
+  function goToDemand(url){
+    const u = auth.currentUser;
+    if(!u){
+      window.location.href = "login.html";
+      return;
+    }
+    window.location.href = url;
+  }
+
+  document.getElementById("btnTele").addEventListener("click", () => {
+    goToDemand("demande-teleconsultation.html");
+  });
+
+  document.getElementById("btnHomeCare").addEventListener("click", () => {
+    goToDemand("demande-aide-domicile.html");
+  });
+
+  // ✅ Load patient + affiche si profil incomplet
   onAuthStateChanged(auth, async (user) => {
     if(!user){
       window.location.href="login.html";
@@ -252,13 +312,23 @@ body{
     }
 
     const snap = await getDoc(doc(db,"patients",user.uid));
-    if(!snap.exists()) return;
+    if(!snap.exists()){
+      document.getElementById("fullName").innerText = "Profil incomplet";
+      document.getElementById("profileMissingCard").style.display = "block";
+      return;
+    }
 
     const p = snap.data();
+
     document.getElementById("fullName").innerText = p.fullName || "—";
-    document.getElementById("age").innerText = p.age ? p.age+" ans" : "—";
+    document.getElementById("age").innerText = p.age ? (p.age+" ans") : "—";
     document.getElementById("province").innerText = p.province || "—";
     document.getElementById("patientId").innerText = p.patientId || "—";
+
+    // ✅ Si âge/province manquent → afficher carte compléter profil
+    if(!p.age || !p.province){
+      document.getElementById("profileMissingCard").style.display = "block";
+    }
   });
 </script>
 
