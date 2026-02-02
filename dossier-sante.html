@@ -19,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -28,38 +27,21 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* TOP BAR */
 .topbar{ padding:18px 20px; }
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
-/* HEADER */
-.header{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.header img{ height:120px; }
-
-/* CONTENT */
-.content{ padding:24px 20px; }
-h1{ font-size:20px; margin-bottom:6px; }
-.subtitle{ font-size:14px; opacity:.85; margin-bottom:20px; }
-
-/* CARD */
+.back{ text-decoration:none;color:var(--blue);font-weight:600; }
+.header{text-align:center;padding:10px 20px 0;}
+.header img{height:120px;}
+.content{padding:24px 20px;}
+h1{font-size:20px;margin-bottom:6px;}
+.subtitle{font-size:14px;opacity:.85;margin-bottom:20px;}
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:18px;
   margin-bottom:16px;
 }
-.card h3{ font-size:15px; margin:0 0 10px; }
-.card p{ font-size:13.5px; margin:6px 0; }
-
-/* TAG */
+.card h3{font-size:15px;margin:0 0 10px;}
+.card p{font-size:13.5px;margin:6px 0;}
 .tag{
   display:inline-block;
   padding:4px 10px;
@@ -69,8 +51,6 @@ h1{ font-size:20px; margin-bottom:6px; }
   background:#eef3ff;
   color:var(--blue);
 }
-
-/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
@@ -82,7 +62,6 @@ h1{ font-size:20px; margin-bottom:6px; }
 </head>
 
 <body>
-
 <div class="app">
 
   <div class="topbar">
@@ -96,31 +75,21 @@ h1{ font-size:20px; margin-bottom:6px; }
   <div class="content">
     <h1>Dossier médical</h1>
     <div class="subtitle">
-      Informations médicales associées à votre compte.
+      Identité médicale et historique de vos demandes.
     </div>
 
     <!-- IDENTITÉ -->
     <div class="card" id="patientCard">
-      <h3>Identité du patient</h3>
       <p>Chargement…</p>
-    </div>
-
-    <!-- INFOS -->
-    <div class="card">
-      <h3>Informations médicales</h3>
-      <p><strong>Allergies :</strong> —</p>
-      <p><strong>Maladies chroniques :</strong> —</p>
-      <p><strong>Traitements :</strong> —</p>
-      <span class="tag">Données déclaratives</span>
     </div>
 
     <!-- HISTORIQUE -->
     <div class="card">
       <h3>Historique des téléconsultations</h3>
       <div id="consultationList">
-        <p style="opacity:.7">Aucune téléconsultation enregistrée.</p>
+        <p style="opacity:.7">Chargement…</p>
       </div>
-      <span class="tag">Téléconsultations</span>
+      <span class="tag">Demandes</span>
     </div>
   </div>
 
@@ -130,62 +99,64 @@ h1{ font-size:20px; margin-bottom:6px; }
 
 </div>
 
-<!-- 🔥 FIRESTORE – LECTURE SEULE -->
 <script type="module">
-  import { db } from "./firebase.js";
-  import {
-    doc, getDoc,
-    collection, query, where, getDocs
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc,
+  collection, query, where, orderBy, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // 🔐 Sécurité session
-  if (localStorage.getItem("sessionActive") !== "true") {
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
     window.location.href = "login.html";
+    return;
   }
 
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
+  // 👤 DOSSIER PATIENT
+  const snap = await getDoc(doc(db,"patients",user.uid));
+  if(!snap.exists()){
     document.getElementById("patientCard").innerHTML =
       "<p>Dossier patient introuvable.</p>";
-    throw new Error("userId manquant");
-  }
-
-  // 👤 PATIENT
-  const snap = await getDoc(doc(db, "patients", userId));
-  if (!snap.exists()) {
-    document.getElementById("patientCard").innerHTML =
-      "<p>Dossier patient introuvable.</p>";
-    throw new Error("patient inexistant");
+    return;
   }
 
   const p = snap.data();
   document.getElementById("patientCard").innerHTML = `
     <h3>Identité du patient</h3>
     <p><strong>Nom :</strong> ${p.fullName || "—"}</p>
-    <p><strong>Âge :</strong> ${p.age || "—"} ans</p>
+    <p><strong>Âge :</strong> ${p.age ?? "—"} ans</p>
     <p><strong>Province :</strong> ${p.province || "—"}</p>
-    <p><strong>ID :</strong> ${p.patientId || "—"}</p>
+    <p><strong>ID médical :</strong> ${p.patientId || "—"}</p>
   `;
 
   // 📄 HISTORIQUE TÉLÉCONSULTATIONS
   const q = query(
     collection(db,"requests"),
-    where("patientId","==",p.patientId),
-    where("serviceType","==","teleconsultation"),
-    where("status","==","completed")
+    where("userId","==",user.uid),
+    where("type","==","teleconsultation"),
+    orderBy("createdAt","desc")
   );
 
   const res = await getDocs(q);
   const list = document.getElementById("consultationList");
+  list.innerHTML = "";
 
-  if (!res.empty) {
-    list.innerHTML = "";
-    res.forEach(d => {
-      const el = document.createElement("p");
-      el.textContent = "• Téléconsultation terminée";
-      list.appendChild(el);
-    });
+  if(res.empty){
+    list.innerHTML =
+      "<p style='opacity:.7'>Aucune demande enregistrée.</p>";
+    return;
   }
+
+  res.forEach(d => {
+    const r = d.data();
+    const el = document.createElement("p");
+    el.textContent =
+      "• Téléconsultation — statut : " + (r.status || "pending");
+    list.appendChild(el);
+  });
+});
 </script>
 
 </body>
