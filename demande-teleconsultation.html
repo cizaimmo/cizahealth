@@ -7,12 +7,11 @@
 
 <style>
 :root{
-  --blue:#0a2a5e;
-  --blue-light:#1b4fa3;
-  --bg:#f4f7fb;
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:22px;
+  --radius:24px;
 }
 *{box-sizing:border-box}
 
@@ -22,207 +21,202 @@ body{
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
 .app{
-  max-width:430px;
+  max-width:720px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 12px 40px rgba(10,42,94,.08);
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
 }
 
-/* TOP */
+/* TOP BAR */
 .topbar{
   padding:18px 22px;
 }
-.back{
+.topbar a{
   text-decoration:none;
   color:var(--blue);
   font-weight:500;
 }
 
+/* HEADER */
+.header{
+  padding:26px;
+}
+.header h1{
+  font-size:22px;
+  margin:0 0 6px;
+}
+.header p{
+  font-size:14px;
+  color:var(--muted);
+  margin:0;
+}
+
 /* FORM */
 .form{
+  padding:26px;
+}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
   padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.group{
-  margin-bottom:14px;
-}
+
 label{
   display:block;
-  font-size:13px;
-  margin-bottom:6px;
-  color:#1a2f55;
-}
-input, select, textarea{
-  width:100%;
-  padding:13px 14px;
-  border-radius:14px;
-  border:1.5px solid #dfe5f0;
+  margin-top:16px;
+  font-weight:600;
   font-size:14px;
 }
-input[readonly]{
-  background:#f0f3f9;
+input, textarea{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #e6ebf5;
+  font-size:14px;
+  font-family:inherit;
 }
 textarea{
-  resize:none;
-  height:90px;
+  resize:vertical;
+  min-height:120px;
 }
 
-/* RADIO */
-.radio-group{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-}
-.radio{
-  border:1.5px solid #dfe5f0;
-  border-radius:14px;
-  padding:12px;
-  text-align:center;
-  font-size:13.5px;
+button{
+  margin-top:24px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
   cursor:pointer;
 }
-.radio.active{
-  border-color:var(--blue);
-  background:#eef2f8;
-}
 
-/* CTA */
-.cta{
-  margin-top:18px;
-  padding:16px;
-  border-radius:18px;
-  background:linear-gradient(135deg,var(--blue),var(--blue-light));
-  color:#fff;
+/* FOOTER */
+.footer{
+  margin-top:36px;
+  padding:22px;
+  border-top:1px solid #eef1f6;
   text-align:center;
-  font-weight:600;
-  border:none;
-  width:100%;
-  font-size:15px;
+  font-size:12px;
+  color:#8a95a8;
 }
 </style>
-
-<!-- 🔐 PROTECTION — VERSION STABLE -->
-<script>
-(function () {
-
-  const isLoggedIn = localStorage.getItem("sessionActive") === "true";
-  const profileRaw = localStorage.getItem("patientProfile");
-
-  if (!isLoggedIn) {
-    window.location.replace("login.html");
-    return;
-  }
-
-  if (!profileRaw) {
-    window.location.replace("signup.html");
-    return;
-  }
-
-  window.profile = JSON.parse(profileRaw);
-
-})();
-</script>
 </head>
 
 <body>
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard-client.html" class="back">← Retour</a>
+    <a href="dashboard-client.html">← Retour au tableau de bord</a>
+  </div>
+
+  <div class="header">
+    <h1>Demande de téléconsultation</h1>
+    <p>
+      Décrivez votre situation afin qu’un professionnel de santé
+      puisse vous assister à distance.
+    </p>
   </div>
 
   <div class="form">
+    <div class="card">
 
-    <div class="group">
-      <label>Identité du patient</label>
-      <input type="text" id="pname" readonly>
+      <label>Âge</label>
+      <input id="age" type="number" placeholder="Ex : 35">
+
+      <label>Province</label>
+      <input id="province" placeholder="Ex : Bujumbura">
+
+      <label>Décrivez votre problème</label>
+      <textarea id="description"
+        placeholder="Expliquez vos symptômes ou votre besoin médical…"></textarea>
+
+      <button id="submitBtn">
+        Envoyer la demande
+      </button>
+
     </div>
+  </div>
 
-    <div class="group">
-      <label>Identifiant médical</label>
-      <input type="text" id="pid" readonly>
-    </div>
-
-    <div class="group">
-      <label>Province de prise en charge</label>
-      <select id="prov">
-        <option>Bujumbura</option>
-        <option>Gitega</option>
-        <option>Ngozi</option>
-        <option>Kayanza</option>
-        <option>Muyinga</option>
-      </select>
-    </div>
-
-    <div class="group">
-      <label>Mode de consultation</label>
-      <div class="radio-group">
-        <div class="radio active" onclick="selectRadio(this,'audio')">Audio</div>
-        <div class="radio" onclick="selectRadio(this,'video')">Vidéo</div>
-      </div>
-      <input type="hidden" id="mode" value="audio">
-    </div>
-
-    <div class="group">
-      <label>Durée de la consultation</label>
-      <select id="duration">
-        <option value="10">10 minutes</option>
-        <option value="20">20 minutes</option>
-        <option value="30">30 minutes</option>
-      </select>
-    </div>
-
-    <div class="group">
-      <label>Motif principal de la consultation</label>
-      <textarea id="reason" placeholder="Décrivez brièvement votre situation"></textarea>
-    </div>
-
-    <button class="cta" onclick="submitRequest()">
-      Valider la demande
-    </button>
-
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Service non urgent • Plateforme de santé numérique
   </div>
 
 </div>
 
-<script>
-/* 🔘 RADIO */
-function selectRadio(el, value){
-  document.querySelectorAll(".radio").forEach(r=>r.classList.remove("active"));
-  el.classList.add("active");
-  document.getElementById("mode").value = value;
-}
+<!-- 🔐 FIREBASE – PRODUCTION -->
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { 
+    doc, getDoc, updateDoc,
+    collection, addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🧠 PRÉREMPLISSAGE */
-document.getElementById("pname").value = profile.fullName;
-document.getElementById("pid").value   = profile.patientId;
-document.getElementById("prov").value  = profile.province;
+  const btn = document.getElementById("submitBtn");
 
-/* 📤 SOUMISSION — VERSION COMPLÈTE */
-function submitRequest(){
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
 
-  const request = {
-    dossier: "DOS-" + Date.now(),
-    service: "teleconsultation",
+    const uid = user.uid;
+    const patientRef = doc(db,"patients",uid);
+    const patientSnap = await getDoc(patientRef);
 
-    /* 🔑 IDENTITÉ PATIENT (COMPLÈTE) */
-    patientId: profile.patientId,
-    fullName: profile.fullName,
-    age: profile.age,
-    province: document.getElementById("prov").value,
+    if (!patientSnap.exists()) {
+      alert("Dossier patient introuvable.");
+      window.location.href = "dashboard-client.html";
+      return;
+    }
 
-    /* 🩺 CONSULTATION */
-    mode: document.getElementById("mode").value,
-    duration: document.getElementById("duration").value,
-    reason: document.getElementById("reason").value,
+    const patient = patientSnap.data();
 
-    createdAt: new Date().toISOString()
-  };
+    btn.addEventListener("click", async () => {
 
-  localStorage.setItem("currentRequest", JSON.stringify(request));
-  window.location.href = "confirmation.html";
-}
+      const age = document.getElementById("age").value;
+      const province = document.getElementById("province").value.trim();
+      const description = document.getElementById("description").value.trim();
+
+      if (!description) {
+        alert("Veuillez décrire votre problème.");
+        return;
+      }
+
+      // 🔄 Mise à jour dossier patient si nécessaire
+      const updates = {};
+      if (age && !patient.age) updates.age = Number(age);
+      if (province && !patient.province) updates.province = province;
+
+      if (Object.keys(updates).length) {
+        await updateDoc(patientRef, updates);
+      }
+
+      // 📄 Création de la demande
+      await addDoc(collection(db,"requests"),{
+        userId: uid,
+        patientId: patient.patientId,
+        type: "teleconsultation",
+        description,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Votre demande a été envoyée avec succès.");
+      window.location.href = "dashboard-client.html";
+    });
+  });
 </script>
 
 </body>
