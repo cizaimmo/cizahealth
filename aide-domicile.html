@@ -13,16 +13,13 @@
   --muted:#6b7a90;
   --radius:24px;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -32,54 +29,29 @@ body{
 }
 
 /* TOP BAR */
-.topbar{
-  padding:18px 22px;
-}
-.back{
-  text-decoration:none;
-  color:var(--green);
-  font-weight:500;
-}
+.topbar{padding:18px 22px;}
+.back{text-decoration:none;color:var(--green);font-weight:500;}
 
-/* HERO IMAGE */
+/* HERO */
 .hero-img{
   width:100%;
   height:220px;
   background:
-    linear-gradient(
-      to bottom,
-      rgba(30,90,70,.25),
-      rgba(30,90,70,.6)
-    ),
+    linear-gradient(rgba(30,90,70,.25),rgba(30,90,70,.6)),
     url("https://raw.githubusercontent.com/cizaimmo/cizahealth/947f0085c3777cba84f0156c459ef59055a69540/8A5B6977-2D9E-45F5-8CC3-DFE2E4B42BA1.png")
     center/cover no-repeat;
   border-bottom-left-radius:28px;
   border-bottom-right-radius:28px;
 }
+.hero{padding:22px 26px 10px;}
+.hero h1{font-size:22px;margin:0 0 8px;font-weight:600;}
+.hero p{font-size:14.5px;color:var(--muted);margin:0;line-height:1.75;}
 
-/* HERO TEXT */
-.hero{
-  padding:22px 26px 10px;
-}
-.hero h1{
-  font-size:22px;
-  margin:0 0 8px;
-  font-weight:600;
-}
-.hero p{
-  font-size:14.5px;
-  color:var(--muted);
-  margin:0;
-}
+/* SECTIONS */
+.section{padding:22px 26px;}
+.section h2{font-size:17px;margin-bottom:14px;}
+.section p{font-size:14.2px;line-height:1.75;color:#1f3f34;}
 
-/* SECTION */
-.section{
-  padding:22px 26px;
-}
-.section h2{
-  font-size:17px;
-  margin-bottom:14px;
-}
 .card{
   background:#fff;
   border-radius:var(--radius);
@@ -89,33 +61,14 @@ body{
 .card + .card{margin-top:16px}
 
 /* STEPS */
-.step{
-  display:flex;
-  gap:14px;
-}
+.step{display:flex;gap:14px;}
 .step-num{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  background:var(--green);
-  color:#fff;
-  font-size:14px;
+  width:28px;height:28px;border-radius:50%;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
   font-weight:600;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
-.step p{
-  margin:0;
-  font-size:14px;
-}
-
-/* TEXT */
-.text{
-  font-size:13.5px;
-  line-height:1.6;
-  color:var(--muted);
-}
+.step p{margin:0;font-size:14px;}
 
 /* RESPONSABILITÉ */
 .responsabilite{
@@ -124,7 +77,7 @@ body{
   padding:18px;
   border-radius:16px;
   font-size:12.8px;
-  line-height:1.65;
+  line-height:1.7;
   color:#1f3f34;
 }
 
@@ -148,48 +101,15 @@ body{
   border-top:1px solid #eef1f6;
   text-align:center;
 }
-.footer-min img{
-  height:48px;
-  margin-bottom:10px;
-}
-.footer-min .links{
-  font-size:12.5px;
-  margin-bottom:8px;
-}
-.footer-min .links a{
-  color:#6b7a90;
-  text-decoration:none;
-  margin:0 6px;
-}
-.footer-min .legal{
-  font-size:11.5px;
-  color:#8a95a8;
-  line-height:1.5;
-}
+.footer-min img{height:48px;margin-bottom:10px;}
+.footer-min .links{font-size:12.5px;margin-bottom:8px;}
+.footer-min .links a{color:#6b7a90;text-decoration:none;margin:0 6px;}
+.footer-min .legal{font-size:11.5px;color:#8a95a8;line-height:1.6;}
+
+/* ✅ RESPONSIVE */
+@media (min-width:768px){.app{max-width:720px}}
+@media (min-width:1200px){.app{max-width:920px}}
 </style>
-
-<script>
-function startAideDomicile(){
-
-  const sessionActive = localStorage.getItem("sessionActive");
-  const patientProfile = localStorage.getItem("patientProfile");
-
-  // 1️⃣ Pas connecté → login
-  if(sessionActive !== "true"){
-    window.location.href = "login.html";
-    return;
-  }
-
-  // 2️⃣ Connecté MAIS pas de profil patient → signup
-  if(!patientProfile){
-    window.location.href = "signup.html";
-    return;
-  }
-
-  // 3️⃣ Connecté + profil patient → dashboard
-  window.location.href = "dashboard-client.html";
-}
-</script>
 </head>
 
 <body>
@@ -204,56 +124,65 @@ function startAideDomicile(){
   <div class="hero">
     <h1>Aide à domicile</h1>
     <p>
-      Assistance humaine organisée pour les personnes
-      nécessitant un accompagnement à domicile.
+      Un accompagnement humain organisé pour soutenir
+      les personnes à domicile, en toute dignité.
     </p>
   </div>
 
+  <!-- EXPLICATION -->
+  <div class="section">
+    <h2>Qu’est-ce que l’aide à domicile ?</h2>
+    <p>
+      L’aide à domicile consiste à fournir une assistance humaine
+      aux personnes âgées, malades ou en situation de dépendance,
+      directement à leur domicile.
+      <br><br>
+      Ce service est particulièrement utile pour les familles
+      qui ne peuvent pas assurer une présence permanente,
+      notamment au Burundi où l’accès aux structures spécialisées
+      peut être limité.
+    </p>
+  </div>
+
+  <!-- FONCTIONNEMENT -->
   <div class="section">
     <h2>Comment ça fonctionne</h2>
-
-    <div class="card step">
-      <div class="step-num">1</div>
-      <p>Vous décrivez votre besoin d’aide à domicile.</p>
-    </div>
-
-    <div class="card step">
-      <div class="step-num">2</div>
-      <p>Un intervenant est identifié selon votre province.</p>
-    </div>
-
-    <div class="card step">
-      <div class="step-num">3</div>
-      <p>L’intervention est organisée en toute confidentialité.</p>
-    </div>
+    <div class="card step"><div class="step-num">1</div><p>Vous décrivez votre besoin d’aide à domicile.</p></div>
+    <div class="card step"><div class="step-num">2</div><p>Un intervenant est identifié selon votre province.</p></div>
+    <div class="card step"><div class="step-num">3</div><p>L’intervention est organisée de manière sécurisée.</p></div>
   </div>
 
+  <!-- UTILITÉ -->
   <div class="section">
-    <h2>À quoi sert l’aide à domicile</h2>
-    <div class="card text">
-      Ce service vise à fournir un accompagnement humain
-      et un soutien à domicile, sans se substituer
-      à une prise en charge médicale spécialisée.
-    </div>
+    <h2>À quoi sert ce service</h2>
+    <p>
+      L’aide à domicile vise à améliorer le confort,
+      la sécurité et le bien-être quotidien des bénéficiaires.
+      <br><br>
+      Elle peut inclure un accompagnement humain,
+      une assistance dans les gestes du quotidien
+      ou une présence rassurante.
+    </p>
   </div>
 
+  <!-- RESPONSABILITÉ -->
   <div class="section">
     <h2>Responsabilité et limites du service</h2>
     <div class="responsabilite">
-      Le service d’aide à domicile proposé par CizaHealth+ n’est pas
-      un service médical et ne constitue pas un acte de soins.
-      CizaHealth+ agit comme plateforme de mise en relation et
-      d’organisation de services d’assistance humaine.
+      <strong>CizaHealth+ n’est pas un service médical.</strong><br><br>
+      Les intervenants ne réalisent aucun acte de soins,
+      ne posent pas de diagnostic
+      et ne prescrivent aucun traitement.
       <br><br>
-      Les intervenants ne sont pas habilités à poser des diagnostics,
-      prescrire des traitements ou effectuer des actes médicaux.
-      En cas de situation urgente ou nécessitant une prise en charge
-      médicale, le patient ou ses proches doivent contacter
-      immédiatement les services de secours ou un établissement de santé.
+      En cas de situation urgente ou nécessitant
+      une prise en charge médicale,
+      le bénéficiaire ou ses proches doivent
+      contacter immédiatement un centre de santé
+      ou les services d’urgence locaux.
     </div>
   </div>
 
-  <a href="#" class="cta" onclick="startAideDomicile()">
+  <a href="#" class="cta" id="startBtn">
     Faire une demande d’aide à domicile
   </a>
 
@@ -271,5 +200,23 @@ function startAideDomicile(){
   </footer>
 
 </div>
+
+<!-- 🔐 AUTH PRODUCTION (ALIGNÉ TELECONSULTATION) -->
+<script type="module">
+  import { auth } from "./firebase.js";
+  import { onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  document.getElementById("startBtn").addEventListener("click", () => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "dashboard-client.html";
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
