@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Demande de téléconsultation</title>
+<title>CizaHealth+ | Téléconsultation médicale</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -23,7 +23,7 @@ body{
 }
 
 .app{
-  max-width:720px;
+  max-width:960px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -34,77 +34,120 @@ body{
 .topbar{
   padding:18px 22px;
 }
-.topbar a{
+.back{
   text-decoration:none;
   color:var(--blue);
   font-weight:500;
 }
 
-/* HEADER */
-.header{
-  padding:26px;
-}
-.header h1{
-  font-size:22px;
-  margin:0 0 6px;
-}
-.header p{
-  font-size:14px;
-  color:var(--muted);
-  margin:0;
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:240px;
+  background:
+    linear-gradient(rgba(10,42,94,.35),rgba(10,42,94,.75)),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/36bdf09d6bea282a3b4d357a2c8e177dbf138090/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
 }
 
-/* FORM */
-.form{
+/* HERO TEXT */
+.hero{
   padding:26px;
 }
+.hero h1{
+  font-size:22px;
+  margin:0 0 8px;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+}
+
+/* SECTION */
+.section{
+  padding:26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+
+/* CARD */
 .card{
   background:#fff;
   border-radius:var(--radius);
   padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
+.card + .card{margin-top:16px}
 
+/* TEXT */
+.text{
+  font-size:14px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+}
+
+/* FORM */
+.group{
+  margin-bottom:16px;
+}
 label{
   display:block;
-  margin-top:16px;
-  font-weight:600;
-  font-size:14px;
+  font-size:13px;
+  margin-bottom:6px;
 }
-input, textarea{
+input, select, textarea{
   width:100%;
-  margin-top:8px;
   padding:14px;
   border-radius:14px;
-  border:1.5px solid #e6ebf5;
+  border:1.5px solid #dfe5f0;
   font-size:14px;
-  font-family:inherit;
 }
 textarea{
-  resize:vertical;
-  min-height:120px;
+  resize:none;
+  height:90px;
 }
 
-button{
-  margin-top:24px;
-  width:100%;
+/* CTA */
+.cta{
+  margin:26px;
   padding:16px;
-  border:none;
   border-radius:18px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
+  text-align:center;
   font-weight:600;
-  font-size:15px;
+  text-decoration:none;
+  border:none;
+  width:calc(100% - 52px);
   cursor:pointer;
 }
 
 /* FOOTER */
-.footer{
-  margin-top:36px;
-  padding:22px;
+.footer-min{
+  padding:26px;
   border-top:1px solid #eef1f6;
   text-align:center;
-  font-size:12px;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .legal{
+  font-size:11.5px;
   color:#8a95a8;
 }
 </style>
@@ -114,41 +157,111 @@ button{
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard-client.html">← Retour au tableau de bord</a>
+    <a href="index.html" class="back">← Accueil</a>
   </div>
 
-  <div class="header">
-    <h1>Demande de téléconsultation</h1>
+  <div class="hero-img"></div>
+
+  <div class="hero">
+    <h1>Téléconsultation médicale</h1>
     <p>
-      Décrivez votre situation afin qu’un professionnel de santé
-      puisse vous assister à distance.
+      Consultez un professionnel de santé à distance,
+      en toute confidentialité, sans vous déplacer.
     </p>
   </div>
 
-  <div class="form">
+  <div class="section">
+    <h2>Qu’est-ce que la téléconsultation ?</h2>
+    <div class="card text">
+      La téléconsultation permet d’échanger avec un professionnel de santé
+      par appel audio ou vidéo. Elle est adaptée pour les conseils médicaux,
+      le suivi de symptômes, l’orientation et les recommandations générales.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Engagement CizaHealth+</h2>
+    <div class="card text">
+      CizaHealth+ s’engage à connecter les patients à des professionnels
+      qualifiés, dans le respect de la confidentialité, de la dignité
+      du patient et des bonnes pratiques médicales.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Responsabilité médicale</h2>
+    <div class="disclaimer">
+      Ce service ne remplace pas une consultation physique.
+      En cas d’urgence ou de symptômes graves, veuillez contacter
+      immédiatement les services de santé locaux.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Formulaire de demande</h2>
+
     <div class="card">
 
-      <label>Âge</label>
-      <input id="age" type="number" placeholder="Ex : 35">
+      <div class="group">
+        <label>Âge du patient</label>
+        <input type="number" id="age" min="0" max="120" required>
+      </div>
 
-      <label>Province</label>
-      <input id="province" placeholder="Ex : Bujumbura">
+      <div class="group">
+        <label>Province</label>
+        <select id="province" required>
+          <option value="">Sélectionner</option>
+          <option>Bujumbura</option>
+          <option>Gitega</option>
+          <option>Ngozi</option>
+          <option>Kayanza</option>
+          <option>Muyinga</option>
+          <option>Rutana</option>
+        </select>
+      </div>
 
-      <label>Décrivez votre problème</label>
-      <textarea id="description"
-        placeholder="Expliquez vos symptômes ou votre besoin médical…"></textarea>
+      <div class="group">
+        <label>Motif principal</label>
+        <input id="symptom" placeholder="Ex : fièvre, douleur, toux" required>
+      </div>
 
-      <button id="submitBtn">
-        Envoyer la demande
-      </button>
+      <div class="group">
+        <label>Depuis combien de temps ?</label>
+        <select id="duration">
+          <option>Moins de 24h</option>
+          <option>1 à 3 jours</option>
+          <option>Plusieurs jours</option>
+          <option>Plusieurs semaines</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label>Niveau d’urgence (selon vous)</label>
+        <select id="urgency">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label>Détails supplémentaires (facultatif)</label>
+        <textarea id="notes"></textarea>
+      </div>
 
     </div>
   </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP<br>
-    Service non urgent • Plateforme de santé numérique
-  </div>
+  <button class="cta" id="submitBtn">
+    Envoyer la demande de téléconsultation
+  </button>
+
+  <footer class="footer-min">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
 
 </div>
 
@@ -157,65 +270,34 @@ button{
   import { auth, db } from "./firebase.js";
   import { onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { 
-    doc, getDoc, updateDoc,
-    collection, addDoc,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { collection, addDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const btn = document.getElementById("submitBtn");
+  document.getElementById("submitBtn").addEventListener("click", async () => {
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
+    const user = auth.currentUser;
+    if(!user){
       window.location.href = "login.html";
       return;
     }
 
-    const uid = user.uid;
-    const patientRef = doc(db,"patients",uid);
-    const patientSnap = await getDoc(patientRef);
-
-    if (!patientSnap.exists()) {
-      alert("Dossier patient introuvable.");
-      window.location.href = "dashboard-client.html";
-      return;
-    }
-
-    const patient = patientSnap.data();
-
-    btn.addEventListener("click", async () => {
-
-      const age = document.getElementById("age").value;
-      const province = document.getElementById("province").value.trim();
-      const description = document.getElementById("description").value.trim();
-
-      if (!description) {
-        alert("Veuillez décrire votre problème.");
-        return;
+    const data = {
+      type: "teleconsultation",
+      userId: user.uid,
+      status: "pending",
+      createdAt: serverTimestamp(),
+      payload: {
+        age: Number(document.getElementById("age").value),
+        province: document.getElementById("province").value,
+        symptom: document.getElementById("symptom").value,
+        duration: document.getElementById("duration").value,
+        urgency: document.getElementById("urgency").value,
+        notes: document.getElementById("notes").value || ""
       }
+    };
 
-      // 🔄 Mise à jour dossier patient si nécessaire
-      const updates = {};
-      if (age && !patient.age) updates.age = Number(age);
-      if (province && !patient.province) updates.province = province;
-
-      if (Object.keys(updates).length) {
-        await updateDoc(patientRef, updates);
-      }
-
-      // 📄 Création de la demande
-      await addDoc(collection(db,"requests"),{
-        userId: uid,
-        patientId: patient.patientId,
-        type: "teleconsultation",
-        description,
-        status: "pending",
-        createdAt: serverTimestamp()
-      });
-
-      alert("Votre demande a été envoyée avec succès.");
-      window.location.href = "dashboard-client.html";
-    });
+    await addDoc(collection(db,"requests"), data);
+    window.location.href = "confirmation.html";
   });
 </script>
 
