@@ -266,26 +266,41 @@ textarea{
 </div>
 
 <!-- 🔐 FIREBASE – PRODUCTION -->
+<!-- 🔐 FIREBASE – PRODUCTION -->
 <script type="module">
   import { auth, db } from "./firebase.js";
   import { onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { collection, addDoc, serverTimestamp } 
+  import { doc, getDoc, collection, addDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   document.getElementById("submitBtn").addEventListener("click", async () => {
 
     const user = auth.currentUser;
-    if(!user){
+    if (!user) {
       window.location.href = "login.html";
       return;
     }
 
-    const data = {
+    // 🔹 1. Lire le dossier patient
+    const patientRef = doc(db, "patients", user.uid);
+    const patientSnap = await getDoc(patientRef);
+
+    if (!patientSnap.exists()) {
+      alert("Dossier patient introuvable. Veuillez compléter votre inscription.");
+      return;
+    }
+
+    const patient = patientSnap.data();
+
+    // 🔹 2. Construire la demande (PRO)
+    const requestData = {
       type: "teleconsultation",
       userId: user.uid,
+      patientId: patient.patientId, // ✅ ID MÉDICAL PERMANENT
       status: "pending",
       createdAt: serverTimestamp(),
+
       payload: {
         age: Number(document.getElementById("age").value),
         province: document.getElementById("province").value,
@@ -296,7 +311,10 @@ textarea{
       }
     };
 
-    await addDoc(collection(db,"requests"), data);
+    // 🔹 3. Enregistrer dans Firestore
+    await addDoc(collection(db, "requests"), requestData);
+
+    // 🔹 4. Redirection
     window.location.href = "confirmation.html";
   });
 </script>
