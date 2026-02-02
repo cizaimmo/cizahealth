@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Téléconsultation médicale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:960px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* HERO IMAGE */
+.hero-img{
+  width:100%;
+  height:240px;
+  background:
+    linear-gradient(rgba(10,42,94,.35),rgba(10,42,94,.75)),
+    url("https://raw.githubusercontent.com/cizaimmo/cizahealth/36bdf09d6bea282a3b4d357a2c8e177dbf138090/F25D4E41-01A5-4BC5-B8DC-FC293D1227FF.png")
+    center/cover no-repeat;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+}
+
+/* HERO TEXT */
+.hero{
+  padding:26px;
+}
+.hero h1{
+  font-size:22px;
+  margin:0 0 8px;
+}
+.hero p{
+  font-size:14.5px;
+  color:var(--muted);
+}
+
+/* SECTION */
+.section{
+  padding:26px;
+}
+.section h2{
+  font-size:17px;
+  margin-bottom:14px;
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card + .card{margin-top:16px}
+
+/* TEXT */
+.text{
+  font-size:14px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* DISCLAIMER */
+.disclaimer{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:18px;
+  border-radius:16px;
+  font-size:12.8px;
+  line-height:1.6;
+}
+
+/* FORM */
+.group{
+  margin-bottom:16px;
+}
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+}
+input, select, textarea{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
+}
+textarea{
+  resize:none;
+  height:90px;
+}
+
+/* CTA */
+.cta{
+  margin:26px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  text-align:center;
+  font-weight:600;
+  text-decoration:none;
+  border:none;
+  width:calc(100% - 52px);
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer-min{
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+}
+.footer-min img{
+  height:48px;
+  margin-bottom:10px;
+}
+.footer-min .legal{
+  font-size:11.5px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Accueil</a>
+  </div>
+
+  <div class="hero-img"></div>
+
+  <div class="hero">
+    <h1>Téléconsultation médicale</h1>
+    <p>
+      Consultez un professionnel de santé à distance,
+      en toute confidentialité, sans vous déplacer.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Qu’est-ce que la téléconsultation ?</h2>
+    <div class="card text">
+      La téléconsultation permet d’échanger avec un professionnel de santé
+      par appel audio ou vidéo. Elle est adaptée pour les conseils médicaux,
+      le suivi de symptômes, l’orientation et les recommandations générales.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Engagement CizaHealth+</h2>
+    <div class="card text">
+      CizaHealth+ s’engage à connecter les patients à des professionnels
+      qualifiés, dans le respect de la confidentialité, de la dignité
+      du patient et des bonnes pratiques médicales.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Responsabilité médicale</h2>
+    <div class="disclaimer">
+      Ce service ne remplace pas une consultation physique.
+      En cas d’urgence ou de symptômes graves, veuillez contacter
+      immédiatement les services de santé locaux.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Formulaire de demande</h2>
+
+    <div class="card">
+
+      <div class="group">
+        <label>Âge du patient</label>
+        <input type="number" id="age" min="0" max="120" required>
+      </div>
+
+      <div class="group">
+        <label>Province</label>
+        <select id="province" required>
+          <option value="">Sélectionner</option>
+          <option>Bujumbura</option>
+          <option>Gitega</option>
+          <option>Ngozi</option>
+          <option>Kayanza</option>
+          <option>Muyinga</option>
+          <option>Rutana</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label>Motif principal</label>
+        <input id="symptom" placeholder="Ex : fièvre, douleur, toux" required>
+      </div>
+
+      <div class="group">
+        <label>Depuis combien de temps ?</label>
+        <select id="duration">
+          <option>Moins de 24h</option>
+          <option>1 à 3 jours</option>
+          <option>Plusieurs jours</option>
+          <option>Plusieurs semaines</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label>Niveau d’urgence (selon vous)</label>
+        <select id="urgency">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label>Détails supplémentaires (facultatif)</label>
+        <textarea id="notes"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <button class="cta" id="submitBtn">
+    Envoyer la demande de téléconsultation
+  </button>
+
+  <footer class="footer-min">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="legal">
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </footer>
+
+</div>
+
+<!-- 🔐 FIREBASE – PRODUCTION -->
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { collection, addDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  document.getElementById("submitBtn").addEventListener("click", async () => {
+
+    const user = auth.currentUser;
+    if(!user){
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = {
+      type: "teleconsultation",
+      userId: user.uid,
+      status: "pending",
+      createdAt: serverTimestamp(),
+      payload: {
+        age: Number(document.getElementById("age").value),
+        province: document.getElementById("province").value,
+        symptom: document.getElementById("symptom").value,
+        duration: document.getElementById("duration").value,
+        urgency: document.getElementById("urgency").value,
+        notes: document.getElementById("notes").value || ""
+      }
+    };
+
+    await addDoc(collection(db,"requests"), data);
+    window.location.href = "confirmation.html";
+  });
+</script>
+
+</body>
+</html>
