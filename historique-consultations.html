@@ -2,26 +2,29 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Historique des consultations</title>
+<title>CizaHealth+ | Historique médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
-  --blue:#0a2a5e;
+  --blue:#123c8a;
   --bg:#f4f7fb;
+  --card:#ffffff;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
 
 .app{
-  max-width:430px;
+  max-width:960px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -29,171 +32,148 @@ body{
   flex-direction:column;
 }
 
-/* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
 /* HEADER */
 .header{
-  text-align:center;
-  padding:10px 20px 0;
+  padding:18px 22px;
+  border-bottom:1px solid #eef1f6;
 }
-.header img{
-  height:120px;
+.header a{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
 }
 
 /* CONTENT */
 .content{
-  padding:24px 20px;
+  padding:24px;
 }
+
 h1{
   font-size:20px;
-  margin-bottom:6px;
-}
-.subtitle{
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:20px;
+  margin-bottom:18px;
 }
 
-/* LIST */
-.list{
-  display:grid;
-  gap:14px;
-}
-.item{
-  border:2px solid #e6ebf5;
+/* CARD */
+.card{
+  background:var(--card);
   border-radius:var(--radius);
-  padding:16px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 8px 22px rgba(10,42,94,.08);
 }
-.item h3{
-  font-size:15px;
-  margin:0 0 6px;
+
+.card .type{
+  font-weight:600;
 }
-.item p{
+.card .meta{
   font-size:13px;
-  margin:4px 0;
-  opacity:.85;
+  color:var(--muted);
+  margin-top:6px;
 }
 .status{
-  display:inline-block;
-  margin-top:6px;
-  padding:4px 10px;
-  border-radius:12px;
-  font-size:11.5px;
-  font-weight:600;
-}
-.status.done{
-  background:#e6f4ea;
-  color:#1b7a3c;
-}
-.status.pending{
-  background:#fff4e5;
-  color:#b76b00;
-}
-
-/* CTA */
-.view{
   margin-top:10px;
-}
-.view a{
-  display:inline-block;
   font-size:13px;
-  color:var(--blue);
-  text-decoration:none;
   font-weight:600;
 }
+.pending{color:#b57b00}
+.accepted{color:#1f7a4f}
+.completed{color:#1f4e8a}
 
 /* EMPTY */
 .empty{
   text-align:center;
-  font-size:14px;
-  opacity:.7;
+  color:var(--muted);
   margin-top:40px;
 }
 
 /* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
-  text-align:center;
+  margin-top:auto;
   padding:18px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
   font-size:12px;
-  opacity:.65;
+  color:#8a95a8;
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <a href="dashboard-client.html" class="back">← Retour</a>
-  </div>
-
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <a href="dashboard-client.html">← Tableau de bord</a>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Historique des consultations</h1>
-    <div class="subtitle">
-      Retrouvez vos consultations passées et en cours.
+    <h1>Historique de mes demandes</h1>
+    <div id="list"></div>
+    <div class="empty" id="empty" style="display:none">
+      Aucune demande enregistrée pour le moment.
     </div>
-
-    <!-- LISTE (simulation) -->
-    <div class="list">
-
-      <div class="item">
-        <h3>Téléconsultation médicale</h3>
-        <p><strong>Date :</strong> 12 mars 2026</p>
-        <p><strong>Professionnel :</strong> Dr Jean N.</p>
-        <p><strong>Province :</strong> Bujumbura</p>
-        <span class="status done">Terminée</span>
-
-        <div class="view">
-          <a href="consultation-detail.html">Voir le résumé</a>
-        </div>
-      </div>
-
-      <div class="item">
-        <h3>Aide à domicile</h3>
-        <p><strong>Date :</strong> 18 mars 2026</p>
-        <p><strong>Professionnel :</strong> Infirmière Alice M.</p>
-        <p><strong>Province :</strong> Gitega</p>
-        <span class="status pending">En cours</span>
-      </div>
-
-    </div>
-
-    <!-- SI AUCUNE CONSULTATION -->
-    <!--
-    <div class="empty">
-      Aucune consultation enregistrée pour le moment.
-    </div>
-    -->
-
   </div>
 
-  <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
+
+<!-- 🔐 FIREBASE -->
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { collection, query, where, orderBy, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+
+  onAuthStateChanged(auth, async (user) => {
+    if(!user){
+      window.location.href = "login.html";
+      return;
+    }
+
+    const q = query(
+      collection(db,"requests"),
+      where("userId","==",user.uid),
+      orderBy("createdAt","desc")
+    );
+
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      empty.style.display="block";
+      return;
+    }
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      const typeLabel =
+        d.type === "teleconsultation"
+        ? "🩺 Téléconsultation"
+        : "🏠 Aide à domicile";
+
+      const card = document.createElement("div");
+      card.className="card";
+      card.innerHTML = `
+        <div class="type">${typeLabel}</div>
+        <div class="meta">
+          Province : ${d.payload?.province || "—"}
+        </div>
+        <div class="meta">
+          Date : ${d.createdAt?.toDate().toLocaleDateString()}
+        </div>
+        <div class="status ${d.status}">
+          Statut : ${d.status}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  });
+</script>
 
 </body>
 </html>
