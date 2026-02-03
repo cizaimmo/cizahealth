@@ -57,7 +57,6 @@ h1{font-size:22px;margin-bottom:6px;}
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:20px;
-  transition:.2s ease;
 }
 .card h3{margin:0 0 10px;font-size:16px;}
 .card p{font-size:14px;margin:6px 0;color:var(--muted);}
@@ -97,13 +96,12 @@ h1{font-size:22px;margin-bottom:6px;}
       Identité médicale et résumé de vos services de santé.
     </div>
 
-    <!-- IDENTITÉ -->
+    <!-- IDENTITÉ MÉDICALE COMPLÈTE -->
     <div class="card" id="patientCard">Chargement…</div>
 
     <!-- RÉSUMÉS -->
     <div class="grid">
 
-      <!-- TELECONSULTATION -->
       <div class="card clickable"
         onclick="location.href='historique-teleconsultation.html'">
         <h3>🩺 Téléconsultations</h3>
@@ -113,7 +111,6 @@ h1{font-size:22px;margin-bottom:6px;}
         </p>
       </div>
 
-      <!-- AIDE DOMICILE -->
       <div class="card clickable"
         onclick="location.href='historique-aide-domicile.html'">
         <h3>🏠 Aide à domicile</h3>
@@ -147,7 +144,7 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // 👤 PATIENT (source officielle)
+  // 👤 PATIENT — SOURCE UNIQUE DE L’IDENTITÉ
   const snap = await getDoc(doc(db,"patients",user.uid));
   if(!snap.exists()){
     document.getElementById("patientCard").innerHTML =
@@ -158,11 +155,12 @@ onAuthStateChanged(auth, async (user)=>{
   const p = snap.data();
 
   document.getElementById("patientCard").innerHTML = `
-    <h3>Identité du patient</h3>
-    <p><strong>Nom :</strong> ${p.fullName || "—"}</p>
+    <h3>Identité médicale</h3>
+    <p><strong>Nom complet :</strong> ${p.fullName || "—"}</p>
     <p><strong>Âge :</strong> ${
       p.age !== undefined && p.age !== null ? p.age + " ans" : "—"
     }</p>
+    <p><strong>Genre :</strong> ${p.gender || "—"}</p>
     <p><strong>Province :</strong> ${p.province || "—"}</p>
     <p><strong>ID médical :</strong> ${p.patientId || "—"}</p>
   `;
