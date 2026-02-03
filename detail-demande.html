@@ -81,17 +81,23 @@ h1{ font-size:20px;margin-bottom:6px; }
     <h1 id="title">Demande</h1>
     <div class="subtitle" id="subtitle">Chargement…</div>
 
+    <!-- IDENTITÉ COMPLÈTE -->
     <div class="card">
-      <h3>Informations patient</h3>
+      <h3>Identité du patient</h3>
+      <div class="row"><span class="label">Nom :</span> <span id="fullName">—</span></div>
       <div class="row"><span class="label">Âge :</span> <span id="age">—</span></div>
+      <div class="row"><span class="label">Genre :</span> <span id="gender">—</span></div>
       <div class="row"><span class="label">Province :</span> <span id="province">—</span></div>
+      <div class="row"><span class="label">ID médical :</span> <span id="patientId">—</span></div>
     </div>
 
+    <!-- DÉTAILS DEMANDE -->
     <div class="card">
       <h3>Détails de la demande</h3>
-      <div id="details"></div>
+      <div id="details">—</div>
     </div>
 
+    <!-- STATUT -->
     <div class="card">
       <h3>Statut</h3>
       <span id="statusBadge" class="status">—</span>
@@ -117,30 +123,31 @@ const requestId = params.get("id");
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    location.href="login.html";
+    window.location.href="login.html";
     return;
   }
 
   // 🔹 DEMANDE
   const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
+  if(!reqSnap.exists()) return alert("Demande introuvable");
 
   const r = reqSnap.data();
-  if(r.userId !== user.uid){
-    alert("Accès refusé");
-    return;
-  }
+  if(r.userId !== user.uid) return alert("Accès refusé");
 
-  // 🔹 PATIENT (source officielle âge / province)
+  // 🔹 PATIENT = SOURCE OFFICIELLE
   const patientSnap = await getDoc(doc(db,"patients",user.uid));
-  const patient = patientSnap.exists() ? patientSnap.data() : {};
+  const p = patientSnap.exists() ? patientSnap.data() : {};
 
-  const p = r.payload || {};
+  document.getElementById("fullName").innerText = p.fullName || "—";
+  document.getElementById("age").innerText =
+    p.age !== undefined && p.age !== null ? p.age + " ans" : "—";
+  document.getElementById("gender").innerText = p.gender || "—";
+  document.getElementById("province").innerText = p.province || "—";
+  document.getElementById("patientId").innerText = p.patientId || "—";
+
   const isTele = r.type === "teleconsultation";
-  const isHome = r.serviceType === "aide-domicile";
+  const isHome = r.type === "aide-domicile" || r.serviceType === "aide-domicile";
+  const payload = r.payload || {};
 
   document.getElementById("title").innerText =
     isTele ? "Téléconsultation médicale" : "Aide à domicile";
@@ -149,31 +156,22 @@ onAuthStateChanged(auth, async (user)=>{
     "Demande enregistrée le " +
     (r.createdAt?.toDate?.().toLocaleDateString() || "—");
 
-  // ✅ CORRECTION ÂGE (robuste)
-  document.getElementById("age").innerText =
-    patient.age !== undefined && patient.age !== null
-      ? patient.age
-      : "—";
-
-  document.getElementById("province").innerText =
-    p.province || patient.province || "—";
-
   const details = document.getElementById("details");
 
   if(isTele){
     details.innerHTML = `
-      <div class="row"><span class="label">Motif :</span> ${p.symptom || "—"}</div>
-      <div class="row"><span class="label">Durée :</span> ${p.duration || "—"}</div>
-      <div class="row"><span class="label">Urgence :</span> ${p.urgency || "—"}</div>
-      <div class="row"><span class="label">Notes :</span> ${p.notes || "—"}</div>
+      <div class="row"><span class="label">Motif :</span> ${payload.symptom || "—"}</div>
+      <div class="row"><span class="label">Durée :</span> ${payload.duration || "—"}</div>
+      <div class="row"><span class="label">Urgence :</span> ${payload.urgency || "—"}</div>
+      <div class="row"><span class="label">Notes :</span> ${payload.notes || "—"}</div>
     `;
   }
 
   if(isHome){
     details.innerHTML = `
-      <div class="row"><span class="label">Besoin :</span> ${p.need || "—"}</div>
-      <div class="row"><span class="label">Période :</span> ${p.period || "—"}</div>
-      <div class="row"><span class="label">Adresse :</span> ${p.address || "—"}</div>
+      <div class="row"><span class="label">Besoin :</span> ${payload.need || "—"}</div>
+      <div class="row"><span class="label">Période :</span> ${payload.period || "—"}</div>
+      <div class="row"><span class="label">Adresse :</span> ${payload.address || "—"}</div>
     `;
   }
 
