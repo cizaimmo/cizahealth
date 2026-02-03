@@ -4,23 +4,19 @@
 <meta charset="UTF-8">
 <title>CizaHealth+ | Dashboard professionnel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 :root{
   --blue:#0a2a5e;
-  --green:#1b9c4a;
-  --orange:#c58a00;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:22px;
+  --radius:18px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
-  color:var(--text);
 }
 .app{
   max-width:1100px;
@@ -30,27 +26,13 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* HEADER */
 .header{
   padding:16px 20px;
   border-bottom:1px solid #eef1f6;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
-.header strong{font-size:16px}
-.header span{
-  font-size:13px;
-  color:#8a1f1f;
-  cursor:pointer;
-}
-
-/* CONTENT */
 .content{padding:20px}
-h1{font-size:20px;margin-bottom:16px}
-
-/* LIST */
 .list{
   display:grid;
   gap:16px;
@@ -58,168 +40,110 @@ h1{font-size:20px;margin-bottom:16px}
 @media(min-width:768px){
   .list{grid-template-columns:1fr 1fr}
 }
-
-/* CARD */
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:16px;
 }
-.card h3{
-  font-size:15px;
-  margin:0 0 6px;
-}
-.card p{
-  font-size:13.5px;
-  margin:4px 0;
-  color:var(--muted);
-}
-
-/* STATUS */
-.status{
-  font-size:12.5px;
-  margin-top:6px;
-}
-.pending{color:var(--orange)}
-
-/* ACTION */
+.card h3{margin:0 0 6px;font-size:15px}
+.card p{margin:4px 0;font-size:13.5px;color:var(--muted)}
 button{
   margin-top:12px;
-  padding:12px;
   width:100%;
+  padding:12px;
   border:none;
   border-radius:14px;
   background:var(--blue);
   color:#fff;
-  font-size:13.5px;
   font-weight:600;
   cursor:pointer;
 }
-
-/* EMPTY */
 .empty{
   text-align:center;
-  padding:40px 20px;
   color:var(--muted);
-  font-size:14px;
+  padding:40px;
 }
-
-/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
   padding:16px;
   font-size:12px;
-  opacity:.65;
+  opacity:.6;
 }
 </style>
 </head>
-
 <body>
-<div class="app">
 
+<div class="app">
   <div class="header">
     <strong>Espace professionnel</strong>
-    <span id="logoutBtn">Déconnexion</span>
+    <span id="logoutBtn" style="cursor:pointer;color:#8a1f1f">Déconnexion</span>
   </div>
 
   <div class="content">
-    <h1>Demandes en attente</h1>
+    <h2>Demandes en attente</h2>
     <div id="list" class="list">
       <div class="empty">Chargement…</div>
     </div>
   </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
-
+  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } 
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-  doc, getDoc,
-  collection, query, where, getDocs 
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, getDocs,
+  doc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Déconnexion
-document.getElementById("logoutBtn").onclick = async () => {
+logoutBtn.onclick = async ()=>{
   await signOut(auth);
-  window.location.href = "/cizahealth/pro-login.html";
+  location.href="/cizahealth/pro-login.html";
 };
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "/cizahealth/pro-login.html";
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    location.href="/cizahealth/pro-login.html";
     return;
   }
 
-  // 🔐 Vérification du compte pro
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  if(!userSnap.exists()){
-    await signOut(auth);
-    window.location.href = "/cizahealth/pro-login.html";
-    return;
-  }
-
-  const pro = userSnap.data();
-
-  if(pro.role !== "doctor" && pro.role !== "aide"){
-    await signOut(auth);
-    window.location.href = "/cizahealth/pro-login.html";
-    return;
-  }
-
-  if(pro.status !== "validated"){
-    window.location.href = "/cizahealth/pro-attente.html";
-    return;
-  }
-
-  // ✅ LECTURE DES DEMANDES
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   const q = query(
-    collection(db, "requests"),
-    where("status", "==", "pending")
+    collection(db,"requests"),
+    where("status","==","pending")
   );
 
   const snap = await getDocs(q);
 
-  if (snap.empty) {
-    list.innerHTML = `
-      <div class="empty">
-        Aucune demande en attente pour le moment.
-      </div>`;
+  if(snap.empty){
+    list.innerHTML = `<div class="empty">Aucune demande disponible</div>`;
     return;
   }
 
-  snap.forEach(docSnap => {
-    const r = docSnap.data();
-    const payload = r.payload || {};
-
+  snap.forEach(d=>{
+    const r = d.data();
     list.innerHTML += `
       <div class="card">
-        <h3>
-          ${r.type === "teleconsultation"
-            ? "🩺 Téléconsultation"
-            : "🏠 Aide à domicile"}
-        </h3>
-
-        <p><strong>Province :</strong> ${payload.province || "—"}</p>
-        <p><strong>Urgence :</strong> ${payload.urgency || "—"}</p>
-        <p class="status pending">En attente</p>
-
-        <button onclick="alert('Étape suivante : prise en charge')">
-          Prendre la demande
-        </button>
+        <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
+        <p><strong>Province :</strong> ${r.payload?.province || "—"}</p>
+        <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
+        <button onclick="take('${d.id}')">Prendre la demande</button>
       </div>
     `;
   });
+
+  window.take = async (id)=>{
+    await updateDoc(doc(db,"requests",id),{
+      status:"assigned",
+      assignedTo:user.uid,
+      assignedAt:serverTimestamp()
+    });
+    location.reload();
+  };
 });
 </script>
 
