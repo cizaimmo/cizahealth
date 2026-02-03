@@ -142,10 +142,11 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
+  doc, getDoc,
   collection, query, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Logout
+// Déconnexion
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   window.location.href = "/cizahealth/pro-login.html";
@@ -157,10 +158,31 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
+  // 🔐 Vérification du compte pro
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  if(!userSnap.exists()){
+    await signOut(auth);
+    window.location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  const pro = userSnap.data();
+
+  if(pro.role !== "doctor" && pro.role !== "aide"){
+    await signOut(auth);
+    window.location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  if(pro.status !== "validated"){
+    window.location.href = "/cizahealth/pro-attente.html";
+    return;
+  }
+
+  // ✅ LECTURE DES DEMANDES
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  // 🔥 LECTURE DES DEMANDES EN ATTENTE
   const q = query(
     collection(db, "requests"),
     where("status", "==", "pending")
@@ -169,23 +191,30 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDocs(q);
 
   if (snap.empty) {
-    list.innerHTML = `<div class="empty">
-      Aucune demande en attente pour le moment.
-    </div>`;
+    list.innerHTML = `
+      <div class="empty">
+        Aucune demande en attente pour le moment.
+      </div>`;
     return;
   }
 
   snap.forEach(docSnap => {
     const r = docSnap.data();
+    const payload = r.payload || {};
 
     list.innerHTML += `
       <div class="card">
-        <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
-        <p><strong>Province :</strong> ${r.payload?.province || "—"}</p>
-        <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
+        <h3>
+          ${r.type === "teleconsultation"
+            ? "🩺 Téléconsultation"
+            : "🏠 Aide à domicile"}
+        </h3>
+
+        <p><strong>Province :</strong> ${payload.province || "—"}</p>
+        <p><strong>Urgence :</strong> ${payload.urgency || "—"}</p>
         <p class="status pending">En attente</p>
 
-        <button onclick="alert('À connecter : prise en charge')">
+        <button onclick="alert('Étape suivante : prise en charge')">
           Prendre la demande
         </button>
       </div>
