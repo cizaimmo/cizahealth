@@ -172,93 +172,64 @@ textarea{
 
 </div>
 
-<!-- 🔥 PRODUCTION: AUTH + PATIENT + CREATE REQUEST -->
+<!-- 🔥 PRODUCTION: AUTH + PATIENT + zCREATE REQUEST -->
 <script type="module">
-  import { auth, db } from "./firebase.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import {
-    doc, getDoc,
-    collection, addDoc,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const fullNameEl  = document.getElementById("fullName");
-  const patientIdEl = document.getElementById("patientId");
-  const provinceEl  = document.getElementById("province");
-  const addressEl   = document.getElementById("address");
-  const needEl      = document.getElementById("need");
-  const periodEl    = document.getElementById("period");
-  const submitBtn   = document.getElementById("submitBtn");
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href = "login.html";
+    return;
+  }
 
-  let patientData = null;
+  const list = document.getElementById("list");
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.replace("login.html");
-      return;
-    }
+  const q = query(
+    collection(db,"requests"),
+    where("userId","==",user.uid),
+    where("serviceType","==","aide-domicile")
+  );
 
-    // Charge patients/{uid}
-    const snap = await getDoc(doc(db, "patients", user.uid));
-    if (!snap.exists()) {
-      alert("Profil patient introuvable. Veuillez recréer votre compte.");
-      window.location.replace("signup.html");
-      return;
-    }
+  const res = await getDocs(q);
+  list.innerHTML = "";
 
-    patientData = snap.data();
+  if(res.empty){
+    list.innerHTML = `
+      <div class="empty">
+        Aucune demande d’aide à domicile enregistrée.
+      </div>`;
+    return;
+  }
 
-    // UI
-    fullNameEl.value  = patientData.fullName || "—";
-    patientIdEl.value = patientData.patientId || "—";
-    if (patientData.province) provinceEl.value = patientData.province;
+  res.forEach(docSnap=>{
+    const r = docSnap.data();
 
-    submitBtn.disabled = false;
+    const el = document.createElement("div");
+    el.className = "card";
+    el.onclick = () => {
+      window.location.href =
+        "detail-demande.html?id=" + docSnap.id;
+    };
+
+    el.innerHTML = `
+      <h3>${r.payload?.need || "Aide à domicile"}</h3>
+      <p>Province : ${r.payload?.province || "—"}</p>
+      <p>Date :
+        ${r.createdAt?.toDate?.().toLocaleDateString() || "—"}
+      </p>
+      <span class="status ${r.status || "pending"}">
+        ${r.status || "pending"}
+      </span>
+    `;
+
+    list.appendChild(el);
   });
-
-  submitBtn.addEventListener("click", async () => {
-    if (!auth.currentUser) {
-      window.location.replace("login.html");
-      return;
-    }
-    if (!patientData) {
-      alert("Patient non chargé.");
-      return;
-    }
-
-    const province = provinceEl.value;
-    const address  = addressEl.value.trim();
-    const need     = needEl.value;
-    const period   = periodEl.value;
-
-    if (!province || !address) {
-      alert("Veuillez compléter la province et l’adresse.");
-      return;
-    }
-
-    submitBtn.disabled = true;
-
-    try {
-      await addDoc(collection(db, "requests"), {
-        serviceType: "aide-domicile",
-        userId: auth.currentUser.uid,
-        patientId: patientData.patientId || "",
-        fullName: patientData.fullName || "",
-        province,
-        payload: { address, need, period },
-        status: "pending",
-        createdAt: serverTimestamp()
-      });
-
-      alert("Votre demande d’aide à domicile a été envoyée avec succès.");
-      window.location.href = "dashboard-client.html";
-
-    } catch (e) {
-      console.error(e);
-      alert("Erreur lors de l’envoi. Vérifie les règles Firestore.");
-      submitBtn.disabled = false;
-    }
-  });
+});
 </script>
 
 </body>
