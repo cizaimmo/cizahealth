@@ -63,9 +63,7 @@ h1{font-size:22px;margin-bottom:6px;}
 .card p{font-size:14px;margin:6px 0;color:var(--muted);}
 
 /* CLICKABLE CARD */
-.clickable{
-  cursor:pointer;
-}
+.clickable{ cursor:pointer; }
 .clickable:hover{
   background:#f6f9ff;
   border-color:#cfd9f2;
@@ -149,7 +147,7 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // 👤 PATIENT
+  // 👤 PATIENT (source officielle)
   const snap = await getDoc(doc(db,"patients",user.uid));
   if(!snap.exists()){
     document.getElementById("patientCard").innerHTML =
@@ -158,10 +156,13 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
   const p = snap.data();
+
   document.getElementById("patientCard").innerHTML = `
     <h3>Identité du patient</h3>
     <p><strong>Nom :</strong> ${p.fullName || "—"}</p>
-    <p><strong>Âge :</strong> ${p.age ?? "—"} ans</p>
+    <p><strong>Âge :</strong> ${
+      p.age !== undefined && p.age !== null ? p.age + " ans" : "—"
+    }</p>
     <p><strong>Province :</strong> ${p.province || "—"}</p>
     <p><strong>ID médical :</strong> ${p.patientId || "—"}</p>
   `;
