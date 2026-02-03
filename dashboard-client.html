@@ -14,7 +14,6 @@
   --muted:#6b7a90;
   --radius:24px;
 }
-
 *{box-sizing:border-box}
 
 body{
@@ -25,7 +24,7 @@ body{
 }
 
 .app{
-  max-width:960px;
+  max-width:1000px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -47,11 +46,6 @@ body{
   color:var(--blue);
   font-weight:500;
 }
-.topbar .right{
-  display:flex;
-  gap:14px;
-  align-items:center;
-}
 .logout{
   color:#8a1f1f;
   font-size:13px;
@@ -60,18 +54,18 @@ body{
 
 /* HERO */
 .hero{
-  padding:28px 26px 18px;
+  padding:30px 26px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
 }
 .hero h1{
-  font-size:22px;
-  margin:0 0 6px;
+  font-size:24px;
+  margin:0 0 8px;
 }
 .hero p{
-  font-size:14px;
-  opacity:.9;
-  margin:0;
+  font-size:14.5px;
+  opacity:.95;
+  max-width:520px;
 }
 
 /* CONTENT */
@@ -85,9 +79,9 @@ body{
   grid-template-columns:1fr;
   gap:22px;
 }
-@media(min-width:768px){
+@media(min-width:900px){
   .grid{
-    grid-template-columns:1.2fr .8fr;
+    grid-template-columns:1fr 1fr;
   }
 }
 
@@ -135,7 +129,7 @@ body{
   font-weight:600;
   font-size:15px;
   cursor:pointer;
-  margin-top:12px;
+  margin-top:14px;
 }
 .primary{
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
@@ -146,22 +140,15 @@ body{
   color:var(--blue);
 }
 
-/* INFO */
-.info{
-  font-size:13.5px;
-  line-height:1.6;
-  color:var(--muted);
-}
-
-/* PROFILE WARNING */
+/* WARNING */
 .warn{
   background:var(--blue-soft);
   border-left:4px solid var(--blue);
   padding:16px;
   border-radius:16px;
   font-size:13px;
-  color:#1a2f55;
   line-height:1.6;
+  color:#1a2f55;
 }
 
 /* FOOTER */
@@ -182,26 +169,27 @@ body{
   <!-- TOP BAR -->
   <div class="topbar">
     <a href="index.html">← Accueil</a>
-    <div class="right">
-      <span class="logout" id="logoutBtn">Déconnexion</span>
-    </div>
+    <span class="logout" id="logoutBtn">Déconnexion</span>
   </div>
 
   <!-- HERO -->
   <div class="hero">
     <h1>Espace patient</h1>
-    <p>Gérez vos services de santé en toute sécurité.</p>
+    <p>
+      Accédez à vos services de santé, suivez vos demandes
+      et consultez votre dossier médical en toute confidentialité.
+    </p>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- ✅ Alerte profil incomplet (caché par défaut) -->
-    <div class="card" id="profileMissingCard" style="display:none;margin-bottom:22px;">
-      <h3>Compléter mon profil</h3>
+    <!-- PROFIL INCOMPLET -->
+    <div class="card" id="profileMissing" style="display:none;margin-bottom:22px;">
+      <h3>Profil à compléter</h3>
       <div class="warn">
-        Pour une prise en charge adaptée, veuillez renseigner votre <strong>âge</strong> et votre <strong>province</strong>.
-        Cela améliore l’orientation vers un professionnel et l’organisation des services au Burundi.
+        Pour une prise en charge médicale adaptée, veuillez compléter
+        votre <strong>âge</strong>, <strong>genre</strong> et <strong>province</strong>.
       </div>
       <button class="btn primary" onclick="location.href='completer-profil.html'">
         Compléter mon profil
@@ -210,61 +198,51 @@ body{
 
     <div class="grid">
 
-      <!-- PROFIL -->
+      <!-- IDENTITÉ -->
       <div class="card">
         <div class="profile-name" id="fullName">—</div>
         <div class="profile-meta">
-          Âge : <strong id="age">—</strong> • Province : <strong id="province">—</strong>
+          Âge : <strong id="age">—</strong> •
+          Genre : <strong id="gender">—</strong> •
+          Province : <strong id="province">—</strong>
         </div>
 
         <div class="profile-id">
-          <span>Identifiant médical</span>
+          <span>Identifiant médical CizaHealth+</span>
           <strong id="patientId">—</strong>
         </div>
       </div>
 
       <!-- ACTIONS -->
       <div class="card">
-        <h3>Services médicaux</h3>
+        <h3>Services disponibles</h3>
 
-        <!-- ✅ PRO : Auth check avant d'ouvrir la demande -->
         <button class="btn primary" id="btnTele">
-          🩺 Demander une téléconsultation
+          🩺 Démarrer une téléconsultation
         </button>
 
-        <button class="btn secondary" id="btnHomeCare">
+        <button class="btn secondary" id="btnHome">
           🏠 Demander une aide à domicile
         </button>
       </div>
 
     </div>
 
-    <!-- DOSSIER MEDICAL -->
+    <!-- DOSSIER -->
     <div class="card" style="margin-top:22px">
       <h3>Dossier médical</h3>
-      <p class="info">
-        Consultez l’historique de vos demandes et les informations
-        liées à vos services médicaux CizaHealth+.
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.6">
+        Consultez l’historique de vos téléconsultations,
+        demandes d’aide à domicile et informations associées
+        à votre compte patient.
       </p>
       <button class="btn secondary" onclick="location.href='dossier-sante.html'">
-        Consulter mon dossier
-      </button>
-    </div>
-
-    <!-- ✅ HISTORIQUE AIDE À DOMICILE (dossier aide) -->
-    <div class="card" style="margin-top:22px">
-      <h3>Historique aide à domicile</h3>
-      <p class="info">
-        Suivi de vos demandes d’aide à domicile : en attente, confirmée, terminée.
-      </p>
-      <button class="btn secondary" onclick="location.href='historique-aide.html'">
-        Voir mes demandes d’aide à domicile
+        Accéder à mon dossier médical
       </button>
     </div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP<br>
     Plateforme de santé numérique • Service non urgent
@@ -272,64 +250,48 @@ body{
 
 </div>
 
-<!-- 🔐 AUTH + FIRESTORE – STABLE -->
+<!-- 🔐 AUTH + FIRESTORE -->
 <script type="module">
-  import { auth, db } from "./firebase.js";
-  import { onAuthStateChanged, signOut } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { doc, getDoc } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // ✅ Déconnexion
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    try{ await signOut(auth); }catch(e){}
-    window.location.href = "index.html";
-  });
+document.getElementById("logoutBtn").onclick = async ()=>{
+  try{ await signOut(auth); }catch(e){}
+  location.href="index.html";
+};
 
-  // ✅ Navigation PRO (évite les redirections signup bizarres)
-  function goToDemand(url){
-    const u = auth.currentUser;
-    if(!u){
-      window.location.href = "login.html";
-      return;
-    }
-    window.location.href = url;
+function go(url){
+  if(!auth.currentUser){
+    location.href="login.html";
+    return;
   }
+  location.href=url;
+}
 
-  document.getElementById("btnTele").addEventListener("click", () => {
-    goToDemand("demande-teleconsultation.html");
-  });
+btnTele.onclick = ()=>go("demande-teleconsultation.html");
+btnHome.onclick = ()=>go("demande-aide-domicile.html");
 
-  document.getElementById("btnHomeCare").addEventListener("click", () => {
-    goToDemand("demande-aide-domicile.html");
-  });
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="login.html"; return; }
 
-  // ✅ Load patient + affiche si profil incomplet
-  onAuthStateChanged(auth, async (user) => {
-    if(!user){
-      window.location.href="login.html";
-      return;
-    }
+  const snap = await getDoc(doc(db,"patients",user.uid));
+  if(!snap.exists()) return;
 
-    const snap = await getDoc(doc(db,"patients",user.uid));
-    if(!snap.exists()){
-      document.getElementById("fullName").innerText = "Profil incomplet";
-      document.getElementById("profileMissingCard").style.display = "block";
-      return;
-    }
+  const p = snap.data();
 
-    const p = snap.data();
+  fullName.innerText = p.fullName || "—";
+  age.innerText = p.age ? p.age+" ans" : "—";
+  gender.innerText = p.gender || "—";
+  province.innerText = p.province || "—";
+  patientId.innerText = p.patientId || "—";
 
-    document.getElementById("fullName").innerText = p.fullName || "—";
-    document.getElementById("age").innerText = p.age ? (p.age+" ans") : "—";
-    document.getElementById("province").innerText = p.province || "—";
-    document.getElementById("patientId").innerText = p.patientId || "—";
-
-    // ✅ Si âge/province manquent → afficher carte compléter profil
-    if(!p.age || !p.province){
-      document.getElementById("profileMissingCard").style.display = "block";
-    }
-  });
+  if(!p.age || !p.gender || !p.province){
+    document.getElementById("profileMissing").style.display="block";
+  }
+});
 </script>
 
 </body>
