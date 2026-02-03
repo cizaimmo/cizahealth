@@ -30,8 +30,6 @@ body{
   flex-direction:column;
   box-shadow:0 12px 50px rgba(10,42,94,.08);
 }
-
-/* TOP BAR */
 .topbar{
   padding:18px 22px;
   border-bottom:1px solid #eef1f6;
@@ -41,43 +39,18 @@ body{
   color:var(--blue);
   font-weight:600;
 }
-
-/* CONTENT */
-.content{
-  padding:26px;
-}
-h1{
-  font-size:20px;
-  margin-bottom:6px;
-}
-.subtitle{
-  font-size:14px;
-  color:var(--muted);
-  margin-bottom:22px;
-}
-
-/* CARD */
+.content{ padding:26px; }
+h1{ font-size:20px;margin-bottom:6px; }
+.subtitle{ font-size:14px;color:var(--muted);margin-bottom:22px; }
 .card{
   border:1.5px solid #e6ebf5;
   border-radius:var(--radius);
   padding:20px;
   margin-bottom:18px;
 }
-.card h3{
-  margin:0 0 12px;
-  font-size:15px;
-}
-
-/* ROW */
-.row{
-  font-size:14px;
-  margin:6px 0;
-}
-.label{
-  color:var(--muted);
-}
-
-/* STATUS */
+.card h3{ margin:0 0 12px;font-size:15px; }
+.row{ font-size:14px;margin:6px 0; }
+.label{ color:var(--muted); }
 .status{
   display:inline-block;
   padding:6px 14px;
@@ -85,11 +58,9 @@ h1{
   font-size:12px;
   font-weight:600;
 }
-.pending{ background:#fff3cd; color:#856404; }
-.completed{ background:#e6f4ea; color:#1e7e34; }
-.cancelled{ background:#f8d7da; color:#721c24; }
-
-/* FOOTER */
+.pending{ background:#fff3cd;color:#856404; }
+.completed{ background:#e6f4ea;color:#1e7e34; }
+.cancelled{ background:#f8d7da;color:#721c24; }
 .footer{
   margin-top:auto;
   text-align:center;
@@ -112,24 +83,17 @@ h1{
     <h1 id="title">Demande</h1>
     <div class="subtitle" id="subtitle">Chargement…</div>
 
-    <!-- IDENTITÉ -->
     <div class="card">
       <h3>Informations patient</h3>
       <div class="row"><span class="label">Âge :</span> <span id="age">—</span></div>
       <div class="row"><span class="label">Province :</span> <span id="province">—</span></div>
     </div>
 
-    <!-- DEMANDE -->
     <div class="card">
       <h3>Détails de la demande</h3>
-      <div class="row"><span class="label">Type :</span> <span id="type">—</span></div>
-      <div class="row"><span class="label">Motif :</span> <span id="symptom">—</span></div>
-      <div class="row"><span class="label">Durée :</span> <span id="duration">—</span></div>
-      <div class="row"><span class="label">Urgence :</span> <span id="urgency">—</span></div>
-      <div class="row"><span class="label">Notes :</span> <span id="notes">—</span></div>
+      <div id="details"></div>
     </div>
 
-    <!-- STATUT -->
     <div class="card">
       <h3>Statut</h3>
       <span id="statusBadge" class="status">—</span>
@@ -143,63 +107,57 @@ h1{
 
 </div>
 
-<!-- 🔥 FIREBASE – PRODUCTION -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔎 Récupérer ID depuis l’URL
 const params = new URLSearchParams(window.location.search);
 const requestId = params.get("id");
-if(!requestId){
-  alert("Demande introuvable");
-  window.location.href = "dossier-sante.html";
-}
 
-// 🔐 Auth
 onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    window.location.href = "login.html";
-    return;
-  }
+  if(!user){ location.href="login.html"; return; }
 
-  const ref = doc(db,"requests",requestId);
-  const snap = await getDoc(ref);
-
-  if(!snap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
+  const snap = await getDoc(doc(db,"requests",requestId));
+  if(!snap.exists()) return alert("Demande introuvable");
 
   const r = snap.data();
+  if(r.userId !== user.uid) return alert("Accès refusé");
 
-  // 🔒 Sécurité : propriétaire uniquement
-  if(r.userId !== user.uid){
-    alert("Accès refusé");
-    return;
-  }
+  const p = r.payload || {};
+  const isTele = r.type === "teleconsultation";
+  const isHome = r.serviceType === "aide-domicile";
 
   document.getElementById("title").innerText =
-    r.type === "teleconsultation"
-      ? "Téléconsultation médicale"
-      : "Aide à domicile";
+    isTele ? "Téléconsultation médicale" : "Aide à domicile";
 
   document.getElementById("subtitle").innerText =
     "Demande enregistrée le " +
     (r.createdAt?.toDate?.().toLocaleDateString() || "—");
 
-  const p = r.payload || {};
-
   document.getElementById("age").innerText = p.age ?? "—";
   document.getElementById("province").innerText = p.province || "—";
-  document.getElementById("type").innerText = r.type || "—";
-  document.getElementById("symptom").innerText = p.symptom || "—";
-  document.getElementById("duration").innerText = p.duration || "—";
-  document.getElementById("urgency").innerText = p.urgency || "—";
-  document.getElementById("notes").innerText = p.notes || "—";
+
+  const details = document.getElementById("details");
+
+  if(isTele){
+    details.innerHTML = `
+      <div class="row"><span class="label">Motif :</span> ${p.symptom || "—"}</div>
+      <div class="row"><span class="label">Durée :</span> ${p.duration || "—"}</div>
+      <div class="row"><span class="label">Urgence :</span> ${p.urgency || "—"}</div>
+      <div class="row"><span class="label">Notes :</span> ${p.notes || "—"}</div>
+    `;
+  }
+
+  if(isHome){
+    details.innerHTML = `
+      <div class="row"><span class="label">Besoin :</span> ${p.need || "—"}</div>
+      <div class="row"><span class="label">Période :</span> ${p.period || "—"}</div>
+      <div class="row"><span class="label">Adresse :</span> ${p.address || "—"}</div>
+    `;
+  }
 
   const badge = document.getElementById("statusBadge");
   badge.innerText = r.status || "pending";
