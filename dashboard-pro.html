@@ -139,91 +139,57 @@ button{
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged, signOut } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, getDoc,
-  collection, query, where, onSnapshot
+import { 
+  collection, query, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const listEl = document.getElementById("list");
-
-// Déconnexion
+// Logout
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   window.location.href = "/cizahealth/pro-login.html";
 };
 
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    window.location.href="/cizahealth/pro-login.html";
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
-  // 🔐 Vérification pro
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()){
-    await signOut(auth);
-    window.location.href="/cizahealth/pro-login.html";
-    return;
-  }
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-  const pro = snap.data();
-
-  if(pro.role !== "doctor" && pro.role !== "aide"){
-    await signOut(auth);
-    window.location.href="/cizahealth/pro-login.html";
-    return;
-  }
-
-  if(pro.status !== "validated"){
-    document.body.innerHTML = `
-      <div style="padding:24px;font-family:system-ui">
-        <h2>⏳ Compte en attente de validation</h2>
-        <p>
-          Votre compte professionnel est en cours de validation
-          par l’équipe CizaHealth+.
-        </p>
-      </div>
-    `;
-    return;
-  }
-
-  // 🔁 ÉCOUTE TEMPS RÉEL DES DEMANDES
+  // 🔥 LECTURE DES DEMANDES EN ATTENTE
   const q = query(
-    collection(db,"requests"),
-    where("status","==","pending"),
-    where("type","==",
-      pro.role === "doctor" ? "teleconsultation" : "aide-domicile"
-    )
+    collection(db, "requests"),
+    where("status", "==", "pending")
   );
 
-  onSnapshot(q,(snap)=>{
-    listEl.innerHTML = "";
+  const snap = await getDocs(q);
 
-    if(snap.empty){
-      listEl.innerHTML =
-        `<div class="empty">Aucune demande disponible pour le moment.</div>`;
-      return;
-    }
+  if (snap.empty) {
+    list.innerHTML = `<div class="empty">
+      Aucune demande en attente pour le moment.
+    </div>`;
+    return;
+  }
 
-    snap.forEach(docSnap=>{
-      const r = docSnap.data();
+  snap.forEach(docSnap => {
+    const r = docSnap.data();
 
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <h3>${r.type === "teleconsultation"
-          ? "🩺 Téléconsultation"
-          : "🏠 Aide à domicile"}</h3>
-        <p><strong>Province :</strong> ${r.province || "—"}</p>
-        <p class="status pending">⏳ En attente</p>
-        <button onclick="alert('Étape suivante bientôt')">
-          Ouvrir la demande
+    list.innerHTML += `
+      <div class="card">
+        <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
+        <p><strong>Province :</strong> ${r.payload?.province || "—"}</p>
+        <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
+        <p class="status pending">En attente</p>
+
+        <button onclick="alert('À connecter : prise en charge')">
+          Prendre la demande
         </button>
-      `;
-      listEl.appendChild(card);
-    });
+      </div>
+    `;
   });
 });
 </script>
