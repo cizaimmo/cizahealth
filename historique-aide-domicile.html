@@ -28,8 +28,6 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* TOP */
 .topbar{
   padding:18px 20px;
   border-bottom:1px solid #e6ebf5;
@@ -39,29 +37,20 @@ body{
   color:var(--green);
   font-weight:600;
 }
-
-/* CONTENT */
 .content{
   padding:24px 20px;
 }
-h1{
-  font-size:22px;
-  margin-bottom:6px;
-}
+h1{ font-size:22px; margin:0 0 6px; }
 .subtitle{
   font-size:14.5px;
   color:var(--muted);
   margin-bottom:24px;
 }
-
-/* LIST */
 .list{
   display:flex;
   flex-direction:column;
   gap:14px;
 }
-
-/* CARD */
 .card{
   border:1.5px solid #e6ebf5;
   border-radius:var(--radius);
@@ -82,8 +71,6 @@ h1{
   font-size:13.5px;
   color:var(--muted);
 }
-
-/* STATUS */
 .status{
   display:inline-block;
   margin-top:8px;
@@ -96,21 +83,22 @@ h1{
 .completed{ background:#e6f4ea;color:#1e7e34; }
 .cancelled{ background:#f8d7da;color:#721c24; }
 
-/* EMPTY */
 .empty{
   text-align:center;
   padding:40px 20px;
   color:var(--muted);
   font-size:14px;
 }
-
-/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
   opacity:.65;
+}
+.small{
+  font-size:12px;
+  color:#8a95a8;
 }
 </style>
 </head>
@@ -124,78 +112,118 @@ h1{
 
   <div class="content">
     <h1>🏠 Aide à domicile</h1>
-    <div class="subtitle">
-      Historique de vos demandes d’aide à domicile.
-    </div>
+    <div class="subtitle">Historique de vos demandes d’aide à domicile.</div>
 
     <div id="list" class="list">
       <div class="empty">Chargement…</div>
     </div>
+
+    <div id="debug" class="small" style="margin-top:14px;"></div>
   </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
-
+  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, orderBy, getDocs
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+function safeDate(ts){
+  try{
+    return ts?.toDate?.().toLocaleDateString("fr-FR") || "—";
+  }catch(e){
+    return "—";
+  }
+}
+
+function isAideDoc(r){
+  const v1 = (r.type || "").toLowerCase();
+  const v2 = (r.serviceType || "").toLowerCase();
+  return (
+    v1 === "aide-domicile" || v1 === "aide_domicile" ||
+    v2 === "aide-domicile" || v2 === "aide_domicile"
+  );
+}
+
 onAuthStateChanged(auth, async (user)=>{
+  const list = document.getElementById("list");
+  const debug = document.getElementById("debug");
+
   if(!user){
     window.location.href = "login.html";
     return;
   }
 
-  const list = document.getElementById("list");
+  try{
+    // 1) On lit les requests de l'utilisateur (sans orderBy = pas d’index requis)
+    const baseQ = query(
+      collection(db,"requests"),
+      where("userId","==",user.uid)
+    );
 
-  const q = query(
-    collection(db,"requests"),
-    where("userId","==",user.uid),
-    where("serviceType","==","aide-domicile"),
-    orderBy("createdAt","desc")
-  );
+    const res = await getDocs(baseQ);
 
-  const res = await getDocs(q);
-  list.innerHTML = "";
+    // 2) Filtrer côté front (accepte type OU serviceType, et aide-domicile OU aide_domicile)
+    const docs = [];
+    res.forEach(snap=>{
+      const r = snap.data();
+      if(isAideDoc(r)){
+        docs.push({ id: snap.id, ...r });
+      }
+    });
 
-  if(res.empty){
+    // 3) Trier localement (createdAt si dispo)
+    docs.sort((a,b)=>{
+      const ta = a.createdAt?.toMillis?.() || 0;
+      const tb = b.createdAt?.toMillis?.() || 0;
+      return tb - ta;
+    });
+
+    list.innerHTML = "";
+
+    if(docs.length === 0){
+      list.innerHTML = `
+        <div class="empty">
+          Aucune demande d’aide à domicile trouvée.<br>
+          <span class="small">Astuce : vérifie que tes docs ont bien <b>userId</b> = ${user.uid}</span>
+        </div>`;
+      debug.innerText = "DEBUG: 0 doc aide-domicile (filtrage front).";
+      return;
+    }
+
+    debug.innerText = "DEBUG: " + docs.length + " demande(s) aide à domicile trouvée(s).";
+
+    docs.forEach(r=>{
+      const el = document.createElement("div");
+      el.className = "card";
+      el.onclick = () => {
+        window.location.href = "detail-demande.html?id=" + r.id;
+      };
+
+      el.innerHTML = `
+        <h3>${r.payload?.need || "Aide à domicile"}</h3>
+        <p>Province : ${r.payload?.province || "—"}</p>
+        <p>Date : ${safeDate(r.createdAt)}</p>
+        <span class="status ${r.status || "pending"}">${r.status || "pending"}</span>
+      `;
+      list.appendChild(el);
+    });
+
+  }catch(err){
+    console.error(err);
     list.innerHTML = `
       <div class="empty">
-        Aucune demande d’aide à domicile enregistrée.
-      </div>`;
-    return;
-  }
-
-  res.forEach(docSnap=>{
-    const r = docSnap.data();
-    const el = document.createElement("div");
-    el.className = "card";
-    el.onclick = () => {
-      window.location.href =
-        "detail-demande.html?id=" + docSnap.id;
-    };
-
-    el.innerHTML = `
-      <h3>${r.payload?.need || "Aide à domicile"}</h3>
-      <p>Province : ${r.payload?.province || "—"}</p>
-      <p>Date :
-        ${r.createdAt?.toDate?.().toLocaleDateString() || "—"}
-      </p>
-      <span class="status ${r.status || "pending"}">
-        ${r.status || "pending"}
-      </span>
+        Impossible de charger l’historique.<br><br>
+        <span class="small"><b>Erreur :</b> ${err?.code || err?.message || "inconnue"}</span>
+      </div>
     `;
-
-    list.appendChild(el);
-  });
+    // cas typique : permission-denied => rules
+    debug.innerText = "DEBUG: Erreur Firestore => " + (err?.code || "unknown");
+  }
 });
 </script>
 
