@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Historique aide à domicile</title>
+<title>CizaHealth+ | Aide à domicile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -11,7 +11,7 @@
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:20px;
+  --radius:18px;
 }
 *{box-sizing:border-box}
 body{
@@ -28,33 +28,90 @@ body{
   display:flex;
   flex-direction:column;
 }
+
+/* TOP */
 .topbar{
   padding:18px 20px;
-  border-bottom:1px solid #eef1f6;
+  border-bottom:1px solid #e6ebf5;
 }
 .back{
   text-decoration:none;
   color:var(--green);
   font-weight:600;
 }
-.content{padding:24px 20px}
-h1{font-size:22px;margin-bottom:18px}
 
+/* CONTENT */
+.content{
+  padding:24px 20px;
+}
+h1{
+  font-size:22px;
+  margin-bottom:6px;
+}
+.subtitle{
+  font-size:14.5px;
+  color:var(--muted);
+  margin-bottom:24px;
+}
+
+/* LIST */
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* CARD */
 .card{
   border:1.5px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:14px;
+  padding:16px;
   cursor:pointer;
+  transition:.2s ease;
 }
-.card:hover{background:#f6fff9}
+.card:hover{
+  background:#f4fbf7;
+  border-color:#cfe6da;
+}
+.card h3{
+  margin:0 0 6px;
+  font-size:15px;
+}
+.card p{
+  margin:4px 0;
+  font-size:13.5px;
+  color:var(--muted);
+}
+
+/* STATUS */
 .status{
-  font-size:12px;
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:11.5px;
   font-weight:600;
-  margin-top:6px;
 }
-.pending{color:#856404}
-.completed{color:#1e7e34}
+.pending{ background:#fff3cd;color:#856404; }
+.completed{ background:#e6f4ea;color:#1e7e34; }
+.cancelled{ background:#f8d7da;color:#721c24; }
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
 </style>
 </head>
 
@@ -67,11 +124,22 @@ h1{font-size:22px;margin-bottom:18px}
 
   <div class="content">
     <h1>🏠 Aide à domicile</h1>
-    <div id="list">Chargement…</div>
+    <div class="subtitle">
+      Historique de vos demandes d’aide à domicile.
+    </div>
+
+    <div id="list" class="list">
+      <div class="empty">Chargement…</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
   </div>
 
 </div>
 
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
@@ -82,9 +150,11 @@ import {
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    window.location.href="login.html";
+    window.location.href = "login.html";
     return;
   }
+
+  const list = document.getElementById("list");
 
   const q = query(
     collection(db,"requests"),
@@ -94,23 +164,36 @@ onAuthStateChanged(auth, async (user)=>{
   );
 
   const res = await getDocs(q);
-  const list = document.getElementById("list");
   list.innerHTML = "";
 
   if(res.empty){
-    list.innerHTML = "<p>Aucune aide à domicile.</p>";
+    list.innerHTML = `
+      <div class="empty">
+        Aucune demande d’aide à domicile enregistrée.
+      </div>`;
     return;
   }
 
-  res.forEach(d=>{
-    const r = d.data();
+  res.forEach(docSnap=>{
+    const r = docSnap.data();
     const el = document.createElement("div");
-    el.className="card";
-    el.onclick = ()=>location.href=`detail-demande.html?id=${d.id}`;
+    el.className = "card";
+    el.onclick = () => {
+      window.location.href =
+        "detail-demande.html?id=" + docSnap.id;
+    };
+
     el.innerHTML = `
-      <strong>Demande d’aide à domicile</strong>
-      <div class="status ${r.status}">Statut : ${r.status}</div>
+      <h3>${r.payload?.need || "Aide à domicile"}</h3>
+      <p>Province : ${r.payload?.province || "—"}</p>
+      <p>Date :
+        ${r.createdAt?.toDate?.().toLocaleDateString() || "—"}
+      </p>
+      <span class="status ${r.status || "pending"}">
+        ${r.status || "pending"}
+      </span>
     `;
+
     list.appendChild(el);
   });
 });
