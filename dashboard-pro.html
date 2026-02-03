@@ -40,11 +40,9 @@ body{
   align-items:center;
 }
 .header strong{font-size:16px}
-.header button{
+.header span{
   font-size:13px;
   color:#8a1f1f;
-  background:none;
-  border:none;
   cursor:pointer;
 }
 
@@ -58,7 +56,7 @@ h1{font-size:20px;margin-bottom:16px}
   gap:16px;
 }
 @media(min-width:768px){
-  .list{grid-template-columns:1fr 1fr;}
+  .list{grid-template-columns:1fr 1fr}
 }
 
 /* CARD */
@@ -67,13 +65,38 @@ h1{font-size:20px;margin-bottom:16px}
   border-radius:var(--radius);
   padding:16px;
 }
-.card h3{font-size:15px;margin:0 0 6px}
-.card p{font-size:13.5px;margin:4px 0;color:var(--muted)}
+.card h3{
+  font-size:15px;
+  margin:0 0 6px;
+}
+.card p{
+  font-size:13.5px;
+  margin:4px 0;
+  color:var(--muted);
+}
 
-.status{font-size:12.5px;margin-top:6px}
+/* STATUS */
+.status{
+  font-size:12.5px;
+  margin-top:6px;
+}
 .pending{color:var(--orange)}
-.accepted{color:var(--green)}
 
+/* ACTION */
+button{
+  margin-top:12px;
+  padding:12px;
+  width:100%;
+  border:none;
+  border-radius:14px;
+  background:var(--blue);
+  color:#fff;
+  font-size:13.5px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* EMPTY */
 .empty{
   text-align:center;
   padding:40px 20px;
@@ -81,6 +104,7 @@ h1{font-size:20px;margin-bottom:16px}
   font-size:14px;
 }
 
+/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
@@ -96,7 +120,7 @@ h1{font-size:20px;margin-bottom:16px}
 
   <div class="header">
     <strong>Espace professionnel</strong>
-    <button id="logoutBtn">Déconnexion</button>
+    <span id="logoutBtn">Déconnexion</span>
   </div>
 
   <div class="content">
@@ -115,10 +139,14 @@ h1{font-size:20px;margin-bottom:16px}
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } 
+import { onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } 
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  doc, getDoc,
+  collection, query, where, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const listEl = document.getElementById("list");
 
 // Déconnexion
 document.getElementById("logoutBtn").onclick = async () => {
@@ -126,34 +154,29 @@ document.getElementById("logoutBtn").onclick = async () => {
   window.location.href = "/cizahealth/pro-login.html";
 };
 
-// 🔐 ATTEND FIREBASE (FIX CRITIQUE)
-onAuthStateChanged(auth, async (user) => {
-
-  // ⏳ Firebase n’a pas encore décidé
-  if (user === null) {
-    console.log("Aucun utilisateur connecté");
-    window.location.href = "/cizahealth/pro-login.html";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href="/cizahealth/pro-login.html";
     return;
   }
 
-  // 🔎 Vérifier rôle pro
-  const snap = await getDoc(doc(db, "users", user.uid));
-
-  if (!snap.exists()) {
+  // 🔐 Vérification pro
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()){
     await signOut(auth);
-    window.location.href = "/cizahealth/pro-login.html";
+    window.location.href="/cizahealth/pro-login.html";
     return;
   }
 
-  const u = snap.data();
+  const pro = snap.data();
 
-  if (u.role !== "doctor" && u.role !== "aide") {
+  if(pro.role !== "doctor" && pro.role !== "aide"){
     await signOut(auth);
-    window.location.href = "/cizahealth/pro-login.html";
+    window.location.href="/cizahealth/pro-login.html";
     return;
   }
 
-  if (u.status !== "validated") {
+  if(pro.status !== "validated"){
     document.body.innerHTML = `
       <div style="padding:24px;font-family:system-ui">
         <h2>⏳ Compte en attente de validation</h2>
@@ -166,8 +189,42 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // ✅ ICI SEULEMENT le dashboard est autorisé
-  console.log("Pro connecté :", u.role);
+  // 🔁 ÉCOUTE TEMPS RÉEL DES DEMANDES
+  const q = query(
+    collection(db,"requests"),
+    where("status","==","pending"),
+    where("type","==",
+      pro.role === "doctor" ? "teleconsultation" : "aide-domicile"
+    )
+  );
+
+  onSnapshot(q,(snap)=>{
+    listEl.innerHTML = "";
+
+    if(snap.empty){
+      listEl.innerHTML =
+        `<div class="empty">Aucune demande disponible pour le moment.</div>`;
+      return;
+    }
+
+    snap.forEach(docSnap=>{
+      const r = docSnap.data();
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${r.type === "teleconsultation"
+          ? "🩺 Téléconsultation"
+          : "🏠 Aide à domicile"}</h3>
+        <p><strong>Province :</strong> ${r.province || "—"}</p>
+        <p class="status pending">⏳ En attente</p>
+        <button onclick="alert('Étape suivante bientôt')">
+          Ouvrir la demande
+        </button>
+      `;
+      listEl.appendChild(card);
+    });
+  });
 });
 </script>
 
