@@ -155,29 +155,15 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
   const list = document.getElementById("list");
-  list.innerHTML = `<div class="empty">Chargement…</div>`;
 
-  // 🔎 1) ESSAI AVEC type = "aide-domicile"
-  let q = query(
+  const q = query(
     collection(db,"requests"),
     where("userId","==",user.uid),
-    where("type","==","aide-domicile"),
+    where("serviceType","==","aide-domicile"),
     orderBy("createdAt","desc")
   );
 
-  let res = await getDocs(q);
-
-  // 🔁 2) FALLBACK : anciens documents (service)
-  if(res.empty){
-    q = query(
-      collection(db,"requests"),
-      where("userId","==",user.uid),
-      where("service","==","aide-domicile"),
-      orderBy("createdAt","desc")
-    );
-    res = await getDocs(q);
-  }
-
+  const res = await getDocs(q);
   list.innerHTML = "";
 
   if(res.empty){
@@ -190,18 +176,6 @@ onAuthStateChanged(auth, async (user)=>{
 
   res.forEach(docSnap=>{
     const r = docSnap.data();
-
-    const province =
-      r.payload?.province || r.province || "—";
-
-    const need =
-      r.payload?.need || r.need || "Aide à domicile";
-
-    const created =
-      r.createdAt?.toDate?.().toLocaleDateString() || "—";
-
-    const status = r.status || "pending";
-
     const el = document.createElement("div");
     el.className = "card";
     el.onclick = () => {
@@ -210,11 +184,13 @@ onAuthStateChanged(auth, async (user)=>{
     };
 
     el.innerHTML = `
-      <h3>${need}</h3>
-      <p>Province : ${province}</p>
-      <p>Date : ${created}</p>
-      <span class="status ${status}">
-        ${status}
+      <h3>${r.payload?.need || "Aide à domicile"}</h3>
+      <p>Province : ${r.payload?.province || "—"}</p>
+      <p>Date :
+        ${r.createdAt?.toDate?.().toLocaleDateString() || "—"}
+      </p>
+      <span class="status ${r.status || "pending"}">
+        ${r.status || "pending"}
       </span>
     `;
 
