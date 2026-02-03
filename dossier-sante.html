@@ -10,19 +10,18 @@
   --blue:#0a2a5e;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
-
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
-  max-width:430px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -30,7 +29,7 @@ body{
   flex-direction:column;
 }
 
-/* TOP BAR */
+/* TOP */
 .topbar{
   padding:18px 20px;
 }
@@ -45,49 +44,61 @@ body{
   text-align:center;
   padding:10px 20px 0;
 }
-.header img{
-  height:120px;
-}
+.header img{height:90px}
 
 /* CONTENT */
 .content{
   padding:24px 20px;
 }
 h1{
-  font-size:20px;
+  font-size:22px;
   margin-bottom:6px;
 }
 .subtitle{
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:20px;
+  font-size:14.5px;
+  color:var(--muted);
+  margin-bottom:26px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:18px;
+}
+@media(min-width:768px){
+  .grid{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
 /* CARD */
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
-  padding:18px;
-  margin-bottom:16px;
+  padding:20px;
 }
 .card h3{
-  font-size:15px;
   margin:0 0 10px;
+  font-size:16px;
 }
 .card p{
-  font-size:13.5px;
+  font-size:14px;
   margin:6px 0;
+  color:var(--muted);
 }
 
-/* TAG */
-.tag{
+/* CTA */
+.btn{
   display:inline-block;
-  padding:4px 10px;
-  border-radius:12px;
-  font-size:11.5px;
-  font-weight:600;
+  margin-top:14px;
+  padding:12px 18px;
+  border-radius:14px;
   background:#eef3ff;
   color:var(--blue);
+  font-weight:600;
+  font-size:13.5px;
+  text-decoration:none;
 }
 
 /* FOOTER */
@@ -98,72 +109,6 @@ h1{
   font-size:12px;
   opacity:.65;
 }
-
-/* =========================
-   📱 RESPONSIVE – ALL DEVICES
-   ========================= */
-
-/* Tablettes */
-@media (min-width: 768px) {
-  .app{
-    max-width:720px;
-    border-radius:18px;
-  }
-  .content{
-    padding:32px;
-  }
-  h1{
-    font-size:24px;
-  }
-  .subtitle{
-    font-size:15.5px;
-  }
-  .card{
-    padding:22px;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .app{
-    max-width:900px;
-  }
-  .content{
-    padding:40px;
-  }
-  .card h3{
-    font-size:16.5px;
-  }
-  .card p{
-    font-size:14.5px;
-  }
-}
-
-/* Très petits écrans */
-@media (max-width: 360px) {
-  .content{
-    padding:18px 14px;
-  }
-  h1{
-    font-size:18px;
-  }
-  .card{
-    padding:14px;
-  }
-  .card p{
-    font-size:12.8px;
-  }
-}
-
-/* Landscape mobile */
-@media (max-height: 480px) and (orientation: landscape) {
-  .header img{
-    height:90px;
-  }
-  .content{
-    padding-top:16px;
-  }
-}
 </style>
 </head>
 
@@ -171,7 +116,7 @@ h1{
 <div class="app">
 
   <div class="topbar">
-    <a href="dashboard-client.html" class="back">← Retour</a>
+    <a href="dashboard-client.html" class="back">← Tableau de bord</a>
   </div>
 
   <div class="header">
@@ -181,32 +126,36 @@ h1{
   <div class="content">
     <h1>Dossier médical</h1>
     <div class="subtitle">
-      Identité médicale et historique de vos demandes.
+      Identité médicale et résumé de vos services de santé.
     </div>
 
     <!-- IDENTITÉ -->
     <div class="card" id="patientCard">
-      <p>Chargement…</p>
+      Chargement…
     </div>
 
-    <!-- HISTORIQUE TELECONSULTATION -->
-    <div class="card">
-      <h3>Historique des téléconsultations</h3>
-      <div id="teleList">
-        <p style="opacity:.7">Chargement…</p>
+    <!-- RÉSUMÉS -->
+    <div class="grid">
+
+      <!-- TELECONSULTATION -->
+      <div class="card">
+        <h3>🩺 Téléconsultations</h3>
+        <p id="teleSummary">Chargement…</p>
+        <a href="historique-teleconsultation.html" class="btn">
+          Voir toutes les téléconsultations
+        </a>
       </div>
-      <span class="tag">Téléconsultations</span>
-    </div>
 
-    <!-- HISTORIQUE AIDE DOMICILE -->
-    <div class="card">
-      <h3>Historique des aides à domicile</h3>
-      <div id="homeList">
-        <p style="opacity:.7">Chargement…</p>
+      <!-- AIDE DOMICILE -->
+      <div class="card">
+        <h3>🏠 Aide à domicile</h3>
+        <p id="homeSummary">Chargement…</p>
+        <a href="historique-aide-domicile.html" class="btn">
+          Voir toutes les aides à domicile
+        </a>
       </div>
-      <span class="tag">Aide à domicile</span>
-    </div>
 
+    </div>
   </div>
 
   <div class="footer">
@@ -215,14 +164,13 @@ h1{
 
 </div>
 
-<!-- 🔐 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc,
-  collection, query, where, orderBy, getDocs
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 onAuthStateChanged(auth, async (user) => {
@@ -231,7 +179,7 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // 👤 DOSSIER PATIENT
+  // 👤 PATIENT
   const snap = await getDoc(doc(db,"patients",user.uid));
   if(!snap.exists()){
     document.getElementById("patientCard").innerHTML =
@@ -248,55 +196,29 @@ onAuthStateChanged(auth, async (user) => {
     <p><strong>ID médical :</strong> ${p.patientId || "—"}</p>
   `;
 
-  // 📄 TELECONSULTATIONS
+  // 📊 TELECONSULTATIONS
   const teleQ = query(
     collection(db,"requests"),
     where("userId","==",user.uid),
-    where("type","==","teleconsultation"),
-    orderBy("createdAt","desc")
+    where("type","==","teleconsultation")
   );
-
   const teleRes = await getDocs(teleQ);
-  const teleList = document.getElementById("teleList");
-  teleList.innerHTML = "";
+  document.getElementById("teleSummary").innerText =
+    teleRes.size === 0
+      ? "Aucune téléconsultation enregistrée."
+      : `${teleRes.size} téléconsultation(s) enregistrée(s).`;
 
-  if(teleRes.empty){
-    teleList.innerHTML =
-      "<p style='opacity:.7'>Aucune téléconsultation.</p>";
-  } else {
-    teleRes.forEach(d => {
-      const r = d.data();
-      const el = document.createElement("p");
-      el.textContent =
-        "• Téléconsultation — statut : " + (r.status || "pending");
-      teleList.appendChild(el);
-    });
-  }
-
-  // 🏠 AIDE À DOMICILE
+  // 📊 AIDE DOMICILE
   const homeQ = query(
     collection(db,"requests"),
     where("userId","==",user.uid),
-    where("type","==","aide-domicile"),
-    orderBy("createdAt","desc")
+    where("type","==","aide-domicile")
   );
-
   const homeRes = await getDocs(homeQ);
-  const homeList = document.getElementById("homeList");
-  homeList.innerHTML = "";
-
-  if(homeRes.empty){
-    homeList.innerHTML =
-      "<p style='opacity:.7'>Aucune aide à domicile.</p>";
-  } else {
-    homeRes.forEach(d => {
-      const r = d.data();
-      const el = document.createElement("p");
-      el.textContent =
-        "• Aide à domicile — statut : " + (r.status || "pending");
-      homeList.appendChild(el);
-    });
-  }
+  document.getElementById("homeSummary").innerText =
+    homeRes.size === 0
+      ? "Aucune aide à domicile enregistrée."
+      : `${homeRes.size} demande(s) d’aide à domicile enregistrée(s).`;
 });
 </script>
 
