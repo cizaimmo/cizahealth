@@ -142,74 +142,59 @@ button{
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged, signOut } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.getElementById("logoutBtn").onclick = async ()=>{
+// Déconnexion
+document.querySelector("a[href='pro-login.html']").onclick = async () => {
   await signOut(auth);
-  location.href="index.html";
+  window.location.href = "pro-login.html";
 };
 
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    location.href="login.html";
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "pro-login.html";
     return;
   }
 
-  // 🔐 Vérifier rôle pro
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  if(!userSnap.exists() || !["doctor","aide"].includes(userSnap.data().role)){
-    alert("Accès réservé aux professionnels");
+  // 🔐 LECTURE FIRESTORE
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if (!snap.exists()) {
+    alert("Compte professionnel introuvable");
+    await signOut(auth);
+    window.location.href = "pro-login.html";
     return;
   }
 
-  const role = userSnap.data().role;
-  const list = document.getElementById("list");
+  const u = snap.data();
 
-  const q = query(
-    collection(db,"requests"),
-    where("status","==","pending"),
-    where("type","==", role==="doctor" ? "teleconsultation" : "aide-domicile"),
-    orderBy("createdAt","desc")
-  );
-
-  const res = await getDocs(q);
-  list.innerHTML = "";
-
-  if(res.empty){
-    list.innerHTML = `<div class="empty">Aucune demande en attente.</div>`;
+  // ❌ PAS PRO
+  if (u.role !== "doctor" && u.role !== "aide") {
+    alert("Accès non autorisé");
+    await signOut(auth);
+    window.location.href = "pro-login.html";
     return;
   }
 
-  res.forEach(snap=>{
-    const r = snap.data();
-    const p = r.payload || {};
-
-    const card = document.createElement("div");
-    card.className="card";
-
-    card.innerHTML = `
-      <h3>${r.type === "teleconsultation" ? "Téléconsultation" : "Aide à domicile"}</h3>
-      <p><strong>Âge :</strong> ${p.age ?? "—"}</p>
-      <p><strong>Province :</strong> ${p.province || "—"}</p>
-      <p><strong>Motif :</strong> ${p.symptom || p.need || "—"}</p>
-      <div class="status pending">En attente</div>
-      <button>Prendre en charge</button>
+  // ⏳ PAS VALIDÉ
+  if (u.status !== "validated") {
+    document.body.innerHTML = `
+      <div style="padding:24px;font-family:system-ui">
+        <h2>⏳ Compte en attente de validation</h2>
+        <p>
+          Votre compte professionnel est en cours de validation
+          par l’équipe CizaHealth+.
+        </p>
+      </div>
     `;
+    return;
+  }
 
-    card.querySelector("button").onclick = async ()=>{
-      await updateDoc(doc(db,"requests",snap.id),{
-        status:"accepted",
-        assignedTo:user.uid
-      });
-      location.href = "detail-demande.html?id=" + snap.id;
-    };
-
-    list.appendChild(card);
-  });
+  // ✅ VALIDÉ → dashboard normal
+  console.log("Professionnel validé :", u.fullName);
 });
 </script>
 
