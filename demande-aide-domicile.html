@@ -14,6 +14,7 @@
   --muted:#6b7a90;
   --radius:22px;
 }
+
 *{box-sizing:border-box}
 
 body{
@@ -23,8 +24,9 @@ body{
   color:var(--text);
 }
 
+/* APP CONTAINER */
 .app{
-  max-width:430px;
+  max-width:520px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -34,60 +36,71 @@ body{
 
 /* TOP */
 .topbar{
-  padding:18px 22px;
+  padding:16px 18px;
 }
 .back{
   text-decoration:none;
   color:var(--green);
-  font-weight:500;
+  font-weight:600;
 }
 
 /* FORM */
 .section{
-  padding:22px;
+  padding:20px;
 }
+
 .group{
   margin-bottom:16px;
 }
+
 label{
   display:block;
   font-size:13px;
   margin-bottom:6px;
   color:#1f3f34;
 }
+
 input, select, textarea{
   width:100%;
   padding:14px;
-  border-radius:14px;
+  border-radius:16px;
   border:1.5px solid #dfe5f0;
-  font-size:14px;
+  font-size:15px;
+  background:#fff;
 }
+
 input[readonly]{
   background:#f0f3f9;
 }
+
 textarea{
   resize:none;
-  height:90px;
+  min-height:90px;
 }
 
 /* CTA */
 .cta{
-  margin-top:18px;
+  margin-top:22px;
   padding:16px;
-  border-radius:18px;
+  border-radius:20px;
   background:linear-gradient(135deg,#3b8f6b,#4da783);
   color:#fff;
   text-align:center;
-  font-weight:600;
+  font-weight:700;
   border:none;
   width:100%;
-  font-size:15px;
+  font-size:16px;
   cursor:pointer;
+  transition:.2s ease;
 }
-.cta:active{opacity:.85}
-.cta[disabled]{opacity:.6;cursor:not-allowed}
 
-/* FOOTER MINIMAL */
+.cta:active{transform:scale(.98)}
+.cta[disabled]{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+/* FOOTER */
 .footer-min{
   margin-top:auto;
   text-align:center;
@@ -95,9 +108,19 @@ textarea{
   font-size:12px;
   color:#8a95a8;
 }
+
 .footer-min img{
-  height:40px;
+  height:36px;
   margin-bottom:6px;
+}
+
+/* DESKTOP IMPROVEMENT */
+@media(min-width:768px){
+  .app{
+    margin:30px auto;
+    border-radius:28px;
+    box-shadow:0 18px 60px rgba(10,42,94,.08);
+  }
 }
 </style>
 </head>
@@ -124,6 +147,7 @@ textarea{
     <div class="group">
       <label>Province</label>
       <select id="province">
+        <option value="">Sélectionner</option>
         <option>Bujumbura</option>
         <option>Gitega</option>
         <option>Ngozi</option>
@@ -140,6 +164,7 @@ textarea{
     <div class="group">
       <label>Type d’aide demandée</label>
       <select id="need">
+        <option value="">Sélectionner</option>
         <option>Accompagnement personne âgée</option>
         <option>Aide quotidienne</option>
         <option>Assistance post-hospitalisation</option>
@@ -150,6 +175,7 @@ textarea{
     <div class="group">
       <label>Période souhaitée</label>
       <select id="period">
+        <option value="">Sélectionner</option>
         <option>Urgent (aujourd’hui)</option>
         <option>Dans les prochains jours</option>
         <option>Planifié</option>
@@ -172,14 +198,33 @@ textarea{
 
 </div>
 
-<!-- 🔥 PRODUCTION: AUTH + PATIENT + zCREATE REQUEST -->
+<!-- 🔥 LOGIQUE FORMULAIRE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  collection, query, where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, addDoc, collection, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const submitBtn = document.getElementById("submitBtn");
+const province = document.getElementById("province");
+const address = document.getElementById("address");
+const need = document.getElementById("need");
+const period = document.getElementById("period");
+
+function validateForm(){
+  submitBtn.disabled = !(
+    province.value &&
+    address.value.trim().length > 5 &&
+    need.value &&
+    period.value
+  );
+}
+
+[province, address, need, period].forEach(el=>{
+  el.addEventListener("input", validateForm);
+  el.addEventListener("change", validateForm);
+});
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
@@ -187,48 +232,32 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  const list = document.getElementById("list");
-
-  const q = query(
-    collection(db,"requests"),
-    where("userId","==",user.uid),
-    where("serviceType","==","aide-domicile")
-  );
-
-  const res = await getDocs(q);
-  list.innerHTML = "";
-
-  if(res.empty){
-    list.innerHTML = `
-      <div class="empty">
-        Aucune demande d’aide à domicile enregistrée.
-      </div>`;
-    return;
+  const patientSnap = await getDoc(doc(db,"patients",user.uid));
+  if(patientSnap.exists()){
+    const p = patientSnap.data();
+    document.getElementById("fullName").value = p.fullName || "—";
+    document.getElementById("patientId").value = p.patientId || "—";
   }
 
-  res.forEach(docSnap=>{
-    const r = docSnap.data();
+  submitBtn.onclick = async ()=>{
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Envoi en cours…";
 
-    const el = document.createElement("div");
-    el.className = "card";
-    el.onclick = () => {
-      window.location.href =
-        "detail-demande.html?id=" + docSnap.id;
-    };
+    await addDoc(collection(db,"requests"),{
+      userId: user.uid,
+      serviceType: "aide-domicile",
+      status: "pending",
+      createdAt: serverTimestamp(),
+      payload:{
+        province: province.value,
+        address: address.value.trim(),
+        need: need.value,
+        period: period.value
+      }
+    });
 
-    el.innerHTML = `
-      <h3>${r.payload?.need || "Aide à domicile"}</h3>
-      <p>Province : ${r.payload?.province || "—"}</p>
-      <p>Date :
-        ${r.createdAt?.toDate?.().toLocaleDateString() || "—"}
-      </p>
-      <span class="status ${r.status || "pending"}">
-        ${r.status || "pending"}
-      </span>
-    `;
-
-    list.appendChild(el);
-  });
+    window.location.href = "historique-aide-domicile.html";
+  };
 });
 </script>
 
