@@ -115,25 +115,31 @@ h1{font-size:20px;margin-bottom:16px}
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged, signOut } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc }
+import { doc, getDoc } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ✅ Déconnexion SAFE
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+// Déconnexion
+document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   window.location.href = "/cizahealth/pro-login.html";
-});
+};
 
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
+// 🔐 ATTEND FIREBASE (FIX CRITIQUE)
+onAuthStateChanged(auth, async (user) => {
+
+  // ⏳ Firebase n’a pas encore décidé
+  if (user === null) {
+    console.log("Aucun utilisateur connecté");
     window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()){
+  // 🔎 Vérifier rôle pro
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if (!snap.exists()) {
     await signOut(auth);
     window.location.href = "/cizahealth/pro-login.html";
     return;
@@ -141,28 +147,27 @@ onAuthStateChanged(auth, async (user)=>{
 
   const u = snap.data();
 
-  if(u.role !== "doctor" && u.role !== "aide"){
+  if (u.role !== "doctor" && u.role !== "aide") {
     await signOut(auth);
     window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
-  if(u.status !== "validated"){
-    document.getElementById("list").innerHTML = `
-      <div class="empty">
-        ⏳ Compte en attente de validation par CizaHealth+
+  if (u.status !== "validated") {
+    document.body.innerHTML = `
+      <div style="padding:24px;font-family:system-ui">
+        <h2>⏳ Compte en attente de validation</h2>
+        <p>
+          Votre compte professionnel est en cours de validation
+          par l’équipe CizaHealth+.
+        </p>
       </div>
     `;
     return;
   }
 
-  // ✅ PRO VALIDÉ
-  console.log("Professionnel connecté :", u.fullName);
-  document.getElementById("list").innerHTML = `
-    <div class="empty">
-      Aucune demande disponible pour le moment.
-    </div>
-  `;
+  // ✅ ICI SEULEMENT le dashboard est autorisé
+  console.log("Pro connecté :", u.role);
 });
 </script>
 
