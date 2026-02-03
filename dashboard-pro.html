@@ -12,17 +12,18 @@
   --orange:#c58a00;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
 .app{
-  max-width:430px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -38,23 +39,26 @@ body{
   justify-content:space-between;
   align-items:center;
 }
-.header strong{
-  font-size:16px;
-}
-.header a{
+.header strong{font-size:16px}
+.header span{
   font-size:13px;
   color:#8a1f1f;
-  text-decoration:none;
+  cursor:pointer;
 }
 
 /* CONTENT */
-.content{
-  padding:20px;
+.content{padding:20px}
+h1{font-size:20px;margin-bottom:16px}
+
+/* GRID */
+.list{
+  display:grid;
+  gap:16px;
 }
-.section-title{
-  font-size:15px;
-  font-weight:600;
-  margin-bottom:14px;
+@media(min-width:768px){
+  .list{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
 /* CARD */
@@ -62,16 +66,15 @@ body{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
   padding:16px;
-  margin-bottom:16px;
 }
 .card h3{
-  font-size:14px;
+  font-size:15px;
   margin:0 0 6px;
 }
 .card p{
-  font-size:13px;
+  font-size:13.5px;
   margin:4px 0;
-  opacity:.85;
+  color:var(--muted);
 }
 
 /* STATUS */
@@ -80,29 +83,28 @@ body{
   margin-top:6px;
 }
 .pending{color:var(--orange)}
-.ready{color:var(--green)}
+.accepted{color:var(--green)}
 
-/* ACTIONS */
-.actions{
+/* ACTION */
+button{
   margin-top:12px;
-  display:grid;
-  gap:10px;
-}
-.actions button{
   padding:12px;
-  border-radius:14px;
+  width:100%;
   border:none;
+  border-radius:14px;
+  background:var(--blue);
+  color:#fff;
   font-size:13.5px;
   font-weight:600;
   cursor:pointer;
 }
-.primary{
-  background:var(--blue);
-  color:#fff;
-}
-.secondary{
-  background:#eef1f6;
-  color:var(--blue);
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+  font-size:14px;
 }
 
 /* FOOTER */
@@ -114,77 +116,21 @@ body{
   opacity:.65;
 }
 </style>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-
-  /* 🔐 ROLE PROFESSIONNEL (simulation) */
-  const proRole = localStorage.getItem("proRole") || "doctor";
-  const request = JSON.parse(localStorage.getItem("currentRequest"));
-
-  if(!request) return;
-
-  document.getElementById("ref").innerText = request.dossier;
-  document.getElementById("service").innerText = request.service || "—";
-  document.getElementById("province").innerText = request.province;
-
-  const actionBtn = document.getElementById("primaryAction");
-  const resumeBtn = document.getElementById("resumeBtn");
-
-  if(proRole === "aide"){
-    actionBtn.innerText = "Démarrer l’intervention";
-    actionBtn.onclick = () => {
-      localStorage.setItem("interventionStatus","in_progress");
-      window.location.href = "intervention-domicile-en-cours.html";
-    };
-    resumeBtn.style.display = "none";
-  }else{
-    actionBtn.innerText = "Démarrer la téléconsultation";
-    actionBtn.onclick = () => {
-      localStorage.setItem("consultationStatus","in_progress");
-      window.location.href = "appel-pro.html";
-    };
-  }
-});
-</script>
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <strong>Espace professionnel</strong>
-    <a href="pro-login.html">Déconnexion</a>
+    <span id="logoutBtn">Déconnexion</span>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-
-    <div class="section-title">Demande assignée</div>
-
-    <div class="card">
-      <h3>Dossier n° <span id="ref">—</span></h3>
-      <p><strong>Service :</strong> <span id="service">—</span></p>
-      <p><strong>Province :</strong> <span id="province">—</span></p>
-
-      <div class="status ready">
-        ✔ Paiement validé – prêt à intervenir
-      </div>
-
-      <div class="actions">
-        <button id="primaryAction" class="primary">
-          —
-        </button>
-
-        <button id="resumeBtn" class="secondary"
-          onclick="location.href='resume-consultation.html'">
-          Rédiger le résumé médical
-        </button>
-      </div>
+    <h1>Demandes en attente</h1>
+    <div id="list" class="list">
+      <div class="empty">Chargement…</div>
     </div>
-
   </div>
 
   <div class="footer">
@@ -192,6 +138,80 @@ document.addEventListener("DOMContentLoaded",()=>{
   </div>
 
 </div>
+
+<!-- 🔥 FIREBASE -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+document.getElementById("logoutBtn").onclick = async ()=>{
+  await signOut(auth);
+  location.href="index.html";
+};
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  // 🔐 Vérifier rôle pro
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  if(!userSnap.exists() || !["doctor","aide"].includes(userSnap.data().role)){
+    alert("Accès réservé aux professionnels");
+    return;
+  }
+
+  const role = userSnap.data().role;
+  const list = document.getElementById("list");
+
+  const q = query(
+    collection(db,"requests"),
+    where("status","==","pending"),
+    where("type","==", role==="doctor" ? "teleconsultation" : "aide-domicile"),
+    orderBy("createdAt","desc")
+  );
+
+  const res = await getDocs(q);
+  list.innerHTML = "";
+
+  if(res.empty){
+    list.innerHTML = `<div class="empty">Aucune demande en attente.</div>`;
+    return;
+  }
+
+  res.forEach(snap=>{
+    const r = snap.data();
+    const p = r.payload || {};
+
+    const card = document.createElement("div");
+    card.className="card";
+
+    card.innerHTML = `
+      <h3>${r.type === "teleconsultation" ? "Téléconsultation" : "Aide à domicile"}</h3>
+      <p><strong>Âge :</strong> ${p.age ?? "—"}</p>
+      <p><strong>Province :</strong> ${p.province || "—"}</p>
+      <p><strong>Motif :</strong> ${p.symptom || p.need || "—"}</p>
+      <div class="status pending">En attente</div>
+      <button>Prendre en charge</button>
+    `;
+
+    card.querySelector("button").onclick = async ()=>{
+      await updateDoc(doc(db,"requests",snap.id),{
+        status:"accepted",
+        assignedTo:user.uid
+      });
+      location.href = "detail-demande.html?id=" + snap.id;
+    };
+
+    list.appendChild(card);
+  });
+});
+</script>
 
 </body>
 </html>
