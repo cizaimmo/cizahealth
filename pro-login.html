@@ -19,7 +19,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:430px;
   margin:auto;
@@ -28,30 +27,18 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
+.topbar{ padding:18px 20px; }
 .back{
   text-decoration:none;
   color:var(--blue);
   font-weight:600;
 }
-
-/* HEADER */
 .header{
   text-align:center;
   padding:10px 20px 0;
 }
-.header img{
-  height:120px;
-}
-
-/* CONTENT */
-.content{
-  padding:24px 20px;
-}
+.header img{ height:120px; }
+.content{ padding:24px 20px; }
 h1{
   font-size:20px;
   margin-bottom:8px;
@@ -63,8 +50,6 @@ h1{
   opacity:.85;
   margin-bottom:24px;
 }
-
-/* FORM */
 label{
   display:block;
   margin-top:18px;
@@ -79,11 +64,7 @@ input{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-
-/* CTA */
-.cta{
-  margin-top:28px;
-}
+.cta{ margin-top:28px; }
 .cta button{
   width:100%;
   padding:16px;
@@ -99,8 +80,6 @@ input{
   background:var(--blue);
   cursor:pointer;
 }
-
-/* LINKS */
 .links{
   margin-top:18px;
   text-align:center;
@@ -112,8 +91,6 @@ input{
   color:var(--blue);
   text-decoration:none;
 }
-
-/* INFO BOX */
 .info-box{
   margin-top:26px;
   border:1.6px solid #e6ebf5;
@@ -122,8 +99,6 @@ input{
   font-size:13px;
   opacity:.85;
 }
-
-/* FOOTER */
 .footer-separator{
   height:1px;
   background:linear-gradient(to right,transparent,#d0d7e5,transparent);
@@ -139,44 +114,28 @@ input{
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <a href="index.html" class="back">← Retour</a>
   </div>
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <h1>Espace professionnel</h1>
-    <div class="subtitle">
-      Médecins & Infirmiers partenaires
-    </div>
+    <div class="subtitle">Médecins & Infirmiers partenaires</div>
 
     <label>Email professionnel</label>
-    <input
-      id="emailInput"
-      type="email"
-      placeholder="ex: nom@hopital.bi"
-    >
+    <input id="emailInput" type="email" placeholder="ex: nom@hopital.bi">
 
     <label>Mot de passe</label>
-    <input
-      id="passwordInput"
-      type="password"
-      placeholder="••••••••"
-    >
+    <input id="passwordInput" type="password" placeholder="••••••••">
 
     <div class="cta">
-      <button id="loginBtn" disabled>
-        Se connecter
-      </button>
+      <button id="loginBtn" disabled>Se connecter</button>
     </div>
 
     <div class="links">
@@ -185,16 +144,11 @@ input{
     </div>
 
     <div class="info-box">
-      ⚠️ L’accès à la plateforme est soumis à la validation
-      des documents professionnels (diplôme, autorisation,
-      identité).  
-      <br><br>
-      Aucun patient ne peut vous contacter sans validation
-      officielle par CizaHealth+.
+      ⚠️ L’accès est réservé aux professionnels de santé validés
+      par CizaHealth+ (documents requis).
     </div>
   </div>
 
-  <!-- FOOTER -->
   <div class="footer-separator"></div>
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
@@ -202,11 +156,14 @@ input{
 
 </div>
 
-<!-- 🔐 AUTH PRO — FIREBASE (PRODUCTION) -->
+<!-- 🔐 AUTH PRO — FIREBASE (SESSION FIXÉE) -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -234,19 +191,19 @@ loginBtn.addEventListener("click", async () => {
   loginBtn.innerText = "Connexion…";
 
   try {
-    // 1️⃣ Firebase Auth
+    // ✅ PERSISTANCE (FIX CRITIQUE)
+    await setPersistence(auth, browserLocalPersistence);
+
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ Vérifier rôle & statut
-    const snap = await getDoc(doc(db, "users", uid));
+    const snap = await getDoc(doc(db,"users",uid));
     if(!snap.exists()){
-      alert("Compte professionnel introuvable");
+      alert("Compte introuvable");
       return;
     }
 
     const u = snap.data();
-
     if(u.role !== "doctor" && u.role !== "aide"){
       alert("Accès réservé aux professionnels de santé");
       return;
@@ -257,7 +214,6 @@ loginBtn.addEventListener("click", async () => {
       return;
     }
 
-    // 3️⃣ OK
     window.location.href = "pro-dashboard.html";
 
   } catch(e){
