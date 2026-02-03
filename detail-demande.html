@@ -8,7 +8,6 @@
 <style>
 :root{
   --blue:#123c8a;
-  --green:#3b8f6b;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
@@ -28,7 +27,6 @@ body{
   background:#fff;
   display:flex;
   flex-direction:column;
-  box-shadow:0 12px 50px rgba(10,42,94,.08);
 }
 .topbar{
   padding:18px 22px;
@@ -118,13 +116,21 @@ const params = new URLSearchParams(window.location.search);
 const requestId = params.get("id");
 
 onAuthStateChanged(auth, async (user)=>{
-  if(!user){ location.href="login.html"; return; }
+  if(!user){
+    location.href="login.html";
+    return;
+  }
 
-  const snap = await getDoc(doc(db,"requests",requestId));
-  if(!snap.exists()) return alert("Demande introuvable");
+  // 🔹 DEMANDE
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Demande introuvable");
 
-  const r = snap.data();
+  const r = reqSnap.data();
   if(r.userId !== user.uid) return alert("Accès refusé");
+
+  // 🔹 PATIENT (SOURCE DE L’ÂGE)
+  const patientSnap = await getDoc(doc(db,"patients",user.uid));
+  const patient = patientSnap.exists() ? patientSnap.data() : {};
 
   const p = r.payload || {};
   const isTele = r.type === "teleconsultation";
@@ -137,8 +143,12 @@ onAuthStateChanged(auth, async (user)=>{
     "Demande enregistrée le " +
     (r.createdAt?.toDate?.().toLocaleDateString() || "—");
 
-  document.getElementById("age").innerText = p.age ?? "—";
-  document.getElementById("province").innerText = p.province || "—";
+  // ✅ CORRIGÉ
+  document.getElementById("age").innerText =
+    patient.age !== undefined ? patient.age : "—";
+
+  document.getElementById("province").innerText =
+    p.province || patient.province || "—";
 
   const details = document.getElementById("details");
 
