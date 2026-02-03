@@ -28,28 +28,23 @@ body{
   flex-direction:column;
 }
 .topbar{ padding:18px 20px; }
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
+.back{ text-decoration:none;color:var(--blue);font-weight:600; }
+
 .header{
   text-align:center;
   padding:10px 20px 0;
 }
 .header img{ height:120px; }
+
 .content{ padding:24px 20px; }
-h1{
-  font-size:20px;
-  margin-bottom:8px;
-  text-align:center;
-}
+h1{ font-size:20px;margin-bottom:8px;text-align:center; }
 .subtitle{
   font-size:14px;
   text-align:center;
   opacity:.85;
   margin-bottom:24px;
 }
+
 label{
   display:block;
   margin-top:18px;
@@ -64,6 +59,7 @@ input{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
+
 .cta{ margin-top:28px; }
 .cta button{
   width:100%;
@@ -80,6 +76,7 @@ input{
   background:var(--blue);
   cursor:pointer;
 }
+
 .links{
   margin-top:18px;
   text-align:center;
@@ -91,6 +88,7 @@ input{
   color:var(--blue);
   text-decoration:none;
 }
+
 .info-box{
   margin-top:26px;
   border:1.6px solid #e6ebf5;
@@ -99,6 +97,7 @@ input{
   font-size:13px;
   opacity:.85;
 }
+
 .footer-separator{
   height:1px;
   background:linear-gradient(to right,transparent,#d0d7e5,transparent);
@@ -117,7 +116,7 @@ input{
 <div class="app">
 
   <div class="topbar">
-    <a href="index.html" class="back">← Retour</a>
+    <a href="/cizahealth/index.html" class="back">← Retour</a>
   </div>
 
   <div class="header">
@@ -139,13 +138,13 @@ input{
     </div>
 
     <div class="links">
-      <a href="pro-register.html">Créer un compte professionnel</a>
+      <a href="/cizahealth/pro-register.html">Créer un compte professionnel</a>
       <a href="#">Mot de passe oublié</a>
     </div>
 
     <div class="info-box">
-      ⚠️ L’accès est réservé aux professionnels de santé validés
-      par CizaHealth+ (documents requis).
+      ⚠️ Accès réservé aux professionnels validés par CizaHealth+
+      (documents requis).
     </div>
   </div>
 
@@ -156,7 +155,7 @@ input{
 
 </div>
 
-<!-- 🔐 AUTH PRO — FIREBASE (SESSION FIXÉE) -->
+<!-- 🔐 AUTH PRO — FIREBASE (STABLE + PERSISTANT) -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
@@ -184,42 +183,38 @@ emailInput.addEventListener("input", validateForm);
 passwordInput.addEventListener("input", validateForm);
 
 loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
   loginBtn.disabled = true;
   loginBtn.innerText = "Connexion…";
 
   try {
-    // ✅ PERSISTANCE (FIX CRITIQUE)
     await setPersistence(auth, browserLocalPersistence);
 
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      emailInput.value.trim(),
+      passwordInput.value
+    );
 
+    const uid = cred.user.uid;
     const snap = await getDoc(doc(db,"users",uid));
-    if(!snap.exists()){
-      alert("Compte introuvable");
-      return;
-    }
+
+    if(!snap.exists()) throw "Compte introuvable";
 
     const u = snap.data();
-    if(u.role !== "doctor" && u.role !== "aide"){
-      alert("Accès réservé aux professionnels de santé");
-      return;
-    }
+    if(u.role !== "doctor" && u.role !== "aide")
+      throw "Accès réservé aux professionnels";
 
     if(u.status !== "validated"){
-      window.location.href = "pro-attente.html";
+      window.location.href = "/cizahealth/pro-attente.html";
       return;
     }
 
-    window.location.href = "dashboard-pro.html";
+    // ✅ REDIRECTION ABSOLUE (FIX 404)
+    window.location.href = "/cizahealth/dashboard-pro.html";
 
   } catch(e){
-    alert("Email ou mot de passe incorrect");
+    alert("Connexion refusée");
     console.error(e);
-  } finally{
     loginBtn.disabled = false;
     loginBtn.innerText = "Se connecter";
   }
