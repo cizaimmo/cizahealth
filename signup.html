@@ -9,32 +9,42 @@
 :root{
   --blue:#0a2a5e;
   --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:18px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
+  color:var(--text);
 }
 .app{
-  max-width:430px;
+  max-width:420px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  padding:24px;
+  padding:26px 22px;
 }
 h1{
-  font-size:20px;
+  font-size:22px;
   text-align:center;
-  margin-bottom:24px;
+  margin-bottom:10px;
+}
+.subtitle{
+  text-align:center;
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:26px;
 }
 label{
   display:block;
   margin-top:16px;
   font-weight:600;
-  font-size:14px;
+  font-size:13.5px;
 }
-input{
+input, select{
   width:100%;
   margin-top:8px;
   padding:14px;
@@ -54,11 +64,15 @@ button{
   font-size:15px;
   cursor:pointer;
 }
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
 .note{
   margin-top:18px;
-  font-size:13px;
+  font-size:12.5px;
   text-align:center;
-  opacity:.7;
+  color:var(--muted);
 }
 </style>
 </head>
@@ -67,10 +81,35 @@ button{
 
 <div class="app">
 
-  <h1>Créer un compte</h1>
+  <h1>Créer un compte patient</h1>
+  <div class="subtitle">
+    Informations nécessaires à votre dossier médical
+  </div>
 
   <label>Nom complet</label>
   <input id="fullName" placeholder="Nom et prénom">
+
+  <label>Genre</label>
+  <select id="gender">
+    <option value="">Sélectionner</option>
+    <option value="male">Homme</option>
+    <option value="female">Femme</option>
+    <option value="other">Autre</option>
+  </select>
+
+  <label>Âge</label>
+  <input id="age" type="number" min="0" max="120" placeholder="Ex : 32">
+
+  <label>Province</label>
+  <select id="province">
+    <option value="">Sélectionner</option>
+    <option>Bujumbura</option>
+    <option>Gitega</option>
+    <option>Ngozi</option>
+    <option>Kayanza</option>
+    <option>Muyinga</option>
+    <option>Rutana</option>
+  </select>
 
   <label>Email</label>
   <input id="email" type="email" placeholder="ex: nom@email.com">
@@ -81,76 +120,78 @@ button{
   <button id="signupBtn">Créer mon compte</button>
 
   <div class="note">
-    Après création du compte, vous serez invité à vous connecter.
+    Après inscription, vous devrez vous connecter pour accéder
+    à votre espace patient.
   </div>
 
 </div>
 
-<!-- 🔐 SIGNUP — MODE PRODUCTION -->
+<!-- 🔐 SIGNUP – FIREBASE PRODUCTION -->
 <script type="module">
-  import { auth, db } from "./firebase.js";
-  import {
-    createUserWithEmailAndPassword,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import {
-    doc,
-    setDoc,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import {
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const signupBtn = document.getElementById("signupBtn");
+const btn = document.getElementById("signupBtn");
 
-  signupBtn.addEventListener("click", async () => {
+btn.addEventListener("click", async () => {
 
-    const fullName = document.getElementById("fullName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+  const fullName = document.getElementById("fullName").value.trim();
+  const gender   = document.getElementById("gender").value;
+  const age      = Number(document.getElementById("age").value);
+  const province = document.getElementById("province").value;
+  const email    = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-    if (!fullName || !email || !password) {
-      alert("Veuillez remplir tous les champs");
-      return;
-    }
+  if(!fullName || !gender || !age || !province || !email || !password){
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
 
-    signupBtn.disabled = true;
-    signupBtn.innerText = "Création du compte…";
+  btn.disabled = true;
+  btn.innerText = "Création du compte…";
 
-    try {
-      // 1️⃣ Auth Firebase
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
+  try{
+    // 1️⃣ AUTH
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
 
-      // 2️⃣ users/{uid}
-      await setDoc(doc(db, "users", uid), {
-        role: "patient",
-        status: "active",
-        email,
-        createdAt: serverTimestamp()
-      });
+    // 2️⃣ USERS
+    await setDoc(doc(db,"users",uid),{
+      role: "patient",
+      email,
+      status: "active",
+      createdAt: serverTimestamp()
+    });
 
-      // 3️⃣ patients/{uid} — dossier médical
-      await setDoc(doc(db, "patients", uid), {
-        userId: uid,
-        fullName: fullName,
-        age: null,
-        province: "",
-        patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
-        createdAt: serverTimestamp()
-      });
+    // 3️⃣ PATIENTS (DOSSIER MÉDICAL)
+    await setDoc(doc(db,"patients",uid),{
+      userId: uid,
+      fullName,
+      gender,
+      age,
+      province,
+      patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
+      createdAt: serverTimestamp()
+    });
 
-      // 4️⃣ Déconnexion obligatoire
-      await signOut(auth);
+    // 4️⃣ LOGOUT OBLIGATOIRE
+    await signOut(auth);
 
-      // 5️⃣ Redirection LOGIN
-      alert("Compte créé avec succès. Veuillez vous connecter.");
-      window.location.href = "login.html";
+    alert("Compte créé avec succès. Veuillez vous connecter.");
+    window.location.href = "login.html";
 
-    } catch (e) {
-      alert(e.message);
-      signupBtn.disabled = false;
-      signupBtn.innerText = "Créer mon compte";
-    }
-  });
+  }catch(e){
+    alert(e.message);
+    btn.disabled = false;
+    btn.innerText = "Créer mon compte";
+  }
+});
 </script>
 
 </body>
