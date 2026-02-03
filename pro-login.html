@@ -93,9 +93,11 @@ input{
   color:#fff;
   font-weight:600;
   font-size:15px;
+  cursor:not-allowed;
 }
 .cta button.active{
   background:var(--blue);
+  cursor:pointer;
 }
 
 /* LINKS */
@@ -134,32 +136,6 @@ input{
   opacity:.65;
 }
 </style>
-
-<script>
-function validateForm(){
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  const valid =
-    email.includes("@") &&
-    password.length >= 6;
-
-  loginBtn.disabled = !valid;
-  loginBtn.classList.toggle("active", valid);
-}
-
-function loginPro(){
-  const proUser = {
-    email: emailInput.value,
-    role: "pro",
-    verified: false, // documents pas encore validés
-    loginAt: Date.now()
-  };
-
-  localStorage.setItem("cizaPro", JSON.stringify(proUser));
-  window.location.href = "pro-dashboard.html";
-}
-</script>
 </head>
 
 <body>
@@ -188,7 +164,6 @@ function loginPro(){
       id="emailInput"
       type="email"
       placeholder="ex: nom@hopital.bi"
-      oninput="validateForm()"
     >
 
     <label>Mot de passe</label>
@@ -196,11 +171,10 @@ function loginPro(){
       id="passwordInput"
       type="password"
       placeholder="••••••••"
-      oninput="validateForm()"
     >
 
     <div class="cta">
-      <button id="loginBtn" disabled onclick="loginPro()">
+      <button id="loginBtn" disabled>
         Se connecter
       </button>
     </div>
@@ -211,7 +185,7 @@ function loginPro(){
     </div>
 
     <div class="info-box">
-      ⚠️ L’accès à la plateforme est soumis à la vérification
+      ⚠️ L’accès à la plateforme est soumis à la validation
       des documents professionnels (diplôme, autorisation,
       identité).  
       <br><br>
@@ -227,6 +201,74 @@ function loginPro(){
   </div>
 
 </div>
+
+<!-- 🔐 AUTH PRO — FIREBASE (PRODUCTION) -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { signInWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
+const loginBtn = document.getElementById("loginBtn");
+
+function validateForm(){
+  const valid =
+    emailInput.value.includes("@") &&
+    passwordInput.value.length >= 6;
+
+  loginBtn.disabled = !valid;
+  loginBtn.classList.toggle("active", valid);
+}
+
+emailInput.addEventListener("input", validateForm);
+passwordInput.addEventListener("input", validateForm);
+
+loginBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  loginBtn.disabled = true;
+  loginBtn.innerText = "Connexion…";
+
+  try {
+    // 1️⃣ Firebase Auth
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    // 2️⃣ Vérifier rôle & statut
+    const snap = await getDoc(doc(db, "users", uid));
+    if(!snap.exists()){
+      alert("Compte professionnel introuvable");
+      return;
+    }
+
+    const u = snap.data();
+
+    if(u.role !== "doctor" && u.role !== "aide"){
+      alert("Accès réservé aux professionnels de santé");
+      return;
+    }
+
+    if(u.status !== "validated"){
+      window.location.href = "pro-attente.html";
+      return;
+    }
+
+    // 3️⃣ OK
+    window.location.href = "pro-dashboard.html";
+
+  } catch(e){
+    alert("Email ou mot de passe incorrect");
+    console.error(e);
+  } finally{
+    loginBtn.disabled = false;
+    loginBtn.innerText = "Se connecter";
+  }
+});
+</script>
 
 </body>
 </html>
