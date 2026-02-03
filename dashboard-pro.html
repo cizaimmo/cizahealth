@@ -40,9 +40,11 @@ body{
   align-items:center;
 }
 .header strong{font-size:16px}
-.header span{
+.header button{
   font-size:13px;
   color:#8a1f1f;
+  background:none;
+  border:none;
   cursor:pointer;
 }
 
@@ -50,15 +52,13 @@ body{
 .content{padding:20px}
 h1{font-size:20px;margin-bottom:16px}
 
-/* GRID */
+/* LIST */
 .list{
   display:grid;
   gap:16px;
 }
 @media(min-width:768px){
-  .list{
-    grid-template-columns:1fr 1fr;
-  }
+  .list{grid-template-columns:1fr 1fr;}
 }
 
 /* CARD */
@@ -67,39 +67,13 @@ h1{font-size:20px;margin-bottom:16px}
   border-radius:var(--radius);
   padding:16px;
 }
-.card h3{
-  font-size:15px;
-  margin:0 0 6px;
-}
-.card p{
-  font-size:13.5px;
-  margin:4px 0;
-  color:var(--muted);
-}
+.card h3{font-size:15px;margin:0 0 6px}
+.card p{font-size:13.5px;margin:4px 0;color:var(--muted)}
 
-/* STATUS */
-.status{
-  font-size:12.5px;
-  margin-top:6px;
-}
+.status{font-size:12.5px;margin-top:6px}
 .pending{color:var(--orange)}
 .accepted{color:var(--green)}
 
-/* ACTION */
-button{
-  margin-top:12px;
-  padding:12px;
-  width:100%;
-  border:none;
-  border-radius:14px;
-  background:var(--blue);
-  color:#fff;
-  font-size:13.5px;
-  font-weight:600;
-  cursor:pointer;
-}
-
-/* EMPTY */
 .empty{
   text-align:center;
   padding:40px 20px;
@@ -107,7 +81,6 @@ button{
   font-size:14px;
 }
 
-/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
@@ -123,7 +96,7 @@ button{
 
   <div class="header">
     <strong>Espace professionnel</strong>
-    <span id="logoutBtn">Déconnexion</span>
+    <button id="logoutBtn">Déconnexion</button>
   </div>
 
   <div class="content">
@@ -142,59 +115,54 @@ button{
 <!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } 
+import { onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } 
+import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Déconnexion
-document.querySelector("a[href='pro-login.html']").onclick = async () => {
+// ✅ Déconnexion SAFE
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
   await signOut(auth);
-  window.location.href = "pro-login.html";
-};
+  window.location.href = "/cizahealth/pro-login.html";
+});
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "pro-login.html";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
-  // 🔐 LECTURE FIRESTORE
-  const snap = await getDoc(doc(db, "users", user.uid));
-
-  if (!snap.exists()) {
-    alert("Compte professionnel introuvable");
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()){
     await signOut(auth);
-    window.location.href = "pro-login.html";
+    window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
   const u = snap.data();
 
-  // ❌ PAS PRO
-  if (u.role !== "doctor" && u.role !== "aide") {
-    alert("Accès non autorisé");
+  if(u.role !== "doctor" && u.role !== "aide"){
     await signOut(auth);
-    window.location.href = "pro-login.html";
+    window.location.href = "/cizahealth/pro-login.html";
     return;
   }
 
-  // ⏳ PAS VALIDÉ
-  if (u.status !== "validated") {
-    document.body.innerHTML = `
-      <div style="padding:24px;font-family:system-ui">
-        <h2>⏳ Compte en attente de validation</h2>
-        <p>
-          Votre compte professionnel est en cours de validation
-          par l’équipe CizaHealth+.
-        </p>
+  if(u.status !== "validated"){
+    document.getElementById("list").innerHTML = `
+      <div class="empty">
+        ⏳ Compte en attente de validation par CizaHealth+
       </div>
     `;
     return;
   }
 
-  // ✅ VALIDÉ → dashboard normal
-  console.log("Professionnel validé :", u.fullName);
+  // ✅ PRO VALIDÉ
+  console.log("Professionnel connecté :", u.fullName);
+  document.getElementById("list").innerHTML = `
+    <div class="empty">
+      Aucune demande disponible pour le moment.
+    </div>
+  `;
 });
 </script>
 
