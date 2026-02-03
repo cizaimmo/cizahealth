@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Détail de la demande</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --green:#3b8f6b;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:720px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+  border-bottom:1px solid #eef1f6;
+}
+.back{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* CONTENT */
+.content{
+  padding:26px;
+}
+h1{
+  font-size:20px;
+  margin-bottom:6px;
+}
+.subtitle{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:22px;
+}
+
+/* CARD */
+.card{
+  border:1.5px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:18px;
+}
+.card h3{
+  margin:0 0 12px;
+  font-size:15px;
+}
+
+/* ROW */
+.row{
+  font-size:14px;
+  margin:6px 0;
+}
+.label{
+  color:var(--muted);
+}
+
+/* STATUS */
+.status{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:16px;
+  font-size:12px;
+  font-weight:600;
+}
+.pending{ background:#fff3cd; color:#856404; }
+.completed{ background:#e6f4ea; color:#1e7e34; }
+.cancelled{ background:#f8d7da; color:#721c24; }
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <a href="dossier-sante.html" class="back">← Dossier médical</a>
+  </div>
+
+  <div class="content">
+
+    <h1 id="title">Demande</h1>
+    <div class="subtitle" id="subtitle">Chargement…</div>
+
+    <!-- IDENTITÉ -->
+    <div class="card">
+      <h3>Informations patient</h3>
+      <div class="row"><span class="label">Âge :</span> <span id="age">—</span></div>
+      <div class="row"><span class="label">Province :</span> <span id="province">—</span></div>
+    </div>
+
+    <!-- DEMANDE -->
+    <div class="card">
+      <h3>Détails de la demande</h3>
+      <div class="row"><span class="label">Type :</span> <span id="type">—</span></div>
+      <div class="row"><span class="label">Motif :</span> <span id="symptom">—</span></div>
+      <div class="row"><span class="label">Durée :</span> <span id="duration">—</span></div>
+      <div class="row"><span class="label">Urgence :</span> <span id="urgency">—</span></div>
+      <div class="row"><span class="label">Notes :</span> <span id="notes">—</span></div>
+    </div>
+
+    <!-- STATUT -->
+    <div class="card">
+      <h3>Statut</h3>
+      <span id="statusBadge" class="status">—</span>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+<!-- 🔥 FIREBASE – PRODUCTION -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 🔎 Récupérer ID depuis l’URL
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("id");
+if(!requestId){
+  alert("Demande introuvable");
+  window.location.href = "dossier-sante.html";
+}
+
+// 🔐 Auth
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href = "login.html";
+    return;
+  }
+
+  const ref = doc(db,"requests",requestId);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    alert("Demande introuvable");
+    return;
+  }
+
+  const r = snap.data();
+
+  // 🔒 Sécurité : propriétaire uniquement
+  if(r.userId !== user.uid){
+    alert("Accès refusé");
+    return;
+  }
+
+  document.getElementById("title").innerText =
+    r.type === "teleconsultation"
+      ? "Téléconsultation médicale"
+      : "Aide à domicile";
+
+  document.getElementById("subtitle").innerText =
+    "Demande enregistrée le " +
+    (r.createdAt?.toDate?.().toLocaleDateString() || "—");
+
+  const p = r.payload || {};
+
+  document.getElementById("age").innerText = p.age ?? "—";
+  document.getElementById("province").innerText = p.province || "—";
+  document.getElementById("type").innerText = r.type || "—";
+  document.getElementById("symptom").innerText = p.symptom || "—";
+  document.getElementById("duration").innerText = p.duration || "—";
+  document.getElementById("urgency").innerText = p.urgency || "—";
+  document.getElementById("notes").innerText = p.notes || "—";
+
+  const badge = document.getElementById("statusBadge");
+  badge.innerText = r.status || "pending";
+  badge.classList.add(r.status || "pending");
+});
+</script>
+
+</body>
+</html>
