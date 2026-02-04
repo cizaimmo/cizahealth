@@ -10,12 +10,13 @@
   --blue:#0a2a5e;
   --bg:#f4f7fb;
   --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:22px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
@@ -28,13 +29,16 @@ body{
   flex-direction:column;
 }
 .topbar{padding:18px 20px}
-.back{text-decoration:none;color:var(--blue);font-weight:600}
-.header{text-align:center;padding:10px 20px 0}
-.header img{height:120px;max-width:100%}
-.content{padding:24px 20px}
-h1{text-align:center;font-size:20px;margin-bottom:6px}
-.subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
-label{display:block;margin-top:18px;font-size:14px;font-weight:600}
+.back{ text-decoration:none; color:var(--blue); font-weight:600 }
+.header{ text-align:center; padding:10px 20px 0 }
+.header img{ height:120px; max-width:100% }
+.content{ padding:24px 20px }
+h1{ text-align:center; font-size:20px; margin:0 0 6px }
+.subtitle{
+  text-align:center; font-size:14px; color:var(--muted);
+  margin-bottom:18px;
+}
+label{ display:block; margin-top:14px; font-size:14px; font-weight:600 }
 input,select{
   width:100%;
   margin-top:8px;
@@ -42,34 +46,46 @@ input,select{
   border-radius:14px;
   border:1.8px solid #e6ebf5;
   font-size:14px;
+  outline:none;
 }
-.cta{margin-top:28px}
+input:focus, select:focus{ border-color:#c9d6f2 }
+.cta{ margin-top:22px }
 .cta button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#b7c3dd;
   color:#fff;
-  font-weight:600;
+  font-weight:700;
   font-size:15px;
+  cursor:not-allowed;
+}
+.cta button.active{
+  background:var(--blue);
   cursor:pointer;
 }
-.cta button:disabled{opacity:.6}
 .info-box{
-  margin-top:26px;
+  margin-top:18px;
   border:1.6px solid #e6ebf5;
   border-radius:18px;
-  padding:16px;
+  padding:14px;
   font-size:13px;
-  opacity:.85;
+  color:var(--muted);
+  line-height:1.55;
+}
+.note-error{
+  margin-top:12px;
+  font-size:13px;
+  color:#8a1f1f;
+  display:none;
 }
 .footer{
   margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
-  opacity:.65;
+  color:var(--muted);
 }
 </style>
 </head>
@@ -82,21 +98,21 @@ input,select{
   </div>
 
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
   </div>
 
   <div class="content">
     <h1>Inscription professionnelle</h1>
-    <div class="subtitle">Professionnels de santé & intervenants</div>
+    <div class="subtitle">Médecins & intervenants partenaires</div>
 
     <label>Nom complet</label>
-    <input id="fullName">
+    <input id="fullName" placeholder="Nom et prénom" autocomplete="name">
 
     <label>Email professionnel</label>
-    <input id="email" type="email">
+    <input id="email" type="email" placeholder="ex: pro@hopital.bi" autocomplete="email">
 
     <label>Téléphone</label>
-    <input id="phone">
+    <input id="phone" inputmode="tel" placeholder="+257 ..." autocomplete="tel">
 
     <label>Profession</label>
     <select id="role">
@@ -115,15 +131,17 @@ input,select{
       <option>Kayanza</option>
     </select>
 
-    <label>Mot de passe</label>
-    <input id="password" type="password">
+    <label>Mot de passe (6 caractères minimum)</label>
+    <input id="password" type="password" placeholder="••••••••" autocomplete="new-password">
 
     <div class="cta">
-      <button id="submitBtn">Soumettre ma demande</button>
+      <button id="submitBtn" disabled>Soumettre ma demande</button>
     </div>
 
+    <div id="errBox" class="note-error"></div>
+
     <div class="info-box">
-      ⏳ Votre compte sera <b>en attente de validation</b>.<br><br>
+      ⏳ Votre compte sera <b>en attente de validation</b>.<br>
       Aucun patient ne pourra vous contacter avant validation.
     </div>
   </div>
@@ -145,61 +163,96 @@ const roleSelect     = document.getElementById("role");
 const provinceSelect = document.getElementById("province");
 const passwordInput  = document.getElementById("password");
 const btn            = document.getElementById("submitBtn");
+const errBox         = document.getElementById("errBox");
 
-btn.onclick = async () => {
+function showError(msg){
+  errBox.style.display = "block";
+  errBox.textContent = msg;
+}
+
+function clearError(){
+  errBox.style.display = "none";
+  errBox.textContent = "";
+}
+
+function validate(){
+  const fullName = fullNameInput.value.trim();
+  const email = emailInput.value.trim();
+  const role = roleSelect.value;
+  const province = provinceSelect.value;
+  const password = passwordInput.value;
+
+  const valid =
+    fullName.length >= 3 &&
+    email.includes("@") &&
+    role !== "" &&
+    province !== "" &&
+    password.length >= 6;
+
+  btn.disabled = !valid;
+  btn.classList.toggle("active", valid);
+}
+
+[fullNameInput,emailInput,phoneInput,roleSelect,provinceSelect,passwordInput]
+  .forEach(el => el.addEventListener("input", validate));
+
+btn.addEventListener("click", async () => {
+  clearError();
+
+  const fullName = fullNameInput.value.trim();
+  const email    = emailInput.value.trim();
+  const phone    = phoneInput.value.trim();
+  const role     = roleSelect.value;
+  const province = provinceSelect.value;
+  const password = passwordInput.value;
+
+  if(btn.disabled) return;
+
   btn.disabled = true;
-  btn.innerText = "Création…";
+  btn.classList.remove("active");
+  btn.textContent = "Création…";
 
   try {
-    const fullName = fullNameInput.value.trim();
-    const email    = emailInput.value.trim();
-    const phone    = phoneInput.value.trim();
-    const role     = roleSelect.value;
-    const province = provinceSelect.value;
-    const password = passwordInput.value;
-
-    if (!fullName || !email || !role || !province || password.length < 6) {
-      alert("Veuillez compléter tous les champs correctement");
-      throw new Error("FORM_INVALID");
-    }
-
-    // 1️⃣ AUTH
+    // 1) AUTH
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ USERS
-    await setDoc(doc(db,"users",uid),{
-      email,
-      role,
-      status:"pending",
-      createdAt: serverTimestamp()
-    });
-
-    // 3️⃣ PROFESSIONALS (SANS proId – créé à la validation)
-    await setDoc(doc(db,"professionals",uid),{
+    // 2) Firestore: users/{uid} (comme patient)
+    await setDoc(doc(db, "users", uid), {
       fullName,
+      email,
       phone,
-      role,
-      specialty: role === "doctor" ? "Médecine générale" : null,
-      services: role === "doctor"
-        ? ["teleconsultation"]
-        : ["aide-domicile"],
+      role,                 // "doctor" | "aide"
       province,
-      status:"pending",
+      status: "pending",    // l'admin passera à "validated"
       createdAt: serverTimestamp()
     });
 
-    // 4️⃣ REDIRECTION
+    // 3) Redirect attente (à créer ensuite)
     window.location.href = "/cizahealth/pro-attente.html";
 
   } catch (e) {
-    console.error("PRO SIGNUP ERROR →", e);
-    alert("Erreur lors de l’inscription. Vérifiez les informations.");
-    btn.disabled = false;
-    btn.innerText = "Soumettre ma demande";
-  }
-};
-</script>
+    console.error(e);
 
+    // Messages clairs
+    if (e?.code === "auth/email-already-in-use") {
+      showError("Cet email est déjà utilisé. Essayez de vous connecter.");
+    } else if (e?.code === "auth/weak-password") {
+      showError("Mot de passe trop faible (6 caractères minimum).");
+    } else if (e?.code === "permission-denied") {
+      showError("Accès refusé (règles Firestore).");
+    } else {
+      showError("Erreur lors de l’inscription. Vérifiez les champs et réessayez.");
+    }
+
+    btn.disabled = false;
+    validate();
+    btn.textContent = "Soumettre ma demande";
+  }
+});
+
+// init
+validate();
+</script>
 </body>
 </html>
