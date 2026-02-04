@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Admin – Validation médecins</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#f4f7fb;
+  margin:0;
+}
+.app{
+  max-width:900px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  padding:24px;
+}
+h1{margin-bottom:20px}
+.card{
+  border:1px solid #e6ebf5;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.name{font-weight:600;font-size:16px}
+.small{font-size:13px;opacity:.75}
+.actions{margin-top:12px}
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+.ok{background:#0a2a5e;color:#fff}
+.empty{opacity:.7}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h1>Validation des médecins</h1>
+  <div id="list"></div>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    document.body.innerHTML = "Accès refusé";
+    return;
+  }
+
+  // 🔐 Vérifie que l’utilisateur connecté est admin
+  const adminSnap = await getDocs(
+    query(
+      collection(db,"users"),
+      where("__name__","==",user.uid),
+      where("role","==","admin")
+    )
+  );
+
+  if(adminSnap.empty){
+    document.body.innerHTML = "Accès refusé";
+    return;
+  }
+
+  // ✅ SOURCE DE VÉRITÉ : users (doctor + pending)
+  const q = query(
+    collection(db,"users"),
+    where("role","==","doctor"),
+    where("status","==","pending")
+  );
+
+  const snap = await getDocs(q);
+  const list = document.getElementById("list");
+
+  if(snap.empty){
+    list.innerHTML = "<p class='empty'>Aucun dossier médecin en attente.</p>";
+    return;
+  }
+
+  snap.forEach(d=>{
+    const u = d.data();
+
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `
+      <div class="name">${u.fullName || "—"}</div>
+      <div class="small">${u.email || ""}</div>
+      <div class="small">${u.phone || ""} • ${u.province || ""}</div>
+      <div class="actions">
+        <button class="ok">Valider</button>
+      </div>
+    `;
+
+    div.querySelector("button").onclick = async ()=>{
+      await updateDoc(doc(db,"users",d.id),{
+        status:"validated"
+      });
+      div.remove();
+    };
+
+    list.appendChild(div);
+  });
+});
+</script>
+</body>
+</html>
