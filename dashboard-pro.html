@@ -110,61 +110,20 @@ button{
   </div>
 </div>
 
+<!-- 🔥 FIREBASE LOGIQUE PRO -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, getDocs,
   doc, getDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Déconnexion
-document.getElementById("logoutBtn").onclick = async () => {
-  await signOut(auth);
-  location.href = "/cizahealth/pro-login.html";
-};
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    location.href = "/cizahealth/pro-login.html";
-    return;
-  }
-
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  // 🔎 charger le profil professionnel
-  const proSnap = await getDoc(doc(db, "professionals", user.uid));
-  if (!proSnap.exists()) {
-    list.innerHTML = `<div class="empty">Profil professionnel introuvable</div>`;
-    return;
-  }
-
-  const pro = proSnap.data();
-
-  if (pro.status !== "validated") {
-    list.innerHTML = `<div class="empty">
-      Votre compte est en attente de validation.
-    </div>`;
-    return;
-  }
-
-  // 🔥 charger les demandes en attente
-  <script type="module">
-import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } 
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  collection, query, where, getDocs,
-  doc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 const list = document.getElementById("list");
 const logoutBtn = document.getElementById("logoutBtn");
 
+// Déconnexion
 logoutBtn.onclick = async () => {
   await signOut(auth);
   location.href = "/cizahealth/pro-login.html";
@@ -178,6 +137,27 @@ onAuthStateChanged(auth, async (user) => {
 
   list.innerHTML = "";
 
+  // 🔎 PROFIL PROFESSIONNEL
+  const proSnap = await getDoc(doc(db, "professionals", user.uid));
+  if (!proSnap.exists()) {
+    list.innerHTML = `
+      <div class="empty">
+        Profil professionnel introuvable.
+      </div>`;
+    return;
+  }
+
+  const pro = proSnap.data();
+
+  if (pro.status !== "validated") {
+    list.innerHTML = `
+      <div class="empty">
+        Votre compte est en attente de validation.
+      </div>`;
+    return;
+  }
+
+  // 🔥 DEMANDES EN ATTENTE
   const q = query(
     collection(db, "requests"),
     where("status", "==", "pending")
@@ -189,8 +169,7 @@ onAuthStateChanged(auth, async (user) => {
     list.innerHTML = `
       <div class="empty">
         Aucune demande en attente pour le moment.
-      </div>
-    `;
+      </div>`;
     return;
   }
 
@@ -220,6 +199,7 @@ onAuthStateChanged(auth, async (user) => {
     `;
   });
 
+  // 📌 Prise en charge
   window.takeRequest = async (id) => {
     await updateDoc(doc(db, "requests", id), {
       status: "assigned",
