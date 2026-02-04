@@ -2,49 +2,106 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Admin – Validation pro</title>
+<title>CizaHealth+ | Administration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{font-family:system-ui;background:#f4f7fb;margin:0}
-.app{max-width:800px;margin:auto;background:#fff;min-height:100vh;padding:24px}
-h1{margin-bottom:16px}
-.card{border:1px solid #e6ebf5;border-radius:12px;padding:16px;margin-bottom:12px}
-.btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
-.ok{background:#0a2a5e;color:#fff}
-.small{opacity:.7;font-size:13px}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#f4f7fb;
+}
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  padding:24px;
+}
+h1{
+  margin-bottom:20px;
+}
+.card{
+  border:1px solid #e6ebf5;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.small{
+  font-size:13px;
+  opacity:.7;
+}
+.btn{
+  margin-top:12px;
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+.ok{
+  background:#0a2a5e;
+  color:#fff;
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+}
+.logout{
+  cursor:pointer;
+  color:#8a1f1f;
+  font-size:14px;
+}
 </style>
 </head>
+
 <body>
 
 <div class="app">
-  <h1>Validation des professionnels</h1>
-  <div id="list"></div>
+
+  <div class="header">
+    <h1>Administration — Validation des professionnels</h1>
+    <span id="logoutBtn" class="logout">Déconnexion</span>
+  </div>
+
+  <div id="list">
+    <p class="small">Chargement…</p>
+  </div>
+
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
+import { onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, getDocs,
-  doc, getDoc, updateDoc
+  doc, getDoc,
+  collection, query, where, getDocs, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔐 LOGOUT */
+document.getElementById("logoutBtn").onclick = async ()=>{
+  await signOut(auth);
+  location.href = "/cizahealth/admin-login.html";
+};
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
+    location.href = "/cizahealth/admin-login.html";
+    return;
+  }
+
+  /* ✅ VÉRIFICATION ADMIN (SOURCE : users) */
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+
+  if(!userSnap.exists() || userSnap.data().role !== "admin"){
     document.body.innerHTML = "Accès refusé";
     return;
   }
 
-  // 1️⃣ Vérifier que l'utilisateur est ADMIN
-  const adminSnap = await getDoc(doc(db,"users",user.uid));
-
-  if(!adminSnap.exists() || adminSnap.data().role !== "admin"){
-    document.body.innerHTML = "Accès refusé";
-    return;
-  }
-
-  // 2️⃣ Charger les professionnels en attente
+  /* 📌 CHARGER LES PROS EN ATTENTE */
   const q = query(
     collection(db,"professionals"),
     where("status","==","pending")
@@ -52,9 +109,10 @@ onAuthStateChanged(auth, async (user)=>{
 
   const snap = await getDocs(q);
   const list = document.getElementById("list");
+  list.innerHTML = "";
 
   if(snap.empty){
-    list.innerHTML = "<p class='small'>Aucune demande en attente</p>";
+    list.innerHTML = "<p class='small'>Aucun professionnel en attente</p>";
     return;
   }
 
@@ -62,18 +120,28 @@ onAuthStateChanged(auth, async (user)=>{
     const p = d.data();
 
     const div = document.createElement("div");
-    div.className="card";
+    div.className = "card";
     div.innerHTML = `
-      <b>${p.fullName || "—"}</b><br>
-      ${p.proId || ""}<br>
-      <span class="small">${p.role} • ${p.province}</span><br><br>
+      <strong>${p.fullName || "—"}</strong><br>
+      <span class="small">
+        ${p.role} • ${p.province}
+      </span><br>
+      <span class="small">
+        ID : ${p.proId || "—"}
+      </span><br>
       <button class="btn ok">Valider</button>
     `;
 
     div.querySelector("button").onclick = async ()=>{
+      /* ✅ VALIDER PRO */
       await updateDoc(doc(db,"professionals",d.id),{
         status:"validated"
       });
+
+      await updateDoc(doc(db,"users",d.id),{
+        status:"validated"
+      });
+
       div.remove();
     };
 
