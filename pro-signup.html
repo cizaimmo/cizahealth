@@ -27,21 +27,13 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* TOP */
 .topbar{padding:18px 20px}
 .back{text-decoration:none;color:var(--blue);font-weight:600}
-
-/* HEADER */
 .header{text-align:center;padding:10px 20px 0}
 .header img{height:120px}
-
-/* CONTENT */
 .content{padding:24px 20px}
 h1{text-align:center;font-size:20px;margin-bottom:6px}
 .subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
-
-/* FORM */
 label{display:block;margin-top:18px;font-size:14px;font-weight:600}
 input,select{
   width:100%;
@@ -51,9 +43,6 @@ input,select{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-.hidden{display:none}
-
-/* CTA */
 .cta{margin-top:28px}
 .cta button{
   width:100%;
@@ -66,8 +55,6 @@ input,select{
   font-size:15px;
   cursor:pointer;
 }
-
-/* INFO */
 .info-box{
   margin-top:26px;
   border:1.6px solid #e6ebf5;
@@ -76,14 +63,11 @@ input,select{
   font-size:13px;
   opacity:.85;
 }
-
-/* FOOTER */
 .footer{margin-top:auto;text-align:center;padding:18px;font-size:12px;opacity:.65}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
   <div class="topbar">
@@ -132,24 +116,22 @@ input,select{
     </div>
 
     <div class="info-box">
-      ⏳ Votre compte sera **en attente de validation**.<br><br>
-      Aucun patient ne pourra vous contacter avant validation manuelle.
+      ⏳ Votre compte sera <b>en attente de validation</b>.<br><br>
+      Aucun patient ne pourra vous contacter avant validation.
     </div>
   </div>
 
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
+  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
 
 </div>
 
-<!-- 🔥 FIREBASE PRO SIGNUP -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  doc, setDoc, serverTimestamp, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const btn = document.getElementById("submitBtn");
 
@@ -174,29 +156,52 @@ btn.onclick = async () => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ Firestore
+    // 2️⃣ users/{uid}
     await setDoc(doc(db,"users",uid),{
-      fullName,
-      email,
-      phone,
       role,
-      province,
-      status: "pending",
+      status:"pending",
+      email,
       createdAt: serverTimestamp()
     });
 
-    // 3️⃣ Redirection
-    window.location.href = "/cizahealth/pro-attente.html";
+    // 3️⃣ Génération PRO ID
+    const counterRef = doc(db,"counters","professionals");
+    const proRef = doc(db,"professionals",uid);
+
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(counterRef);
+      const next = (snap.data()?.lastNumber || 0) + 1;
+
+      const proId = "CH-PRO-" + String(next).padStart(6,"0");
+
+      tx.set(counterRef,{ lastNumber: next },{ merge:true });
+
+      tx.set(proRef,{
+        proId,
+        fullName,
+        phone,
+        role,
+        specialty: role === "doctor" ? "Médecine générale" : null,
+        services: role === "doctor"
+          ? ["teleconsultation"]
+          : ["aide-domicile"],
+        province,
+        status:"pending",
+        createdAt: serverTimestamp()
+      });
+    });
+
+    // 4️⃣ Redirection
+    location.href="/cizahealth/pro-attente.html";
 
   } catch(e){
-    alert("Erreur lors de l’inscription");
     console.error(e);
-    btn.disabled = false;
-    btn.innerText = "Soumettre ma demande";
+    alert("Erreur lors de l’inscription");
+    btn.disabled=false;
+    btn.innerText="Soumettre ma demande";
   }
 };
 
-// inputs
 const fullNameInput = document.getElementById("fullName");
 const emailInput = document.getElementById("email");
 const phoneInput = document.getElementById("phone");
