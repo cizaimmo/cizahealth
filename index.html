@@ -342,5 +342,41 @@ function logout(){
   </footer>
 
 </div>
+
+  <!-- 🔐 ADMIN ROUTING -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const adminLink = document.getElementById("adminLink");
+
+if(adminLink){
+  adminLink.onclick = async (e)=>{
+    e.preventDefault();
+
+    const user = auth.currentUser;
+    if(!user){
+      location.href="admin-login.html";
+      return;
+    }
+
+    try{
+      const snap = await getDoc(doc(db,"users",user.uid));
+      if(!snap.exists() || snap.data().role !== "admin"){
+        location.href="admin-login.html";
+        return;
+      }
+      location.href="admin-dashboard.html";
+    }catch(e){
+      location.href="admin-login.html";
+    }
+  };
+}
+</script>
+
 </body>
 </html>
+  
