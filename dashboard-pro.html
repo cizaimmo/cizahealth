@@ -74,9 +74,7 @@ body{
 .content{
   padding:20px;
 }
-h2{
-  margin-bottom:16px;
-}
+h2{margin-bottom:16px}
 
 /* LIST */
 .list{
@@ -111,7 +109,6 @@ button{
   background:var(--blue);
   color:#fff;
   font-weight:600;
-  cursor:pointer;
 }
 
 /* EMPTY */
@@ -136,18 +133,15 @@ button{
 
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <strong>Espace professionnel</strong>
     <span id="logoutBtn">Déconnexion</span>
   </div>
 
-  <!-- PROFIL PRO -->
   <div class="pro-card" id="proCard">
     Chargement du profil professionnel…
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <h2>Demandes en attente</h2>
     <div id="list" class="list">
@@ -161,7 +155,6 @@ button{
 
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut }
@@ -171,7 +164,7 @@ import {
   collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Déconnexion
+/* Déconnexion */
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   location.href = "/cizahealth/pro-login.html";
@@ -183,40 +176,44 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  /* 🔹 PROFIL PRO */
-  const proSnap = await getDoc(doc(db,"professionals",user.uid));
+  /* ✅ PROFIL = users */
+  const snap = await getDoc(doc(db,"users",user.uid));
   const proCard = document.getElementById("proCard");
 
-  if(!proSnap.exists()){
+  if(!snap.exists()){
+    proCard.innerHTML = `<div class="empty">Profil utilisateur introuvable.</div>`;
+    return;
+  }
+
+  const u = snap.data();
+
+  /* Sécurité rôle */
+  if(u.role !== "doctor"){
+    proCard.innerHTML = `<div class="empty">Accès non autorisé.</div>`;
+    return;
+  }
+
+  /* En attente */
+  if(u.status !== "validated"){
     proCard.innerHTML = `
       <div class="empty">
-        Profil professionnel introuvable.
+        ⏳ Compte en attente de validation par l’administration.
       </div>`;
     return;
   }
 
-  const p = proSnap.data();
-
-  if(p.status !== "validated"){
-    proCard.innerHTML = `
-      <div class="empty">
-        ⏳ Compte en attente de validation.
-      </div>`;
-    return;
-  }
-
+  /* Profil validé */
   proCard.innerHTML = `
-    <div class="pro-name">${p.fullName || "—"}</div>
+    <div class="pro-name">${u.fullName || "—"}</div>
     <div class="pro-meta">
-      ${p.role === "doctor" ? p.specialty : "Aide à domicile"}
-      • Province : ${p.province || "—"}
+      Médecin • Province : ${u.province || "—"}
     </div>
     <div class="pro-id">
-      ID professionnel : <strong>${p.proId || "—"}</strong>
+      ID professionnel : <strong>${u.proId || "—"}</strong>
     </div>
   `;
 
-  /* 🔹 LISTE DES DEMANDES (temporaire, non filtrée — phase 2.2) */
+  /* DEMANDES (phase suivante) */
   const list = document.getElementById("list");
   list.innerHTML = "";
 
@@ -225,25 +222,21 @@ onAuthStateChanged(auth, async (user)=>{
     where("status","==","pending")
   );
 
-  const snap = await getDocs(q);
+  const reqSnap = await getDocs(q);
 
-  if(snap.empty){
-    list.innerHTML = `<div class="empty">
-      Aucune demande en attente.
-    </div>`;
+  if(reqSnap.empty){
+    list.innerHTML = `<div class="empty">Aucune demande en attente.</div>`;
     return;
   }
 
-  snap.forEach(d=>{
+  reqSnap.forEach(d=>{
     const r = d.data();
     list.innerHTML += `
       <div class="card">
         <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
         <p><strong>Province :</strong> ${r.payload?.province || "—"}</p>
         <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
-        <button disabled>
-          (Phase suivante)
-        </button>
+        <button disabled>(Phase suivante)</button>
       </div>
     `;
   });
