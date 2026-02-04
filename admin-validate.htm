@@ -2,108 +2,81 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Administration</title>
+<title>CizaHealth+ | Admin – Validation médecins</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:#f4f7fb;
+  margin:0;
 }
 .app{
   max-width:900px;
   margin:auto;
-  min-height:100vh;
   background:#fff;
+  min-height:100vh;
   padding:24px;
 }
-h1{
-  margin-bottom:20px;
-}
+h1{margin-bottom:20px}
 .card{
   border:1px solid #e6ebf5;
   border-radius:14px;
   padding:16px;
   margin-bottom:14px;
 }
-.small{
-  font-size:13px;
-  opacity:.7;
-}
-.btn{
-  margin-top:12px;
+.small{font-size:13px;opacity:.7}
+button{
+  margin-top:10px;
   padding:10px 14px;
   border:none;
   border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-}
-.ok{
   background:#0a2a5e;
   color:#fff;
-}
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:24px;
-}
-.logout{
   cursor:pointer;
-  color:#8a1f1f;
-  font-size:14px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
-
-  <div class="header">
-    <h1>Administration — Validation des professionnels</h1>
-    <span id="logoutBtn" class="logout">Déconnexion</span>
-  </div>
-
-  <div id="list">
-    <p class="small">Chargement…</p>
-  </div>
-
+  <h1>Validation des médecins</h1>
+  <div id="list">Chargement…</div>
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc,
-  collection, query, where, getDocs, updateDoc
+  collection, query, where, getDocs,
+  doc, updateDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* 🔐 LOGOUT */
-document.getElementById("logoutBtn").onclick = async ()=>{
-  await signOut(auth);
-  location.href = "/cizahealth/admin-login.html";
-};
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    location.href = "/cizahealth/admin-login.html";
-    return;
-  }
-
-  /* ✅ VÉRIFICATION ADMIN (SOURCE : users) */
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-
-  if(!userSnap.exists() || userSnap.data().role !== "admin"){
     document.body.innerHTML = "Accès refusé";
     return;
   }
 
-  /* 📌 CHARGER LES PROS EN ATTENTE */
+  // 🔐 vérifier que c’est un admin
+  const adminSnap = await getDocs(
+    query(
+      collection(db,"users"),
+      where("__name__","==",user.uid),
+      where("role","==","admin")
+    )
+  );
+
+  if(adminSnap.empty){
+    document.body.innerHTML = "Accès admin uniquement";
+    return;
+  }
+
+  // 🔎 médecins en attente
   const q = query(
-    collection(db,"professionals"),
+    collection(db,"users"),
+    where("role","==","doctor"),
     where("status","==","pending")
   );
 
@@ -112,34 +85,39 @@ onAuthStateChanged(auth, async (user)=>{
   list.innerHTML = "";
 
   if(snap.empty){
-    list.innerHTML = "<p class='small'>Aucun professionnel en attente</p>";
+    list.innerHTML = "<p class='small'>Aucun médecin en attente</p>";
     return;
   }
 
-  snap.forEach(d=>{
-    const p = d.data();
+  snap.forEach(docSnap=>{
+    const u = docSnap.data();
+    const uid = docSnap.id;
 
     const div = document.createElement("div");
-    div.className = "card";
+    div.className="card";
     div.innerHTML = `
-      <strong>${p.fullName || "—"}</strong><br>
-      <span class="small">
-        ${p.role} • ${p.province}
-      </span><br>
-      <span class="small">
-        ID : ${p.proId || "—"}
-      </span><br>
-      <button class="btn ok">Valider</button>
+      <b>${u.fullName || "—"}</b><br>
+      ${u.email}<br>
+      <span class="small">${u.province}</span><br>
+      <button>Valider le médecin</button>
     `;
 
     div.querySelector("button").onclick = async ()=>{
-      /* ✅ VALIDER PRO */
-      await updateDoc(doc(db,"professionals",d.id),{
-        status:"validated"
-      });
+      await runTransaction(db, async (tx)=>{
+        const counterRef = doc(db,"counters","professionals");
+        const userRef = doc(db,"users",uid);
 
-      await updateDoc(doc(db,"users",d.id),{
-        status:"validated"
+        const counterSnap = await tx.get(counterRef);
+        const last = counterSnap.exists() ? counterSnap.data().lastNumber : 0;
+        const next = last + 1;
+
+        const proId = "CH-PRO-" + String(next).padStart(6,"0");
+
+        tx.set(counterRef,{ lastNumber: next },{ merge:true });
+        tx.update(userRef,{
+          proId,
+          status:"validated"
+        });
       });
 
       div.remove();
