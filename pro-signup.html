@@ -129,11 +129,9 @@ input,select{
 import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, setDoc, serverTimestamp, runTransaction
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔹 INPUTS (OBLIGATOIRE AVANT UTILISATION) */
 const fullNameInput  = document.getElementById("fullName");
 const emailInput     = document.getElementById("email");
 const phoneInput     = document.getElementById("phone");
@@ -155,61 +153,43 @@ btn.onclick = async () => {
     const password = passwordInput.value;
 
     if (!fullName || !email || !role || !province || password.length < 6) {
-      alert("Veuillez compléter tous les champs correctement");
-      throw "form_incomplete";
+      alert("Veuillez compléter tous les champs");
+      throw "invalid_form";
     }
 
-    /* 1️⃣ AUTH */
+    // 1️⃣ AUTH
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    /* 2️⃣ USERS */
+    // 2️⃣ USERS
     await setDoc(doc(db,"users",uid),{
-      fullName,
+      role,
+      status:"pending",
       email,
+      createdAt: serverTimestamp()
+    });
+
+    // 3️⃣ PROFESSIONALS (SIMPLE, SANS TRANSACTION)
+    await setDoc(doc(db,"professionals",uid),{
+      fullName,
       phone,
       role,
       province,
+      services: role === "doctor"
+        ? ["teleconsultation"]
+        : ["aide-domicile"],
       status:"pending",
       createdAt: serverTimestamp()
     });
 
-    /* 3️⃣ PROFESSIONALS + PRO ID */
-    const counterRef = doc(db,"counters","professionals");
-    const proRef = doc(db,"professionals",uid);
-
-    await runTransaction(db, async (tx)=>{
-      const counterSnap = await tx.get(counterRef);
-      const last = counterSnap.exists() ? counterSnap.data().lastNumber : 0;
-      const next = last + 1;
-
-      const proId = "CH-PRO-" + String(next).padStart(6,"0");
-
-      tx.set(counterRef,{ lastNumber: next },{ merge:true });
-
-      tx.set(proRef,{
-        proId,
-        fullName,
-        phone,
-        role,
-        specialty: role === "doctor" ? "Médecine générale" : null,
-        services: role === "doctor"
-          ? ["teleconsultation"]
-          : ["aide-domicile"],
-        province,
-        status:"pending",
-        createdAt: serverTimestamp()
-      });
-    });
-
-    /* 4️⃣ REDIRECT */
+    // 4️⃣ REDIRECT
     location.href="/cizahealth/pro-attente.html";
 
   } catch(e){
     console.error(e);
     alert("Erreur lors de l’inscription");
-    btn.disabled=false;
-    btn.innerText="Soumettre ma demande";
+    btn.disabled = false;
+    btn.innerText = "Soumettre ma demande";
   }
 };
 </script>
