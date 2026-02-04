@@ -75,21 +75,49 @@ button{
 
 </div>
 
-<script type="module">
-import { auth } from "./firebase.js";
+  <script type="module">
+import { auth, db } from "./firebase.js";
 import {
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.getElementById("logoutBtn").onclick = async ()=>{
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.onclick = async () => {
   await signOut(auth);
-  location.href="/cizahealth/pro-login.html";
+  location.href = "/cizahealth/pro-login.html";
 };
 
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    location.href="/cizahealth/pro-login.html";
+    location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  // 🔴 SOURCE UNIQUE : users
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if(!snap.exists()){
+    await signOut(auth);
+    location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  const u = snap.data();
+
+  // Sécurité : seulement pro
+  if(u.role !== "doctor" && u.role !== "aide"){
+    await signOut(auth);
+    location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  // ✅ Si validé → dashboard
+  if(u.status === "validated"){
+    location.href = "/cizahealth/dashboard-pro.html";
   }
 });
 </script>
