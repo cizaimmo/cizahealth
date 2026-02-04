@@ -30,7 +30,7 @@ body{
 .topbar{padding:18px 20px}
 .back{text-decoration:none;color:var(--blue);font-weight:600}
 .header{text-align:center;padding:10px 20px 0}
-.header img{height:120px;max-width:100%}
+.header img{height:120px}
 .content{padding:24px 20px}
 h1{text-align:center;font-size:20px;margin-bottom:6px}
 .subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
@@ -53,9 +53,7 @@ input,select{
   color:#fff;
   font-weight:600;
   font-size:15px;
-  cursor:pointer;
 }
-.cta button:disabled{opacity:.6}
 .info-box{
   margin-top:26px;
   border:1.6px solid #e6ebf5;
@@ -128,16 +126,19 @@ input,select{
     </div>
   </div>
 
-  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
 </div>
 
+<!-- 🔥 FIREBASE — SIGNUP PRO STABLE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, setDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const fullNameInput  = document.getElementById("fullName");
 const emailInput     = document.getElementById("email");
@@ -161,40 +162,28 @@ btn.onclick = async () => {
 
     if (!fullName || !email || !role || !province || password.length < 6) {
       alert("Veuillez compléter tous les champs");
-      throw "invalid_form";
+      btn.disabled = false;
+      btn.innerText = "Soumettre ma demande";
+      return;
     }
 
-    // 1️⃣ AUTH
+    // 1️⃣ Auth
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 🔑 PRO ID SIMPLE (MODE TEST)
-    const proId = "CH-PRO-" + uid.slice(0,6).toUpperCase();
-
-    // 2️⃣ USERS (VALIDÉ DIRECT)
+    // 2️⃣ Firestore — EXACTEMENT comme patient
     await setDoc(doc(db,"users",uid),{
-      role,
-      status: "validated",
-      email,
-      createdAt: serverTimestamp()
-    });
-
-    // 3️⃣ PROFESSIONALS (VALIDÉ DIRECT)
-    await setDoc(doc(db,"professionals",uid),{
-      proId,
       fullName,
+      email,
       phone,
       role,
       province,
-      services: role === "doctor"
-        ? ["teleconsultation"]
-        : ["aide-domicile"],
-      status: "validated",
+      status: "pending",
       createdAt: serverTimestamp()
     });
 
-    // 4️⃣ REDIRECTION
-    location.href = "/cizahealth/dashboard-pro.html";
+    // 3️⃣ Redirection
+    location.href = "/cizahealth/pro-attente.html";
 
   } catch(e){
     console.error(e);
@@ -204,6 +193,6 @@ btn.onclick = async () => {
   }
 };
 </script>
-  
+
 </body>
 </html>
