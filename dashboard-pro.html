@@ -153,6 +153,31 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   // 🔥 charger les demandes en attente
+  <script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, getDocs,
+  doc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const list = document.getElementById("list");
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  location.href = "/cizahealth/pro-login.html";
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    location.href = "/cizahealth/pro-login.html";
+    return;
+  }
+
+  list.innerHTML = "";
+
   const q = query(
     collection(db, "requests"),
     where("status", "==", "pending")
@@ -161,42 +186,46 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDocs(q);
 
   if (snap.empty) {
-    list.innerHTML = `<div class="empty">Aucune demande disponible</div>`;
+    list.innerHTML = `
+      <div class="empty">
+        Aucune demande en attente pour le moment.
+      </div>
+    `;
     return;
   }
 
-  snap.forEach(d => {
-    const r = d.data();
+  snap.forEach(docSnap => {
+    const r = docSnap.data();
+
+    // ✅ COMPATIBILITÉ ANCIEN / NOUVEAU FORMAT
+    const province = r.payload?.province || r.province || "—";
+    const urgency  = r.payload?.urgency  || r.urgency  || "—";
+
+    const typeLabel =
+      r.type === "teleconsultation"
+        ? "🩺 Téléconsultation"
+        : "🏠 Aide à domicile";
 
     list.innerHTML += `
       <div class="card">
-        <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
-        <p><strong>Province :</strong> ${r.payload?.province || r.province || "—"}</p>
-        <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
+        <h3>${typeLabel}</h3>
+        <p><strong>Province :</strong> ${province}</p>
+        <p><strong>Urgence :</strong> ${urgency}</p>
+        <p class="status">En attente</p>
 
-        <button onclick="takeRequest('${d.id}')">
+        <button onclick="takeRequest('${docSnap.id}')">
           Prendre la demande
         </button>
       </div>
     `;
   });
 
-  // 🌐 fonction globale
-  window.takeRequest = async (requestId) => {
-    await updateDoc(doc(db, "requests", requestId), {
+  window.takeRequest = async (id) => {
+    await updateDoc(doc(db, "requests", id), {
       status: "assigned",
       assignedTo: user.uid,
-      assignedAt: serverTimestamp(),
-      assignedPro: {
-        proId: pro.proId,
-        fullName: pro.fullName,
-        role: pro.role,
-        specialty: pro.specialty || null,
-        province: pro.province
-      }
+      assignedAt: serverTimestamp()
     });
-
-    alert("Demande prise en charge");
     location.reload();
   };
 });
