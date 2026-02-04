@@ -126,7 +126,7 @@ import {
   setPersistence,
   browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } 
+import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const emailInput = document.getElementById("email");
@@ -134,18 +134,22 @@ const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 
 function validate(){
-  const ok = emailInput.value.includes("@") && passwordInput.value.length >= 6;
+  const ok =
+    emailInput.value.includes("@") &&
+    passwordInput.value.length >= 6;
+
   loginBtn.disabled = !ok;
   loginBtn.classList.toggle("active", ok);
 }
+
 emailInput.oninput = validate;
 passwordInput.oninput = validate;
 
-loginBtn.onclick = async ()=>{
+loginBtn.onclick = async () => {
   loginBtn.disabled = true;
   loginBtn.innerText = "Connexion…";
 
-  try{
+  try {
     await setPersistence(auth, browserLocalPersistence);
 
     const cred = await signInWithEmailAndPassword(
@@ -156,27 +160,35 @@ loginBtn.onclick = async ()=>{
 
     const uid = cred.user.uid;
 
-    // ✅ SOURCE DE VÉRITÉ = professionals
-    const snap = await getDoc(doc(db,"professionals", uid));
+    // ✅ SOURCE DE VÉRITÉ UNIQUE
+    const snap = await getDoc(doc(db, "users", uid));
 
-    if(!snap.exists()){
-      alert("Profil professionnel introuvable");
+    if (!snap.exists()) {
+      alert("Profil utilisateur introuvable");
       return;
     }
 
-    const pro = snap.data();
+    const user = snap.data();
 
-    if(pro.status !== "validated"){
+    // ✅ VÉRIFICATION PROFESSIONNEL
+    if (user.role !== "doctor" && user.role !== "aide") {
+      alert("Accès réservé aux professionnels");
+      return;
+    }
+
+    // ⏳ EN ATTENTE
+    if (user.status !== "validated") {
       location.href = "/cizahealth/pro-attente.html";
       return;
     }
 
+    // ✅ VALIDÉ
     location.href = "/cizahealth/dashboard-pro.html";
 
-  }catch(e){
+  } catch (e) {
     console.error(e);
     alert("Email ou mot de passe incorrect");
-  }finally{
+  } finally {
     loginBtn.disabled = false;
     loginBtn.innerText = "Se connecter";
   }
