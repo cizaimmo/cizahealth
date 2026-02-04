@@ -149,8 +149,15 @@ const passwordInput  = document.getElementById("password");
 const btn            = document.getElementById("submitBtn");
 
 btn.onclick = async () => {
+  if (btn.disabled) return;
+
   btn.disabled = true;
   btn.innerText = "Création…";
+
+  const resetBtn = () => {
+    btn.disabled = false;
+    btn.innerText = "Soumettre ma demande";
+  };
 
   try {
     const fullName = fullNameInput.value.trim();
@@ -162,17 +169,19 @@ btn.onclick = async () => {
 
     if (!fullName || !email || !role || !province || password.length < 6) {
       alert("Veuillez compléter tous les champs");
-      btn.disabled = false;
-      btn.innerText = "Soumettre ma demande";
+      resetBtn();
       return;
     }
 
-    // 1️⃣ Auth
+    // 1️⃣ AUTH (NE BLOQUE JAMAIS)
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ Firestore — EXACTEMENT comme patient
-    await setDoc(doc(db,"users",uid),{
+    // 2️⃣ REDIRECTION IMMÉDIATE (UX PRODUCTION)
+    location.href = "/cizahealth/pro-attente.html";
+
+    // 3️⃣ FIRESTORE EN ARRIÈRE-PLAN (NON BLOQUANT)
+    setDoc(doc(db, "users", uid), {
       fullName,
       email,
       phone,
@@ -180,16 +189,14 @@ btn.onclick = async () => {
       province,
       status: "pending",
       createdAt: serverTimestamp()
+    }).catch(err => {
+      console.error("Firestore write delayed:", err);
     });
 
-    // 3️⃣ Redirection
-    location.href = "/cizahealth/pro-attente.html";
-
-  } catch(e){
-    console.error(e);
+  } catch (e) {
+    console.error("Signup error:", e);
     alert("Erreur lors de l’inscription");
-    btn.disabled = false;
-    btn.innerText = "Soumettre ma demande";
+    resetBtn();
   }
 };
 </script>
