@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Inscription professionnelle</title>
+<title>CizaHealth+ | Connexion professionnelle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,7 +10,6 @@
   --blue:#0a2a5e;
   --bg:#f4f7fb;
   --text:#0a1a2f;
-  --radius:22px;
 }
 *{box-sizing:border-box}
 body{
@@ -32,10 +31,10 @@ body{
 .header{text-align:center;padding:10px 20px 0}
 .header img{height:120px}
 .content{padding:24px 20px}
-h1{text-align:center;font-size:20px;margin-bottom:6px}
+h1{text-align:center;font-size:20px;margin-bottom:8px}
 .subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
 label{display:block;margin-top:18px;font-size:14px;font-weight:600}
-input,select{
+input{
   width:100%;
   margin-top:8px;
   padding:14px;
@@ -49,11 +48,24 @@ input,select{
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:#b7c3dd;
   color:#fff;
   font-weight:600;
   font-size:15px;
-  cursor:pointer;
+}
+.cta button.active{
+  background:var(--blue);
+}
+.links{
+  margin-top:18px;
+  text-align:center;
+}
+.links a{
+  display:block;
+  margin-top:10px;
+  font-size:13px;
+  color:var(--blue);
+  text-decoration:none;
 }
 .info-box{
   margin-top:26px;
@@ -63,7 +75,13 @@ input,select{
   font-size:13px;
   opacity:.85;
 }
-.footer{margin-top:auto;text-align:center;padding:18px;font-size:12px;opacity:.65}
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
+}
 </style>
 </head>
 
@@ -71,7 +89,7 @@ input,select{
 <div class="app">
 
   <div class="topbar">
-    <a href="/cizahealth/pro-login.html" class="back">← Retour</a>
+    <a href="/cizahealth/index.html" class="back">← Retour</a>
   </div>
 
   <div class="header">
@@ -79,101 +97,100 @@ input,select{
   </div>
 
   <div class="content">
-    <h1>Inscription professionnelle</h1>
-    <div class="subtitle">Professionnels de santé & intervenants</div>
-
-    <label>Nom complet</label>
-    <input id="fullName">
+    <h1>Espace professionnel</h1>
+    <div class="subtitle">Médecins & intervenants partenaires</div>
 
     <label>Email professionnel</label>
     <input id="email" type="email">
-
-    <label>Téléphone</label>
-    <input id="phone">
-
-    <label>Profession</label>
-    <select id="role">
-      <option value="">Sélectionner</option>
-      <option value="doctor">Médecin</option>
-      <option value="aide">Intervenant aide à domicile</option>
-    </select>
-
-    <label>Province</label>
-    <select id="province">
-      <option value="">Choisir</option>
-      <option>Bujumbura</option>
-      <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
-      <option>Kayanza</option>
-    </select>
 
     <label>Mot de passe</label>
     <input id="password" type="password">
 
     <div class="cta">
-      <button id="submitBtn">Soumettre ma demande</button>
+      <button id="loginBtn" disabled>Se connecter</button>
+    </div>
+
+    <div class="links">
+      <a href="/cizahealth/pro-signup.html">Créer un compte professionnel</a>
     </div>
 
     <div class="info-box">
-      ⏳ Votre compte sera <b>en attente de validation</b>.<br><br>
-      Aucun patient ne pourra vous contacter avant validation.
+      ⚠️ L’accès est réservé aux professionnels validés par CizaHealth+.
     </div>
   </div>
 
-  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { createUserWithEmailAndPassword }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp }
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const btn = document.getElementById("submitBtn");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
 
-btn.onclick = async () => {
-  btn.disabled = true;
-  btn.innerText = "Création…";
+function validate(){
+  const ok =
+    emailInput.value.includes("@") &&
+    passwordInput.value.length >= 6;
+  loginBtn.disabled = !ok;
+  loginBtn.classList.toggle("active", ok);
+}
 
-  try {
-    const fullName = document.getElementById("fullName").value.trim();
-    const email    = document.getElementById("email").value.trim();
-    const phone    = document.getElementById("phone").value.trim();
-    const role     = document.getElementById("role").value;
-    const province = document.getElementById("province").value;
-    const password = document.getElementById("password").value;
+emailInput.oninput = validate;
+passwordInput.oninput = validate;
 
-    if(!fullName || !email || !role || !province || password.length < 6){
-      alert("Veuillez compléter tous les champs correctement");
-      throw "invalid_form";
+loginBtn.onclick = async ()=>{
+  loginBtn.disabled = true;
+  loginBtn.innerText = "Connexion…";
+
+  try{
+    await setPersistence(auth, browserLocalPersistence);
+
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      emailInput.value.trim(),
+      passwordInput.value
+    );
+
+    const uid = cred.user.uid;
+    const snap = await getDoc(doc(db,"users",uid));
+
+    if(!snap.exists()){
+      alert("Compte introuvable");
+      return;
     }
 
-    // 1️⃣ AUTH
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+    const u = snap.data();
 
-    // 2️⃣ USERS (SEULE ÉCRITURE FIRESTORE AUTORISÉE)
-    await setDoc(doc(db,"users",uid),{
-      fullName,
-      email,
-      phone,
-      role,
-      province,
-      status:"pending",
-      createdAt: serverTimestamp()
-    });
+    if(u.role !== "doctor" && u.role !== "aide"){
+      alert("Accès réservé aux professionnels");
+      return;
+    }
 
-    // 3️⃣ REDIRECTION
-    location.href = "/cizahealth/pro-attente.html";
+    if(u.status !== "validated"){
+      location.href = "/cizahealth/pro-attente.html";
+      return;
+    }
 
-  } catch(e){
+    location.href = "/cizahealth/dashboard-pro.html";
+
+  }catch(e){
     console.error(e);
-    alert("Erreur lors de l’inscription");
-    btn.disabled=false;
-    btn.innerText="Soumettre ma demande";
+    alert("Email ou mot de passe incorrect");
+  }finally{
+    loginBtn.disabled = false;
+    loginBtn.innerText = "Se connecter";
   }
 };
 </script>
