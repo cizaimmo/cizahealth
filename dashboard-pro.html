@@ -28,6 +28,8 @@ body{
   display:flex;
   flex-direction:column;
 }
+
+/* HEADER */
 .header{
   padding:16px 20px;
   border-bottom:1px solid #eef1f6;
@@ -41,8 +43,42 @@ body{
   color:#8a1f1f;
   font-size:13px;
 }
-.content{padding:20px}
-h2{margin-bottom:16px}
+
+/* PRO CARD */
+.pro-card{
+  margin:20px;
+  border:2px solid #e6ebf5;
+  border-radius:18px;
+  padding:18px;
+  background:#f9fbff;
+}
+.pro-name{
+  font-size:18px;
+  font-weight:700;
+}
+.pro-meta{
+  margin-top:6px;
+  font-size:13.5px;
+  color:var(--muted);
+}
+.pro-id{
+  margin-top:10px;
+  font-size:13px;
+  background:#eef3ff;
+  padding:10px 14px;
+  border-radius:14px;
+  display:inline-block;
+}
+
+/* CONTENT */
+.content{
+  padding:20px;
+}
+h2{
+  margin-bottom:16px;
+}
+
+/* LIST */
 .list{
   display:grid;
   gap:16px;
@@ -50,6 +86,8 @@ h2{margin-bottom:16px}
 @media(min-width:768px){
   .list{grid-template-columns:1fr 1fr}
 }
+
+/* CARD */
 .card{
   border:2px solid #e6ebf5;
   border-radius:var(--radius);
@@ -75,11 +113,15 @@ button{
   font-weight:600;
   cursor:pointer;
 }
+
+/* EMPTY */
 .empty{
   text-align:center;
   color:var(--muted);
   padding:40px;
 }
+
+/* FOOTER */
 .footer{
   margin-top:auto;
   text-align:center;
@@ -93,11 +135,19 @@ button{
 <body>
 
 <div class="app">
+
+  <!-- HEADER -->
   <div class="header">
     <strong>Espace professionnel</strong>
     <span id="logoutBtn">Déconnexion</span>
   </div>
 
+  <!-- PROFIL PRO -->
+  <div class="pro-card" id="proCard">
+    Chargement du profil professionnel…
+  </div>
+
+  <!-- CONTENT -->
   <div class="content">
     <h2>Demandes en attente</h2>
     <div id="list" class="list">
@@ -108,106 +158,95 @@ button{
   <div class="footer">
     © 2026 CizaHealth+ — CIZA GROUP
   </div>
+
 </div>
 
-<!-- 🔥 FIREBASE LOGIQUE PRO -->
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, getDocs,
-  doc, getDoc, updateDoc, serverTimestamp
+  doc, getDoc,
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const list = document.getElementById("list");
-const logoutBtn = document.getElementById("logoutBtn");
-
 // Déconnexion
-logoutBtn.onclick = async () => {
+document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   location.href = "/cizahealth/pro-login.html";
 };
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    location.href = "/cizahealth/pro-login.html";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    location.href="/cizahealth/pro-login.html";
     return;
   }
 
-  list.innerHTML = "";
+  /* 🔹 PROFIL PRO */
+  const proSnap = await getDoc(doc(db,"professionals",user.uid));
+  const proCard = document.getElementById("proCard");
 
-  // 🔎 PROFIL PROFESSIONNEL
-  const proSnap = await getDoc(doc(db, "professionals", user.uid));
-  if (!proSnap.exists()) {
-    list.innerHTML = `
+  if(!proSnap.exists()){
+    proCard.innerHTML = `
       <div class="empty">
         Profil professionnel introuvable.
       </div>`;
     return;
   }
 
-  const pro = proSnap.data();
+  const p = proSnap.data();
 
-  if (pro.status !== "validated") {
-    list.innerHTML = `
+  if(p.status !== "validated"){
+    proCard.innerHTML = `
       <div class="empty">
-        Votre compte est en attente de validation.
+        ⏳ Compte en attente de validation.
       </div>`;
     return;
   }
 
-  // 🔥 DEMANDES EN ATTENTE
+  proCard.innerHTML = `
+    <div class="pro-name">${p.fullName || "—"}</div>
+    <div class="pro-meta">
+      ${p.role === "doctor" ? p.specialty : "Aide à domicile"}
+      • Province : ${p.province || "—"}
+    </div>
+    <div class="pro-id">
+      ID professionnel : <strong>${p.proId || "—"}</strong>
+    </div>
+  `;
+
+  /* 🔹 LISTE DES DEMANDES (temporaire, non filtrée — phase 2.2) */
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
   const q = query(
-    collection(db, "requests"),
-    where("status", "==", "pending")
+    collection(db,"requests"),
+    where("status","==","pending")
   );
 
   const snap = await getDocs(q);
 
-  if (snap.empty) {
-    list.innerHTML = `
-      <div class="empty">
-        Aucune demande en attente pour le moment.
-      </div>`;
+  if(snap.empty){
+    list.innerHTML = `<div class="empty">
+      Aucune demande en attente.
+    </div>`;
     return;
   }
 
-  snap.forEach(docSnap => {
-    const r = docSnap.data();
-
-    // ✅ COMPATIBILITÉ ANCIEN / NOUVEAU FORMAT
-    const province = r.payload?.province || r.province || "—";
-    const urgency  = r.payload?.urgency  || r.urgency  || "—";
-
-    const typeLabel =
-      r.type === "teleconsultation"
-        ? "🩺 Téléconsultation"
-        : "🏠 Aide à domicile";
-
+  snap.forEach(d=>{
+    const r = d.data();
     list.innerHTML += `
       <div class="card">
-        <h3>${typeLabel}</h3>
-        <p><strong>Province :</strong> ${province}</p>
-        <p><strong>Urgence :</strong> ${urgency}</p>
-        <p class="status">En attente</p>
-
-        <button onclick="takeRequest('${docSnap.id}')">
-          Prendre la demande
+        <h3>${r.type === "teleconsultation" ? "🩺 Téléconsultation" : "🏠 Aide à domicile"}</h3>
+        <p><strong>Province :</strong> ${r.payload?.province || "—"}</p>
+        <p><strong>Urgence :</strong> ${r.payload?.urgency || "—"}</p>
+        <button disabled>
+          (Phase suivante)
         </button>
       </div>
     `;
   });
-
-  // 📌 Prise en charge
-  window.takeRequest = async (id) => {
-    await updateDoc(doc(db, "requests", id), {
-      status: "assigned",
-      assignedTo: user.uid,
-      assignedAt: serverTimestamp()
-    });
-    location.reload();
-  };
 });
 </script>
 
