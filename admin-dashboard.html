@@ -2,56 +2,120 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Admin – Validation médecins</title>
+<title>CizaHealth+ | Administration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:16px;
+}
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#f4f7fb;
+  background:var(--bg);
+  color:var(--text);
 }
+
 .app{
-  max-width:900px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 24px;
+  border-bottom:1px solid #e6ebf5;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header strong{
+  font-size:16px;
+}
+.header span{
+  cursor:pointer;
+  color:#8a1f1f;
+  font-size:13px;
+}
+
+/* CONTENT */
+.content{
   padding:24px;
 }
-h1{margin-bottom:20px}
-.card{
-  border:1.6px solid #e6ebf5;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:14px;
+h1{
+  font-size:20px;
+  margin-bottom:6px;
 }
-.name{font-weight:700;font-size:16px}
-.meta{font-size:13px;opacity:.75;margin-top:4px}
-.btn{
-  margin-top:12px;
-  padding:10px 14px;
+.subtitle{
+  font-size:13.5px;
+  color:var(--muted);
+  margin-bottom:24px;
+}
+
+/* LIST */
+.list{
+  display:grid;
+  gap:16px;
+}
+@media(min-width:768px){
+  .list{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+/* CARD */
+.card{
+  border:1.8px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:16px;
+  background:#fafcff;
+}
+.card .name{
+  font-weight:700;
+  font-size:15px;
+}
+.card .meta{
+  margin-top:6px;
+  font-size:13px;
+  color:var(--muted);
+}
+.card button{
+  margin-top:14px;
+  width:100%;
+  padding:12px;
   border:none;
-  border-radius:10px;
-  background:#0a2a5e;
+  border-radius:12px;
+  background:var(--blue);
   color:#fff;
   font-weight:600;
   cursor:pointer;
 }
+
+/* EMPTY */
 .empty{
   text-align:center;
-  opacity:.6;
   padding:40px;
+  color:var(--muted);
 }
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-.logout{
-  cursor:pointer;
-  color:#8a1f1f;
-  font-size:13px;
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.6;
 }
 </style>
 </head>
@@ -59,51 +123,71 @@ h1{margin-bottom:20px}
 <body>
 
 <div class="app">
-  <div class="top">
-    <h1>Validation des médecins</h1>
-    <span class="logout" id="logoutBtn">Déconnexion</span>
+
+  <!-- HEADER -->
+  <div class="header">
+    <strong>Administration CizaHealth+</strong>
+    <span id="logoutBtn">Déconnexion</span>
   </div>
 
-  <div id="list" class="empty">Chargement…</div>
+  <!-- CONTENT -->
+  <div class="content">
+    <h1>Validation des professionnels</h1>
+    <div class="subtitle">
+      Médecins & intervenants en attente de validation
+    </div>
+
+    <div id="list" class="list">
+      <div class="empty">Chargement…</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP • Administration
+  </div>
+
 </div>
 
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, getDocs,
-  doc, getDoc, updateDoc, serverTimestamp
+  doc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔐 LOGOUT
-document.getElementById("logoutBtn").onclick = async () => {
+// Logout
+document.getElementById("logoutBtn").onclick = async ()=>{
   await signOut(auth);
   location.href = "/cizahealth/admin-login.html";
 };
 
-// 🔐 PROTECTION TOTALE DE LA PAGE
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    location.href = "/cizahealth/admin-login.html";
+    location.href="/cizahealth/admin-login.html";
     return;
   }
 
-  // ✅ Vérifier que l'utilisateur est ADMIN
-  const adminRef = doc(db,"users",user.uid);
-  const adminSnap = await getDoc(adminRef);
+  // 🔐 Vérifier admin
+  const adminCheck = await getDocs(
+    query(
+      collection(db,"users"),
+      where("__name__","==",user.uid),
+      where("role","==","admin")
+    )
+  );
 
-  if(!adminSnap.exists() || adminSnap.data().role !== "admin"){
+  if(adminCheck.empty){
     document.body.innerHTML = "Accès refusé";
     return;
   }
 
-  // 📌 Lire les médecins en attente
+  // 📌 Pros en attente
   const q = query(
     collection(db,"users"),
-    where("role","==","doctor"),
+    where("role","in",["doctor","aide"]),
     where("status","==","pending")
   );
 
@@ -112,7 +196,9 @@ onAuthStateChanged(auth, async (user)=>{
   list.innerHTML = "";
 
   if(snap.empty){
-    list.innerHTML = "<div class='empty'>Aucun dossier médecin en attente.</div>";
+    list.innerHTML = `<div class="empty">
+      Aucun professionnel en attente.
+    </div>`;
     return;
   }
 
@@ -123,15 +209,18 @@ onAuthStateChanged(auth, async (user)=>{
     div.className = "card";
     div.innerHTML = `
       <div class="name">${u.fullName || "—"}</div>
-      <div class="meta">${u.email || ""} • ${u.province || "—"}</div>
-      <button class="btn">Valider</button>
+      <div class="meta">
+        ${u.email || ""}<br>
+        ${u.role} • ${u.province || "—"}
+      </div>
+      <button>Valider le compte</button>
     `;
 
     div.querySelector("button").onclick = async ()=>{
       const proId = "PRO-" + Date.now();
 
       await updateDoc(doc(db,"users",d.id),{
-        status: "validated",
+        status:"validated",
         proId,
         validatedAt: serverTimestamp()
       });
