@@ -135,8 +135,9 @@ input,select{
 import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const fullNameInput  = document.getElementById("fullName");
 const emailInput     = document.getElementById("email");
@@ -159,47 +160,50 @@ btn.onclick = async () => {
     const password = passwordInput.value;
 
     if (!fullName || !email || !role || !province || password.length < 6) {
-      alert("Veuillez compléter tous les champs correctement");
-      throw new Error("FORM_INVALID");
+      alert("Veuillez compléter tous les champs");
+      throw "invalid_form";
     }
 
     // 1️⃣ AUTH
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ USERS
+    // 🔑 PRO ID SIMPLE (MODE TEST)
+    const proId = "CH-PRO-" + uid.slice(0,6).toUpperCase();
+
+    // 2️⃣ USERS (VALIDÉ DIRECT)
     await setDoc(doc(db,"users",uid),{
-      email,
       role,
-      status:"pending",
+      status: "validated",
+      email,
       createdAt: serverTimestamp()
     });
 
-    // 3️⃣ PROFESSIONALS (SANS proId – créé à la validation)
+    // 3️⃣ PROFESSIONALS (VALIDÉ DIRECT)
     await setDoc(doc(db,"professionals",uid),{
+      proId,
       fullName,
       phone,
       role,
-      specialty: role === "doctor" ? "Médecine générale" : null,
+      province,
       services: role === "doctor"
         ? ["teleconsultation"]
         : ["aide-domicile"],
-      province,
-      status:"pending",
+      status: "validated",
       createdAt: serverTimestamp()
     });
 
     // 4️⃣ REDIRECTION
-    window.location.href = "/cizahealth/pro-attente.html";
+    location.href = "/cizahealth/dashboard-pro.html";
 
-  } catch (e) {
-    console.error("PRO SIGNUP ERROR →", e);
-    alert("Erreur lors de l’inscription. Vérifiez les informations.");
+  } catch(e){
+    console.error(e);
+    alert("Erreur lors de l’inscription");
     btn.disabled = false;
     btn.innerText = "Soumettre ma demande";
   }
 };
 </script>
-
+  
 </body>
 </html>
