@@ -144,9 +144,7 @@ const btn = document.getElementById("submitBtn");
 
 btn.onclick = async () => {
   if (btn.disabled) return;
-
   btn.disabled = true;
-  btn.innerText = "Création…";
 
   try {
     const fullName = document.getElementById("fullName").value.trim();
@@ -159,33 +157,31 @@ btn.onclick = async () => {
     if (!fullName || !email || !role || !province || password.length < 6) {
       alert("Veuillez compléter tous les champs");
       btn.disabled = false;
-      btn.innerText = "Soumettre ma demande";
       return;
     }
 
-    // 1️⃣ AUTH
+    // 1️⃣ Auth
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 2️⃣ FIRESTORE (OBLIGATOIRE AVANT REDIRECTION)
+    // 2️⃣ Création USER (SOURCE UNIQUE)
     await setDoc(doc(db, "users", uid), {
       fullName,
       email,
       phone,
-      role,
+      role,              // "doctor" | "aide"
       province,
-      status: "pending",
+      status: "pending", // ⏳ en attente admin
       createdAt: serverTimestamp()
     });
 
-    // 3️⃣ REDIRECTION
+    // 3️⃣ Redirection
     location.href = "/cizahealth/pro-attente.html";
 
   } catch (e) {
-    console.error("Signup error:", e);
+    console.error(e);
     alert("Erreur lors de l’inscription");
     btn.disabled = false;
-    btn.innerText = "Soumettre ma demande";
   }
 };
 </script>
