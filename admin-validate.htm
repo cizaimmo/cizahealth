@@ -23,21 +23,28 @@ h1{margin-bottom:16px}
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, getDocs, doc, updateDoc
+  collection, query, where, getDocs,
+  doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔐 UID ADMIN (NE CHANGE RIEN D’AUTRE)
-const ADMIN_UIDS = ["Ygbrw8JZG1ekM2KFd6Wh9NYD2tz1];
-
 onAuthStateChanged(auth, async (user)=>{
-  if(!user || !ADMIN_UIDS.includes(user.uid)){
+  if(!user){
     document.body.innerHTML = "Accès refusé";
     return;
   }
 
-  // ✅ SOURCE UNIQUE DE VÉRITÉ : professionals
+  // 1️⃣ Vérifier que l'utilisateur est ADMIN
+  const adminSnap = await getDoc(doc(db,"users",user.uid));
+
+  if(!adminSnap.exists() || adminSnap.data().role !== "admin"){
+    document.body.innerHTML = "Accès refusé";
+    return;
+  }
+
+  // 2️⃣ Charger les professionnels en attente
   const q = query(
     collection(db,"professionals"),
     where("status","==","pending")
