@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Espace professionnel</title>
+<title>CizaHealth+ | Inscription professionnelle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -27,50 +27,15 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* TOP BAR */
-.topbar{
-  padding:18px 20px;
-}
-.back{
-  text-decoration:none;
-  color:var(--blue);
-  font-weight:600;
-}
-
-/* HEADER */
-.header{
-  text-align:center;
-  padding:10px 20px 0;
-}
-.header img{
-  height:120px;
-}
-
-/* CONTENT */
-.content{
-  padding:24px 20px;
-}
-h1{
-  font-size:20px;
-  margin-bottom:8px;
-  text-align:center;
-}
-.subtitle{
-  font-size:14px;
-  text-align:center;
-  opacity:.85;
-  margin-bottom:24px;
-}
-
-/* FORM */
-label{
-  display:block;
-  margin-top:18px;
-  font-size:14px;
-  font-weight:600;
-}
-input{
+.topbar{padding:18px 20px}
+.back{text-decoration:none;color:var(--blue);font-weight:600}
+.header{text-align:center;padding:10px 20px 0}
+.header img{height:120px;max-width:100%}
+.content{padding:24px 20px}
+h1{text-align:center;font-size:20px;margin-bottom:6px}
+.subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
+label{display:block;margin-top:18px;font-size:14px;font-weight:600}
+input,select{
   width:100%;
   margin-top:8px;
   padding:14px;
@@ -78,41 +43,19 @@ input{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-
-/* CTA */
-.cta{
-  margin-top:28px;
-}
+.cta{margin-top:28px}
 .cta button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:#b7c3dd;
+  background:var(--blue);
   color:#fff;
   font-weight:600;
   font-size:15px;
-  cursor:not-allowed;
-}
-.cta button.active{
-  background:var(--blue);
   cursor:pointer;
 }
-
-/* LINKS */
-.links{
-  margin-top:18px;
-  text-align:center;
-}
-.links a{
-  display:block;
-  margin-top:10px;
-  font-size:13px;
-  color:var(--blue);
-  text-decoration:none;
-}
-
-/* INFO BOX */
+.cta button:disabled{opacity:.6}
 .info-box{
   margin-top:26px;
   border:1.6px solid #e6ebf5;
@@ -121,14 +64,8 @@ input{
   font-size:13px;
   opacity:.85;
 }
-
-/* FOOTER */
-.footer-separator{
-  height:1px;
-  background:linear-gradient(to right,transparent,#d0d7e5,transparent);
-  margin-top:auto;
-}
 .footer{
+  margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
@@ -138,128 +75,130 @@ input{
 </head>
 
 <body>
-
 <div class="app">
 
-  <!-- TOP BAR -->
   <div class="topbar">
-    <a href="/cizahealth/index.html" class="back">← Retour</a>
+    <a href="/cizahealth/pro-login.html" class="back">← Retour</a>
   </div>
 
-  <!-- HEADER -->
   <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <h1>Espace professionnel</h1>
-    <div class="subtitle">
-      Médecins & intervenants partenaires
-    </div>
+    <h1>Inscription professionnelle</h1>
+    <div class="subtitle">Professionnels de santé & intervenants</div>
+
+    <label>Nom complet</label>
+    <input id="fullName">
 
     <label>Email professionnel</label>
-    <input id="emailInput" type="email" placeholder="ex: pro@hopital.bi">
+    <input id="email" type="email">
+
+    <label>Téléphone</label>
+    <input id="phone">
+
+    <label>Profession</label>
+    <select id="role">
+      <option value="">Sélectionner</option>
+      <option value="doctor">Médecin</option>
+      <option value="aide">Intervenant aide à domicile</option>
+    </select>
+
+    <label>Province</label>
+    <select id="province">
+      <option value="">Choisir</option>
+      <option>Bujumbura</option>
+      <option>Gitega</option>
+      <option>Ngozi</option>
+      <option>Muyinga</option>
+      <option>Kayanza</option>
+    </select>
 
     <label>Mot de passe</label>
-    <input id="passwordInput" type="password" placeholder="••••••••">
+    <input id="password" type="password">
 
     <div class="cta">
-      <button id="loginBtn" disabled>Se connecter</button>
-    </div>
-
-    <div class="links">
-      <!-- ✅ REDIRECTION PROPRE -->
-      <a href="/cizahealth/pro-signup.html">
-        Créer un compte professionnel
-      </a>
-      <a href="#">Mot de passe oublié</a>
+      <button id="submitBtn">Soumettre ma demande</button>
     </div>
 
     <div class="info-box">
-      ⚠️ L’accès est réservé aux professionnels de santé
-      validés par CizaHealth+ (documents requis).
+      ⏳ Votre compte sera <b>en attente de validation</b>.<br><br>
+      Aucun patient ne pourra vous contacter avant validation.
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer-separator"></div>
-  <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
-  </div>
-
+  <div class="footer">© 2026 CizaHealth+ — CIZA GROUP</div>
 </div>
 
-<!-- 🔐 AUTH PRO — FIREBASE (STABLE) -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import {
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc }
+import { createUserWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
-const loginBtn = document.getElementById("loginBtn");
+const fullNameInput  = document.getElementById("fullName");
+const emailInput     = document.getElementById("email");
+const phoneInput     = document.getElementById("phone");
+const roleSelect     = document.getElementById("role");
+const provinceSelect = document.getElementById("province");
+const passwordInput  = document.getElementById("password");
+const btn            = document.getElementById("submitBtn");
 
-function validateForm(){
-  const valid =
-    emailInput.value.includes("@") &&
-    passwordInput.value.length >= 6;
-
-  loginBtn.disabled = !valid;
-  loginBtn.classList.toggle("active", valid);
-}
-
-emailInput.addEventListener("input", validateForm);
-passwordInput.addEventListener("input", validateForm);
-
-loginBtn.addEventListener("click", async () => {
-  loginBtn.disabled = true;
-  loginBtn.innerText = "Connexion…";
+btn.onclick = async () => {
+  btn.disabled = true;
+  btn.innerText = "Création…";
 
   try {
-    await setPersistence(auth, browserLocalPersistence);
+    const fullName = fullNameInput.value.trim();
+    const email    = emailInput.value.trim();
+    const phone    = phoneInput.value.trim();
+    const role     = roleSelect.value;
+    const province = provinceSelect.value;
+    const password = passwordInput.value;
 
-    const cred = await signInWithEmailAndPassword(
-      auth,
-      emailInput.value.trim(),
-      passwordInput.value
-    );
+    if (!fullName || !email || !role || !province || password.length < 6) {
+      alert("Veuillez compléter tous les champs correctement");
+      throw new Error("FORM_INVALID");
+    }
 
+    // 1️⃣ AUTH
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
-    const snap = await getDoc(doc(db,"users",uid));
 
-    if(!snap.exists()){
-      alert("Compte professionnel introuvable");
-      return;
-    }
+    // 2️⃣ USERS
+    await setDoc(doc(db,"users",uid),{
+      email,
+      role,
+      status:"pending",
+      createdAt: serverTimestamp()
+    });
 
-    const u = snap.data();
+    // 3️⃣ PROFESSIONALS (SANS proId – créé à la validation)
+    await setDoc(doc(db,"professionals",uid),{
+      fullName,
+      phone,
+      role,
+      specialty: role === "doctor" ? "Médecine générale" : null,
+      services: role === "doctor"
+        ? ["teleconsultation"]
+        : ["aide-domicile"],
+      province,
+      status:"pending",
+      createdAt: serverTimestamp()
+    });
 
-    if(u.role !== "doctor" && u.role !== "aide"){
-      alert("Accès réservé aux professionnels");
-      return;
-    }
+    // 4️⃣ REDIRECTION
+    window.location.href = "/cizahealth/pro-attente.html";
 
-    if(u.status !== "validated"){
-      window.location.href = "/cizahealth/pro-attente.html";
-      return;
-    }
-
-    window.location.href = "/cizahealth/dashboard-pro.html";
-
-  } catch(e){
-    alert("Email ou mot de passe incorrect");
-    console.error(e);
-  } finally{
-    loginBtn.disabled = false;
-    loginBtn.innerText = "Se connecter";
+  } catch (e) {
+    console.error("PRO SIGNUP ERROR →", e);
+    alert("Erreur lors de l’inscription. Vérifiez les informations.");
+    btn.disabled = false;
+    btn.innerText = "Soumettre ma demande";
   }
-});
+};
 </script>
 
 </body>
