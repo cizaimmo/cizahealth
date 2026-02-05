@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Espace patient</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:1000px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.topbar{
+  padding:18px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #eef1f6;
+}
+.topbar a{
+  text-decoration:none;
+  color:var(--blue);
+  font-weight:500;
+}
+.logout{
+  color:#8a1f1f;
+  font-size:13px;
+  cursor:pointer;
+}
+
+/* HERO */
+.hero{
+  padding:30px 26px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.hero h1{
+  font-size:24px;
+  margin:0 0 8px;
+}
+.hero p{
+  font-size:14.5px;
+  opacity:.95;
+  max-width:520px;
+}
+
+/* CONTENT */
+.content{
+  padding:26px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
+}
+@media(min-width:900px){
+  .grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+
+/* PROFILE */
+.profile-name{
+  font-size:20px;
+  font-weight:700;
+}
+.profile-meta{
+  margin-top:6px;
+  font-size:13px;
+  color:var(--muted);
+}
+.profile-id{
+  margin-top:14px;
+  padding:12px;
+  background:var(--blue-soft);
+  border-radius:16px;
+  font-size:13px;
+}
+.profile-id span{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* BUTTONS */
+.btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:14px;
+}
+.primary{
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.secondary{
+  background:#eef2f8;
+  color:var(--blue);
+}
+
+/* WARNING */
+.warn{
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:16px;
+  border-radius:16px;
+  font-size:13px;
+  line-height:1.6;
+  color:#1a2f55;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html">← Accueil</a>
+    <span class="logout" id="logoutBtn">Déconnexion</span>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Espace patient</h1>
+    <p>
+      Accédez à vos services de santé, suivez vos demandes
+      et consultez votre dossier médical en toute confidentialité.
+    </p>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- PROFIL INCOMPLET -->
+    <div class="card" id="profileMissing" style="display:none;margin-bottom:22px;">
+      <h3>Profil à compléter</h3>
+      <div class="warn">
+        Pour une prise en charge médicale adaptée, veuillez compléter
+        votre <strong>âge</strong>, <strong>genre</strong> et <strong>province</strong>.
+      </div>
+      <button class="btn primary" onclick="location.href='completer-profil.html'">
+        Compléter mon profil
+      </button>
+    </div>
+
+    <div class="grid">
+
+      <!-- IDENTITÉ -->
+      <div class="card">
+        <div class="profile-name" id="fullName">—</div>
+        <div class="profile-meta">
+          Âge : <strong id="age">—</strong> •
+          Genre : <strong id="gender">—</strong> •
+          Province : <strong id="province">—</strong>
+        </div>
+
+        <div class="profile-id">
+          <span>Identifiant médical CizaHealth+</span>
+          <strong id="patientId">—</strong>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="card">
+        <h3>Services disponibles</h3>
+
+        <!-- ✅ NOUVEAU POINT D’ENTRÉE UNIQUE -->
+        <button class="btn primary" id="btnNewRequest">
+          ➕ Nouvelle demande de service
+        </button>
+
+        <!-- Boutons existants conservés -->
+        <button class="btn primary" id="btnTele">
+          🩺 Démarrer une téléconsultation
+        </button>
+
+        <button class="btn secondary" id="btnHome">
+          🏠 Demander une aide à domicile
+        </button>
+      </div>
+
+    </div>
+
+    <!-- DOSSIER -->
+    <div class="card" style="margin-top:22px">
+      <h3>Dossier médical</h3>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.6">
+        Consultez l’historique de vos téléconsultations,
+        demandes d’aide à domicile et informations associées
+        à votre compte patient.
+      </p>
+      <button class="btn secondary" onclick="location.href='dossier-sante.html'">
+        Accéder à mon dossier médical
+      </button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Plateforme de santé numérique • Service non urgent
+  </div>
+
+</div>
+
+<!-- 🔐 AUTH + FIRESTORE -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+document.getElementById("logoutBtn").onclick = async ()=>{
+  try{ await signOut(auth); }catch(e){}
+  location.href="index.html";
+};
+
+function go(url){
+  if(!auth.currentUser){
+    location.href="login.html";
+    return;
+  }
+  location.href=url;
+}
+
+/* ✅ NOUVEAU FLOW */
+document.getElementById("btnNewRequest").onclick = ()=>{
+  go("choix-service.html");
+};
+
+/* Anciens boutons conservés */
+btnTele.onclick = ()=>go("demande-teleconsultation.html");
+btnHome.onclick = ()=>go("demande-aide-domicile.html");
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="login.html"; return; }
+
+  const snap = await getDoc(doc(db,"patients",user.uid));
+  if(!snap.exists()) return;
+
+  const p = snap.data();
+
+  fullName.innerText = p.fullName || "—";
+  age.innerText = p.age ? p.age+" ans" : "—";
+  gender.innerText = p.gender || "—";
+  province.innerText = p.province || "—";
+  patientId.innerText = p.patientId || "—";
+
+  if(!p.age || !p.gender || !p.province){
+    document.getElementById("profileMissing").style.display="block";
+  }
+});
+</script>
+
+</body>
+</html>
