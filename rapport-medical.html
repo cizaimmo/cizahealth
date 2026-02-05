@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Rapport médical</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header img{height:48px}
+.header .title{
+  font-weight:600;
+}
+
+/* HERO */
+.hero{
+  padding:28px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.hero h1{
+  margin:0 0 6px;
+  font-size:22px;
+}
+.hero p{
+  font-size:14.5px;
+  opacity:.95;
+}
+
+/* CONTENT */
+.content{
+  padding:26px;
+}
+
+/* CARD */
+.card{
+  border-radius:var(--radius);
+  padding:24px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+
+/* FORM */
+.group{
+  margin-bottom:16px;
+}
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+}
+textarea{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
+  resize:none;
+}
+textarea.large{height:120px}
+textarea.medium{height:90px}
+
+/* CTA */
+.btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{
+  height:44px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="title">Rapport médical</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Clôture de la consultation</h1>
+    <p>Ce rapport sera ajouté au dossier médical du patient.</p>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="card">
+
+      <div class="group">
+        <label>Résumé de la consultation</label>
+        <textarea id="summary" class="large" required></textarea>
+      </div>
+
+      <div class="group">
+        <label>Diagnostic / observations</label>
+        <textarea id="diagnosis" class="medium"></textarea>
+      </div>
+
+      <div class="group">
+        <label>Recommandations</label>
+        <textarea id="recommendations" class="medium"></textarea>
+      </div>
+
+      <div class="group">
+        <label>Orientation pharmacie (si nécessaire)</label>
+        <textarea id="pharmacy" class="medium" placeholder="Médicaments ou conseils à récupérer en pharmacie"></textarea>
+      </div>
+
+      <button class="btn" id="submitBtn">
+        Finaliser le rapport
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </div>
+
+</div>
+
+<!-- 🔐 AUTH + REPORT CREATE -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, addDoc, query, where, getDocs,
+  updateDoc, doc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let consultationId = null;
+let patientId = null;
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  // récupérer la consultation terminée la plus récente du pro
+  const q = query(
+    collection(db,"consultations"),
+    where("proId","==",user.uid),
+    where("status","==","ended")
+  );
+
+  const snap = await getDocs(q);
+  if(snap.empty){
+    alert("Aucune consultation à clôturer.");
+    return;
+  }
+
+  const c = snap.docs[0];
+  consultationId = c.id;
+  patientId = c.data().patientId;
+});
+
+document.getElementById("submitBtn").onclick = async()=>{
+  if(!consultationId || !patientId) return;
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+
+  // créer rapport médical
+  await addDoc(collection(db,"reports"),{
+    consultationId,
+    patientId,
+    proId: auth.currentUser.uid,
+    summary: summary.value,
+    diagnosis: diagnosis.value,
+    recommendations: recommendations.value,
+    pharmacy: pharmacy.value,
+    createdAt: serverTimestamp()
+  });
+
+  // marquer consultation comme clôturée définitivement
+  await updateDoc(doc(db,"consultations",consultationId),{
+    reportSubmitted: true
+  });
+
+  // redirection
+  location.href = "dashboard-pro.html";
+};
+</script>
+
+</body>
+</html>
