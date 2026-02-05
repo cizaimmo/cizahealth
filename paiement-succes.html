@@ -152,17 +152,17 @@ async function loadRequest(user){
   let requestId = sessionStorage.getItem("lastRequestId");
   let snap = null;
 
-  // 🔹 PRIORITÉ : requestId connu
+  /* 🔹 1. PRIORITÉ : lecture directe par ID */
   if(requestId){
     const d = await getDoc(doc(db,"requests",requestId));
     if(d.exists()) snap = d;
   }
 
-  // 🔹 FALLBACK : dernière demande du patient
+  /* 🔹 2. FALLBACK SÛR : dernière demande du user */
   if(!snap){
     const q = query(
       collection(db,"requests"),
-      where("patientUid","==",user.uid),
+      where("userId","==",user.uid),
       orderBy("createdAt","desc"),
       limit(1)
     );
@@ -174,12 +174,12 @@ async function loadRequest(user){
 
   const r = snap.data();
 
-  uiFullName.innerText  = r.fullName || "—";
-  uiAge.innerText       = r.age ? r.age+" ans" : "—";
-  uiProvince.innerText  = r.province || "—";
-  uiPatientId.innerText = r.patientId || "—";
-  uiRequestId.innerText = snap.id;
-  uiServiceType.innerText =
+  document.getElementById("uiFullName").innerText  = r.fullName || "—";
+  document.getElementById("uiAge").innerText       = r.age ? r.age + " ans" : "—";
+  document.getElementById("uiProvince").innerText  = r.province || "—";
+  document.getElementById("uiPatientId").innerText = r.patientId || "—";
+  document.getElementById("uiRequestId").innerText = snap.id;
+  document.getElementById("uiServiceType").innerText =
     r.serviceType === "teleconsultation"
       ? "Téléconsultation"
       : "Aide à domicile";
