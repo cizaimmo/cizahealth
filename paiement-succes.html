@@ -6,12 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-html,body{
-  overscroll-behavior:none;
-  height:100%;
-}
+html,body{overscroll-behavior:none}
 :root{
   --blue:#123c8a;
+  --blue-soft:#f1f5fc;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
@@ -147,47 +145,52 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc,
-  collection, query, where, orderBy, limit, getDocs
+  collection, query, where, orderBy, limit, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user) return;
+async function loadRequest(user){
+  let requestId = sessionStorage.getItem("lastRequestId");
+  let snap = null;
 
-  let requestDoc = null;
-
-  // 1️⃣ tentative via sessionStorage
-  const storedId = sessionStorage.getItem("lastRequestId");
-  if(storedId){
-    const snap = await getDoc(doc(db,"requests",storedId));
-    if(snap.exists()) requestDoc = snap;
+  // 🔹 PRIORITÉ : requestId connu
+  if(requestId){
+    const d = await getDoc(doc(db,"requests",requestId));
+    if(d.exists()) snap = d;
   }
 
-  // 2️⃣ fallback robuste (dernier dossier du patient)
-  if(!requestDoc){
+  // 🔹 FALLBACK : dernière demande du patient
+  if(!snap){
     const q = query(
       collection(db,"requests"),
       where("patientUid","==",user.uid),
       orderBy("createdAt","desc"),
       limit(1)
     );
-    const snap = await getDocs(q);
-    if(!snap.empty) requestDoc = snap.docs[0];
+    const qs = await getDocs(q);
+    if(!qs.empty) snap = qs.docs[0];
   }
 
-  if(!requestDoc) return;
+  if(!snap) return;
 
-  const r = requestDoc.data();
+  const r = snap.data();
 
   uiFullName.innerText  = r.fullName || "—";
   uiAge.innerText       = r.age ? r.age+" ans" : "—";
   uiProvince.innerText  = r.province || "—";
   uiPatientId.innerText = r.patientId || "—";
-  uiRequestId.innerText = requestDoc.id;
+  uiRequestId.innerText = snap.id;
   uiServiceType.innerText =
     r.serviceType === "teleconsultation"
       ? "Téléconsultation"
       : "Aide à domicile";
+}
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+  loadRequest(user);
 });
 </script>
 
