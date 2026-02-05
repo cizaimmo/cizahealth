@@ -3,35 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Paiement confirmé</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 html,body{
   margin:0;
-  padding:0;
   overscroll-behavior:none;
-  overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;
 }
-
 :root{
   --blue:#123c8a;
+  --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
 }
-
 *{box-sizing:border-box}
 
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
-  background:#f4f7fb;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:var(--bg);
   color:var(--text);
 }
 
 .app{
   max-width:900px;
-  margin:0 auto;
+  margin:auto;
   min-height:100vh;
   background:#fff;
   display:flex;
@@ -50,41 +46,26 @@ body{
   border:none;
   color:var(--blue);
   font-size:14px;
-  font-weight:500;
   cursor:pointer;
 }
 .header img{
-  height:46px;
+  height:48px;
   margin-left:auto;
 }
 
 /* HERO */
 .hero{
-  padding:34px 26px;
+  padding:32px 24px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
   text-align:center;
 }
-.hero h1{
-  margin:0 0 8px;
-  font-size:24px;
-}
-.hero p{
-  margin:0;
-  font-size:14.5px;
-  opacity:.95;
-}
 
 /* CONTENT */
-.content{
-  padding:26px;
-  display:flex;
-  flex-direction:column;
-}
+.content{padding:26px}
 
 /* CARD */
 .card{
-  width:100%;
   border-radius:var(--radius);
   padding:24px;
   background:#fff;
@@ -92,34 +73,28 @@ body{
   margin-bottom:22px;
 }
 
-/* TITLES */
 .status{
-  font-size:17px;
+  font-size:18px;
   font-weight:700;
-  margin-bottom:14px;
+  margin-bottom:12px;
 }
 
-/* ROWS */
 .row{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:12px;
   margin-bottom:10px;
   font-size:14.5px;
 }
-.row span{
-  color:var(--muted);
-  flex-shrink:0;
+.row span{color:var(--muted)}
+
+.list{
+  font-size:14px;
+  margin-top:6px;
 }
-.row strong{
-  text-align:right;
-  font-weight:600;
-}
+.list li{margin-bottom:6px}
 
 /* CTA */
 .cta{
-  margin-top:8px;
   width:100%;
   padding:16px;
   border:none;
@@ -129,19 +104,20 @@ body{
   font-size:15px;
   font-weight:600;
   cursor:pointer;
+  margin-top:10px;
 }
 
 /* FOOTER */
 .footer{
   margin-top:auto;
-  padding:26px;
+  padding:22px;
   border-top:1px solid #eef1f6;
   text-align:center;
   font-size:12px;
   color:#8a95a8;
 }
 .footer img{
-  height:42px;
+  height:44px;
   margin-bottom:8px;
 }
 </style>
@@ -152,7 +128,7 @@ body{
 
   <!-- HEADER -->
   <div class="header">
-    <button onclick="safeBack()">← Retour</button>
+    <button onclick="location.href='dashboard-client.html'">← Tableau de bord</button>
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
@@ -165,22 +141,39 @@ body{
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- IDENTITÉ -->
+    <!-- IDENTITÉ PATIENT -->
     <div class="card">
       <div class="status">Identité du patient</div>
-      <div class="row"><span>Nom complet</span><strong id="fullName">—</strong></div>
-      <div class="row"><span>Genre</span><strong id="gender">—</strong></div>
-      <div class="row"><span>Âge</span><strong id="age">—</strong></div>
-      <div class="row"><span>Province</span><strong id="province">—</strong></div>
-      <div class="row"><span>Patient ID</span><strong id="patientId">—</strong></div>
+      <div class="row"><span>Nom complet</span><strong id="uiName">—</strong></div>
+      <div class="row"><span>Genre</span><strong id="uiGender">—</strong></div>
+      <div class="row"><span>Âge</span><strong id="uiAge">—</strong></div>
+      <div class="row"><span>Province</span><strong id="uiProvince">—</strong></div>
+      <div class="row"><span>Patient ID</span><strong id="uiPatientId">—</strong></div>
     </div>
 
-    <!-- DOSSIER -->
+    <!-- DOSSIER DEMANDE -->
     <div class="card">
       <div class="status">Dossier de la demande</div>
-      <div class="row"><span>Numéro de dossier</span><strong id="requestId">—</strong></div>
-      <div class="row"><span>Service</span><strong id="serviceType">—</strong></div>
-      <div class="row"><span>Statut</span><strong id="status">En attente de professionnel</strong></div>
+      <div class="row"><span>Numéro de dossier</span><strong id="uiRequestId">—</strong></div>
+      <div class="row"><span>Service</span><strong id="uiService">—</strong></div>
+      <div class="row"><span>Durée</span><strong id="uiDuration">—</strong></div>
+      <div class="row"><span>Statut</span><strong>En attente de professionnel</strong></div>
+    </div>
+
+    <!-- INFOS MÉDICALES -->
+    <div class="card">
+      <div class="status">Informations médicales</div>
+      <div class="row"><span>Motif</span><strong id="uiMotif">—</strong></div>
+
+      <div>
+        <span style="color:var(--muted);font-size:13px">Symptômes</span>
+        <ul class="list" id="uiSymptoms"></ul>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <span>Détails</span>
+        <strong id="uiDetails">—</strong>
+      </div>
     </div>
 
     <button class="cta" onclick="location.href='etat-demande.html'">
@@ -197,41 +190,34 @@ body{
 
 </div>
 
-<!-- LOGIQUE FIRESTORE STABLE -->
+<!-- 🔐 LOGIQUE ROBUSTE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc,
   collection, query, where, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function safeBack(){
-  if(history.length > 1){
-    history.back();
-  }else{
-    location.href = "dashboard-client.html";
-  }
-}
-
-onAuthStateChanged(auth, async (user)=>{
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
-    location.href = "login.html";
+    location.href="login.html";
     return;
   }
 
-  /* IDENTITÉ PATIENT */
-  const patientSnap = await getDoc(doc(db,"patients",user.uid));
-  if(patientSnap.exists()){
-    const p = patientSnap.data();
-    fullName.innerText  = p.fullName || "—";
-    gender.innerText    = p.gender || "—";
-    age.innerText       = p.age ? p.age + " ans" : "—";
-    province.innerText  = p.province || "—";
-    patientId.innerText = p.patientId || "—";
+  /* 1️⃣ PATIENT */
+  const pSnap = await getDoc(doc(db,"patients",user.uid));
+  if(pSnap.exists()){
+    const p = pSnap.data();
+    uiName.innerText      = p.fullName || "—";
+    uiGender.innerText    = p.gender || "—";
+    uiAge.innerText       = p.age ? p.age+" ans" : "—";
+    uiProvince.innerText  = p.province || "—";
+    uiPatientId.innerText = p.patientId || "—";
   }
 
-  /* DEMANDE */
+  /* 2️⃣ DEMANDE (ID ou dernière) */
   let reqSnap = null;
   const lastId = sessionStorage.getItem("lastRequestId");
 
@@ -251,14 +237,35 @@ onAuthStateChanged(auth, async (user)=>{
     if(!qs.empty) reqSnap = qs.docs[0];
   }
 
-  if(reqSnap){
-    const r = reqSnap.data();
-    requestId.innerText = reqSnap.id;
-    serviceType.innerText =
-      r.serviceType === "teleconsultation"
-        ? "Téléconsultation"
-        : "Aide à domicile";
-    status.innerText = "En attente de professionnel";
+  if(!reqSnap) return;
+
+  const r = reqSnap.data();
+
+  uiRequestId.innerText = reqSnap.id;
+  uiService.innerText =
+    r.serviceType === "teleconsultation"
+      ? "Téléconsultation"
+      : "Aide à domicile";
+
+  uiDuration.innerText =
+    r.duration
+      ? (r.serviceType === "teleconsultation"
+          ? r.duration+" minutes"
+          : r.duration+" heure(s)")
+      : "—";
+
+  uiMotif.innerText = r.motif || r.assistanceType || "—";
+  uiDetails.innerText = r.details || "—";
+
+  uiSymptoms.innerHTML = "";
+  if(r.symptoms && r.symptoms.length){
+    r.symptoms.forEach(s=>{
+      const li = document.createElement("li");
+      li.textContent = s;
+      uiSymptoms.appendChild(li);
+    });
+  }else{
+    uiSymptoms.innerHTML = "<li>Aucun symptôme déclaré</li>";
   }
 });
 </script>
