@@ -27,7 +27,6 @@ body{
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
@@ -118,10 +117,6 @@ body{
   font-weight:600;
   cursor:pointer;
 }
-.cta:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
 
 /* FOOTER */
 .footer{
@@ -197,53 +192,37 @@ body{
 
 </div>
 
-<script type="module">
-import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* 🔐 AUTH SOUPLE */
-onAuthStateChanged(auth, (user)=>{
-  if(!user){
-    window.location.href = "login.html";
-  }
-});
-
-/* 📦 LECTURE UNIQUE DU RÉCAP */
+<script>
+/* 📦 LECTURE DU FLOW (SANS BLOQUER) */
 let recap = null;
 try{
   recap = JSON.parse(sessionStorage.getItem("serviceRecap"));
 }catch(e){}
 
+/* Affichage */
 if(recap){
   document.getElementById("serviceLabel").innerText =
-    recap.service === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
+    recap.service === "teleconsultation"
+      ? "Téléconsultation"
+      : "Aide à domicile";
 
   document.getElementById("durationLabel").innerText =
-    recap.duration + (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
+    recap.duration +
+    (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
 
   document.getElementById("amountLabel").innerText = recap.totalAmount;
-}else{
-  document.getElementById("payBtn").disabled = true;
 }
 
-/* ✅ CONFIRMATION PAIEMENT */
-document.getElementById("payBtn").onclick = async ()=>{
-  const user = auth.currentUser;
-  if(!user || !recap) return;
+/* ✅ CONFIRMATION (MOCK — AUCUN FIRESTORE) */
+document.getElementById("payBtn").onclick = ()=>{
+  if(!recap) return;
 
-  document.getElementById("payBtn").disabled = true;
-
-  await addDoc(collection(db,"payments"),{
-    patientId: user.uid,
-    serviceType: recap.service,
-    duration: Number(recap.duration),
-    amountTotal: Number(recap.totalAmount),
-    status: "paid_pending_match",
-    createdAt: serverTimestamp()
-  });
+  sessionStorage.setItem("paymentConfirmed","true");
+  sessionStorage.setItem("paymentData", JSON.stringify({
+    service: recap.service,
+    duration: recap.duration,
+    amount: recap.totalAmount
+  }));
 
   window.location.href = "paiement-succes.html";
 };
