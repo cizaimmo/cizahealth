@@ -127,7 +127,7 @@ select,textarea{
   <div class="content">
 
     <div class="card">
-      <h3>Motif de consultation</h3>
+      <h3>Informations médicales</h3>
 
       <label>Motif principal</label>
       <select id="motif">
@@ -140,16 +140,28 @@ select,textarea{
         <option>Autre</option>
       </select>
 
-      <label>Symptômes</label>
+      <label>Depuis quand avez-vous ces symptômes ?</label>
+      <select id="durationSymptoms">
+        <option value="">— Sélectionner —</option>
+        <option>Moins de 24h</option>
+        <option>1 à 3 jours</option>
+        <option>Plusieurs jours</option>
+        <option>Plusieurs semaines</option>
+      </select>
+
+      <label>Symptômes ressentis</label>
       <div class="checkbox-group">
         <label><input type="checkbox" value="Maux de tête"> Maux de tête</label>
         <label><input type="checkbox" value="Fatigue"> Fatigue</label>
         <label><input type="checkbox" value="Toux"> Toux</label>
         <label><input type="checkbox" value="Douleurs"> Douleurs</label>
+        <label><input type="checkbox" value="Fièvre"> Fièvre</label>
+        <label><input type="checkbox" value="Essoufflement"> Essoufflement</label>
       </div>
 
-      <label>Autres symptômes / précisions</label>
-      <textarea id="details" rows="4" placeholder="Décrivez librement…"></textarea>
+      <label>Détails complémentaires</label>
+      <textarea id="details" rows="4"
+        placeholder="Décrivez vos symptômes, traitements déjà pris, allergies connues…"></textarea>
     </div>
 
     <button class="cta" onclick="submitForm()">Continuer</button>
@@ -164,15 +176,22 @@ select,textarea{
 
 <script>
 function submitForm(){
+
   const symptoms = [];
   document.querySelectorAll('input[type=checkbox]:checked')
-    .forEach(cb=>symptoms.push(cb.value));
+    .forEach(cb => symptoms.push(cb.value));
 
-  sessionStorage.setItem("serviceRecap", JSON.stringify({
-    service: "teleconsultation",
+  /* ✅ INFOS MÉDICALES (clé UNIQUE lue par paiement & Firestore) */
+  sessionStorage.setItem("medicalForm", JSON.stringify({
     motif: document.getElementById("motif").value,
-    symptoms,
-    details: document.getElementById("details").value
+    symptoms: symptoms,
+    details: document.getElementById("details").value,
+    symptomsDuration: document.getElementById("durationSymptoms").value
+  }));
+
+  /* 🔹 Le serviceRecap reste pour durée/prix (page suivante) */
+  sessionStorage.setItem("serviceRecap", JSON.stringify({
+    service: "teleconsultation"
   }));
 
   location.href = "choix-duree.html";
