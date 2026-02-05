@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Paiement confirmé</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html,body{overscroll-behavior:none}
+:root{
+  --blue:#123c8a;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:#f4f7fb;
+}
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+.header{padding:16px 22px;border-bottom:1px solid #eef1f6}
+.header img{height:48px}
+.hero{
+  padding:34px 26px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  text-align:center;
+}
+.content{padding:30px 26px}
+.card{
+  border-radius:var(--radius);
+  padding:26px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+  font-size:14.5px;
+}
+.row span{color:var(--muted)}
+.status{font-size:18px;font-weight:700;margin-bottom:12px}
+.cta{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+}
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{height:44px;margin-bottom:8px}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="header">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+</div>
+
+<div class="hero">
+  <h1>Paiement confirmé</h1>
+  <p>Votre demande est enregistrée et en cours de prise en charge.</p>
+</div>
+
+<div class="content">
+
+<div class="card">
+  <div class="status">Identité du patient</div>
+  <div class="row"><span>Nom complet</span><strong id="fullName">—</strong></div>
+  <div class="row"><span>Âge</span><strong id="age">—</strong></div>
+  <div class="row"><span>Province</span><strong id="province">—</strong></div>
+  <div class="row"><span>Patient ID</span><strong id="patientId">—</strong></div>
+</div>
+
+<div class="card">
+  <div class="status">Dossier de la demande</div>
+  <div class="row"><span>Numéro de dossier</span><strong id="requestId">—</strong></div>
+  <div class="row"><span>Service</span><strong id="serviceType">—</strong></div>
+  <div class="row"><span>Statut</span><strong>En attente de professionnel</strong></div>
+</div>
+
+<button class="cta" onclick="location.href='etat-demande.html'">
+  Voir l’état de ma demande
+</button>
+
+</div>
+
+<div class="footer">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div>© 2026 CizaHealth+ — CIZA GROUP<br>Service non urgent</div>
+</div>
+
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(window.location.search);
+const rid = params.get("rid");
+
+if(!rid){
+  alert("Impossible d’afficher la demande.");
+}
+
+const snap = await getDoc(doc(db,"requests",rid));
+if(!snap.exists()){
+  alert("Demande introuvable.");
+}
+
+const r = snap.data();
+
+fullName.innerText  = r.fullName || "—";
+age.innerText       = r.age ? r.age+" ans" : "—";
+province.innerText  = r.province || "—";
+patientId.innerText = r.patientId || "—";
+requestId.innerText = rid;
+serviceType.innerText =
+  r.serviceType === "teleconsultation"
+    ? "Téléconsultation"
+    : "Aide à domicile";
+</script>
+
+</body>
+</html>
