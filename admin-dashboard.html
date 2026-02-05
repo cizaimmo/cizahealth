@@ -36,12 +36,17 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:12px;
+}
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header-left img{
+  height:40px;
 }
 .header strong{font-size:16px}
-.header .sub{
-  font-size:12px;
-  color:var(--muted);
-}
 .header button{
   border:none;
   background:none;
@@ -92,8 +97,8 @@ h2{
   display:inline-block;
 }
 
-/* STATUS BADGES */
-.status-badge{
+/* BADGES */
+.badge{
   display:inline-block;
   margin-top:8px;
   padding:4px 10px;
@@ -101,24 +106,16 @@ h2{
   font-weight:600;
   border-radius:999px;
 }
-.status-pending{
-  background:#fff4cc;
-  color:#8a6d00;
-}
-.status-pending-info{
-  background:#ffe2cc;
-  color:#8a4b00;
-}
-.status-validated{
-  background:#dff5e6;
-  color:#1b6b3a;
-}
-.status-rejected{
-  background:#fde0e0;
-  color:#8a1f1f;
-}
+.status-pending{background:#fff4cc;color:#8a6d00;}
+.status-pending-info{background:#ffe2cc;color:#8a4b00;}
+.status-validated{background:#dff5e6;color:#1b6b3a;}
+.status-rejected{background:#fde0e0;color:#8a1f1f;}
 
-/* ACTION BUTTONS */
+.service-tele{background:#e6f0ff;color:#0a2a5e;}
+.service-home{background:#e9f7f1;color:#1b6b3a;}
+.service-pharma{background:#f5ecff;color:#5a3d8a;}
+
+/* ACTIONS */
 button.validate{
   margin-top:12px;
   width:100%;
@@ -142,7 +139,6 @@ button.info{
   background:#f6a623;
   color:#fff;
   font-weight:600;
-  cursor:pointer;
 }
 button.reject{
   padding:10px;
@@ -151,15 +147,12 @@ button.reject{
   background:#b3261e;
   color:#fff;
   font-weight:600;
-  cursor:pointer;
 }
 textarea.admin-note{
   width:100%;
-  margin-top:8px;
   padding:10px;
   border-radius:10px;
   border:1px solid #ddd;
-  font-family:inherit;
   font-size:13px;
 }
 
@@ -187,9 +180,9 @@ textarea.admin-note{
 
   <!-- HEADER -->
   <div class="header">
-    <div>
-      <strong>Administration CizaHealth+</strong><br>
-      <span class="sub">Application officielle — WebView (Apple App Store & Google Play)</span>
+    <div class="header-left">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/c01b9c564d6cf6c89eff8e6bed95ec09d64e002f/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+      <strong>Administration CizaHealth+</strong>
     </div>
     <button id="logoutBtn">Déconnexion</button>
   </div>
@@ -198,14 +191,13 @@ textarea.admin-note{
   <div class="content">
 
     <h2>Professionnels en attente</h2>
-    <div id="pendingList" class="list">
-      <div class="empty">Chargement…</div>
-    </div>
+    <div id="pendingList" class="list"></div>
 
     <h2>Professionnels validés</h2>
-    <div id="validatedList" class="list">
-      <div class="empty">Chargement…</div>
-    </div>
+    <div id="validatedList" class="list"></div>
+
+    <h2>Professionnels refusés</h2>
+    <div id="rejectedList" class="list"></div>
 
   </div>
 
@@ -218,159 +210,132 @@ textarea.admin-note{
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, getDocs,
   doc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// LOGOUT
 document.getElementById("logoutBtn").onclick = async ()=>{
   await signOut(auth);
   location.href = "/cizahealth/index.html";
 };
 
 onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    location.href="/cizahealth/index.html";
-    return;
-  }
+  if(!user){ location.href="/cizahealth/index.html"; return; }
 
-  // Vérifier admin
-  const adminSnap = await getDocs(
-    query(
-      collection(db,"users"),
-      where("__name__","==",user.uid),
-      where("role","==","admin")
-    )
+  const adminCheck = await getDocs(
+    query(collection(db,"users"),
+    where("__name__","==",user.uid),
+    where("role","==","admin"))
   );
-
-  if(adminSnap.empty){
-    document.body.innerHTML = "Accès refusé";
-    return;
-  }
+  if(adminCheck.empty){ document.body.innerHTML="Accès refusé"; return; }
 
   const pendingList   = document.getElementById("pendingList");
   const validatedList = document.getElementById("validatedList");
+  const rejectedList  = document.getElementById("rejectedList");
 
-  pendingList.innerHTML = "";
-  validatedList.innerHTML = "";
-
-  const q = query(
-    collection(db,"users"),
-    where("role","in",["doctor","aide","pharmacy_partner"])
+  const snap = await getDocs(
+    query(collection(db,"users"),
+    where("role","in",["doctor","aide","pharmacy_partner"]))
   );
-
-  const snap = await getDocs(q);
-
-  if(snap.empty){
-    pendingList.innerHTML = `<div class="empty">Aucun professionnel</div>`;
-    validatedList.innerHTML = `<div class="empty">—</div>`;
-    return;
-  }
 
   snap.forEach(d=>{
     const u = d.data();
 
-    const statusMap = {
-      pending:{text:"EN ATTENTE",cls:"status-pending"},
-      pending_info:{text:"INFOS MANQUANTES",cls:"status-pending-info"},
-      validated:{text:"VALIDÉ",cls:"status-validated"},
-      rejected:{text:"REFUSÉ",cls:"status-rejected"}
-    };
+    const statusClass = {
+      pending:"status-pending",
+      pending_info:"status-pending-info",
+      validated:"status-validated",
+      rejected:"status-rejected"
+    }[u.status];
 
-    const badge = statusMap[u.status]
-      ? `<div class="status-badge ${statusMap[u.status].cls}">
-           ${statusMap[u.status].text}
-         </div>` : "";
+    const statusLabel = {
+      pending:"EN ATTENTE",
+      pending_info:"INFOS MANQUANTES",
+      validated:"VALIDÉ",
+      rejected:"REFUSÉ"
+    }[u.status];
+
+    const serviceClass = {
+      doctor:"service-tele",
+      aide:"service-home",
+      pharmacy_partner:"service-pharma"
+    }[u.role];
+
+    const serviceLabel = {
+      doctor:"Téléconsultation",
+      aide:"Aide à domicile",
+      pharmacy_partner:"Pharmacie partenaire"
+    }[u.role];
 
     const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
+    card.className="card";
+    card.innerHTML=`
       <div class="name">${u.fullName || "—"}</div>
-      <div class="meta">
-        ${u.role} • ${u.province || "—"}<br>
-        ${u.email || ""}
-      </div>
-      ${badge}
+      <div class="meta">${u.role} • ${u.province || "—"}<br>${u.email || ""}</div>
+      <div class="badge ${serviceClass}">${serviceLabel}</div>
+      <div class="badge ${statusClass}">${statusLabel}</div>
       ${u.proId ? `<div class="proid">ProID : <b>${u.proId}</b></div>` : ""}
     `;
 
-    // EN ATTENTE / INFOS MANQUANTES
-    if(u.status === "pending" || u.status === "pending_info"){
-      const btn = document.createElement("button");
-      btn.className = "validate";
-      btn.textContent = "Valider le professionnel";
-
-      btn.onclick = async ()=>{
-        const proId = "CH-PRO-" + Date.now().toString().slice(-6);
+    if(u.status==="pending" || u.status==="pending_info"){
+      const btn=document.createElement("button");
+      btn.className="validate";
+      btn.textContent="Valider le professionnel";
+      btn.onclick=async()=>{
         await updateDoc(doc(db,"users",d.id),{
           status:"validated",
-          proId,
-          validatedAt: serverTimestamp(),
-          lastStatusChangeAt: serverTimestamp()
+          proId:"PRO-"+Date.now(),
+          validatedAt:serverTimestamp(),
+          validatedBy:user.uid
         });
         location.reload();
       };
 
-      const actions = document.createElement("div");
-      actions.className = "admin-actions";
+      const note=document.createElement("textarea");
+      note.className="admin-note";
+      note.placeholder="Message ou motif (obligatoire)";
 
-      const infoBtn = document.createElement("button");
-      infoBtn.className = "info";
-      infoBtn.textContent = "Demander des informations";
-
-      const rejectBtn = document.createElement("button");
-      rejectBtn.className = "reject";
-      rejectBtn.textContent = "Refuser";
-
-      const note = document.createElement("textarea");
-      note.className = "admin-note";
-      note.placeholder = "Message ou motif (obligatoire)";
-      note.style.display = "none";
-
-      let actionType = null;
-
-      infoBtn.onclick = ()=>{
-        actionType = "pending_info";
-        note.style.display = "block";
-      };
-
-      rejectBtn.onclick = ()=>{
-        actionType = "rejected";
-        note.style.display = "block";
-      };
-
-      note.onblur = async ()=>{
-        if(!actionType || !note.value.trim()) return;
+      const info=document.createElement("button");
+      info.className="info";
+      info.textContent="Demander des informations";
+      info.onclick=async()=>{
+        if(!note.value.trim())return;
         await updateDoc(doc(db,"users",d.id),{
-          status: actionType,
-          validationNote: note.value.trim(),
-          lastStatusChangeAt: serverTimestamp()
+          status:"pending_info",
+          validationNote:note.value.trim(),
+          lastStatusChangeAt:serverTimestamp()
         });
         location.reload();
       };
 
-      actions.appendChild(infoBtn);
-      actions.appendChild(rejectBtn);
-      actions.appendChild(note);
+      const reject=document.createElement("button");
+      reject.className="reject";
+      reject.textContent="Refuser";
+      reject.onclick=async()=>{
+        if(!note.value.trim())return;
+        await updateDoc(doc(db,"users",d.id),{
+          status:"rejected",
+          validationNote:note.value.trim(),
+          lastStatusChangeAt:serverTimestamp()
+        });
+        location.reload();
+      };
 
-      card.appendChild(btn);
+      const actions=document.createElement("div");
+      actions.className="admin-actions";
+      actions.append(btn,info,reject,note);
       card.appendChild(actions);
       pendingList.appendChild(card);
     }
-
-    // VALIDÉ
-    if(u.status === "validated"){
+    else if(u.status==="validated"){
       validatedList.appendChild(card);
     }
+    else if(u.status==="rejected"){
+      rejectedList.appendChild(card);
+    }
   });
-
-  if(!pendingList.innerHTML)
-    pendingList.innerHTML = `<div class="empty">Aucun dossier en attente</div>`;
-
-  if(!validatedList.innerHTML)
-    validatedList.innerHTML = `<div class="empty">Aucun professionnel validé</div>`;
 });
 </script>
 
