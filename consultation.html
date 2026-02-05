@@ -2,174 +2,283 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Résumé de consultation</title>
+<title>CizaHealth+ | Consultation en cours</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
-  --blue:#0a2a5e;
-  --green:#1b9c4a;
-  --bg:#f4f7fb;
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
   --text:#0a1a2f;
-  --radius:22px;
+  --muted:#6b7a90;
+  --radius:24px;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
 .app{
-  max-width:430px;
+  max-width:900px;
   margin:auto;
   min-height:100vh;
   background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
 
 /* HEADER */
 .header{
-  padding:18px 20px;
+  padding:16px 22px;
   border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
-.header h1{
+.header img{height:48px}
+.header .title{
+  font-weight:600;
+  font-size:15px;
+}
+
+/* HERO */
+.hero{
+  padding:26px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.timer{
   font-size:18px;
-  margin:0;
-}
-.header .ref{
-  font-size:12px;
-  opacity:.7;
+  font-weight:700;
 }
 
 /* CONTENT */
 .content{
-  padding:20px;
+  padding:24px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
 }
-.section{
-  border:2px solid #e6ebf5;
-  border-radius:var(--radius);
-  padding:18px;
+
+/* CHAT */
+.chat{
+  flex:1;
+  overflow-y:auto;
   margin-bottom:16px;
 }
-.section h3{
-  font-size:15px;
-  margin:0 0 10px;
-}
-.row{
+.msg{
+  max-width:75%;
+  padding:12px 14px;
+  border-radius:14px;
+  margin-bottom:10px;
   font-size:14px;
-  margin-bottom:6px;
+  line-height:1.5;
 }
-.label{
-  opacity:.7;
+.msg.patient{
+  background:#eef3ff;
+  margin-left:auto;
 }
-
-/* ORDONNANCE */
-.ordonnance{
-  background:#f7f9ff;
-  border:2px dashed #c7d2f0;
-}
-.lock{
-  font-size:13px;
-  color:#8a1f1f;
-  margin-top:10px;
+.msg.pro{
+  background:#f0f8f4;
+  margin-right:auto;
 }
 
-/* CTA */
-.cta{
-  margin-top:18px;
+/* INPUT */
+.input-bar{
+  display:flex;
+  gap:10px;
 }
-.cta a{
-  display:block;
-  text-align:center;
+.input-bar input{
+  flex:1;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #dfe5f0;
+  font-size:14px;
+}
+.input-bar button{
+  padding:14px 18px;
+  border-radius:14px;
+  border:none;
   background:var(--blue);
   color:#fff;
-  padding:16px;
-  border-radius:18px;
   font-weight:600;
-  text-decoration:none;
+  cursor:pointer;
+}
+
+/* ACTION */
+.end-btn{
+  margin-top:16px;
+  padding:14px;
+  border:none;
+  border-radius:18px;
+  background:#8a1f1f;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  display:none;
 }
 
 /* FOOTER */
 .footer{
-  margin-top:auto;
+  padding:20px;
+  border-top:1px solid #eef1f6;
   text-align:center;
-  padding:16px;
   font-size:12px;
-  opacity:.65;
+  color:#8a95a8;
+}
+.footer img{
+  height:44px;
+  margin-bottom:8px;
 }
 </style>
-
-<script>
-function loadData(){
-  const data = JSON.parse(localStorage.getItem("cizaRequest"));
-  if(!data) return;
-
-  document.getElementById("ref").innerText = data.dossierNumber;
-  document.getElementById("name").innerText = data.fullName;
-  document.getElementById("age").innerText = data.age + " ans";
-  document.getElementById("service").innerText = data.serviceType;
-  document.getElementById("province").innerText = data.province;
-  document.getElementById("desc").innerText = data.description;
-}
-
-document.addEventListener("DOMContentLoaded", loadData);
-</script>
 </head>
 
 <body>
-
 <div class="app">
 
   <!-- HEADER -->
   <div class="header">
-    <h1>Résumé de consultation</h1>
-    <div class="ref">Dossier n° <strong id="ref">—</strong></div>
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="title">Consultation en cours</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>Communication sécurisée CizaHealth+</div>
+    <div class="timer" id="timer">--:--</div>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
 
-    <div class="section">
-      <h3>Informations patient</h3>
-      <div class="row"><span class="label">Nom :</span> <strong id="name"></strong></div>
-      <div class="row"><span class="label">Âge :</span> <strong id="age"></strong></div>
-      <div class="row"><span class="label">Province :</span> <strong id="province"></strong></div>
+    <div class="chat" id="chatBox"></div>
+
+    <div class="input-bar">
+      <input id="messageInput" placeholder="Écrire un message…">
+      <button id="sendBtn">Envoyer</button>
     </div>
 
-    <div class="section">
-      <h3>Détails de la consultation</h3>
-      <div class="row"><span class="label">Service :</span> <strong id="service"></strong></div>
-      <div class="row"><span class="label">Motif :</span></div>
-      <div class="row" id="desc"></div>
-    </div>
-
-    <div class="section ordonnance">
-      <h3>Ordonnance médicale</h3>
-      <div class="row">
-        Une ordonnance a été établie par le professionnel de santé.
-      </div>
-      <div class="lock">
-        🔒 Cette ordonnance n’est pas téléchargeable ni exploitable.
-        <br>
-        Elle sera transmise uniquement à une pharmacie partenaire
-        avec accord du patient.
-      </div>
-    </div>
-
-    <div class="cta">
-      <a href="index.html">Retour à l’accueil</a>
-    </div>
+    <button class="end-btn" id="endBtn">
+      Terminer la consultation
+    </button>
 
   </div>
 
   <!-- FOOTER -->
   <div class="footer">
-    © 2026 CizaHealth+ — CIZA GROUP
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
   </div>
 
 </div>
+
+<!-- 🔐 AUTH + CONSULTATION LOGIC -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, orderBy, onSnapshot,
+  addDoc, doc, getDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let role = null;
+let consultationId = null;
+let endAt = null;
+
+// AUTH
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  role = userSnap.data().role;
+
+  if(role === "doctor" || role === "aide"){
+    document.getElementById("endBtn").style.display="block";
+  }
+
+  // récupérer consultation active
+  const q = query(
+    collection(db,"consultations"),
+    where(role==="patient"?"patientId":"proId","==",user.uid),
+    where("status","==","active"),
+    limit(1)
+  );
+
+  onSnapshot(q, (snap)=>{
+    if(snap.empty) return;
+    consultationId = snap.docs[0].id;
+    endAt = snap.docs[0].data().endAt?.toMillis();
+  });
+
+  // écouter messages
+  const mq = query(
+    collection(db,"messages"),
+    where(role==="patient"?"patientId":"proId","==",user.uid),
+    orderBy("createdAt")
+  );
+
+  onSnapshot(mq,(snap)=>{
+    chatBox.innerHTML="";
+    snap.forEach(d=>{
+      const m = d.data();
+      const div = document.createElement("div");
+      div.className="msg "+m.sender;
+      div.innerText=m.text;
+      chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+});
+
+// TIMER
+setInterval(()=>{
+  if(!endAt) return;
+  const diff = Math.max(0, Math.floor((endAt-Date.now())/1000));
+  const m = String(Math.floor(diff/60)).padStart(2,"0");
+  const s = String(diff%60).padStart(2,"0");
+  timer.innerText = m+":"+s;
+},1000);
+
+// SEND MESSAGE
+sendBtn.onclick = async()=>{
+  if(!messageInput.value || !consultationId) return;
+  await addDoc(collection(db,"messages"),{
+    consultationId,
+    sender: role==="patient"?"patient":"pro",
+    text: messageInput.value,
+    patientId: auth.currentUser.uid,
+    proId: auth.currentUser.uid,
+    createdAt: serverTimestamp()
+  });
+  messageInput.value="";
+};
+
+// END CONSULTATION (PRO ONLY)
+endBtn.onclick = async()=>{
+  if(role==="patient") return;
+  await updateDoc(doc(db,"consultations",consultationId),{
+    status:"ended",
+    endedAt: serverTimestamp()
+  });
+  location.href="rapport-medical.html";
+};
+</script>
 
 </body>
 </html>
