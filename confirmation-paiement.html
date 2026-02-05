@@ -23,7 +23,7 @@ body{
 }
 
 .app{
-  max-width:900px;
+  max-width:960px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -38,15 +38,18 @@ body{
   border-bottom:1px solid #eef1f6;
   display:flex;
   align-items:center;
-  gap:12px;
 }
-.header img{height:48px}
-.header a{
-  margin-left:auto;
-  text-decoration:none;
-  font-size:14px;
+.header button{
+  background:none;
+  border:none;
   color:var(--blue);
+  font-size:14px;
   font-weight:500;
+  cursor:pointer;
+}
+.header img{
+  height:48px;
+  margin-left:auto;
 }
 
 /* HERO */
@@ -141,10 +144,10 @@ body{
 
   <!-- HEADER -->
   <div class="header">
+    <button onclick="history.back()">← Retour</button>
     <img
       src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
       alt="CizaHealth+">
-    <a href="recap-prix.html">← Récapitulatif</a>
   </div>
 
   <!-- HERO -->
@@ -185,8 +188,7 @@ body{
   <!-- FOOTER -->
   <div class="footer">
     <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
-      alt="CizaHealth+">
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
       © 2026 CizaHealth+ — CIZA GROUP<br>
       Plateforme de santé numérique • Service non urgent
@@ -195,66 +197,54 @@ body{
 
 </div>
 
-<!-- 🔐 AUTH + PAYMENT CREATE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  collection, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Sécurité : patient connecté uniquement
+/* 🔐 AUTH SOUPLE */
 onAuthStateChanged(auth, (user)=>{
   if(!user){
     window.location.href = "login.html";
   }
 });
 
-// Récupérer données du flow
-const service = sessionStorage.getItem("selectedService");
-const duration = sessionStorage.getItem("selectedDuration");
-const amount  = sessionStorage.getItem("totalAmount");
+/* 📦 LECTURE UNIQUE DU RÉCAP */
+let recap = null;
+try{
+  recap = JSON.parse(sessionStorage.getItem("serviceRecap"));
+}catch(e){}
 
-if(!service || !duration || !amount){
-  window.location.href = "choix-service.html";
+if(recap){
+  document.getElementById("serviceLabel").innerText =
+    recap.service === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
+
+  document.getElementById("durationLabel").innerText =
+    recap.duration + (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
+
+  document.getElementById("amountLabel").innerText = recap.totalAmount;
+}else{
+  document.getElementById("payBtn").disabled = true;
 }
 
-document.getElementById("serviceLabel").innerText =
-  service === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
-
-document.getElementById("durationLabel").innerText =
-  service === "teleconsultation"
-    ? duration + " minutes"
-    : duration + " heure(s)";
-
-document.getElementById("amountLabel").innerText = amount;
-
-const payBtn = document.getElementById("payBtn");
-
-payBtn.onclick = async ()=>{
-  payBtn.disabled = true;
-
+/* ✅ CONFIRMATION PAIEMENT */
+document.getElementById("payBtn").onclick = async ()=>{
   const user = auth.currentUser;
-  if(!user){
-    window.location.href = "login.html";
-    return;
-  }
+  if(!user || !recap) return;
 
-  // Création du paiement (mock validé)
+  document.getElementById("payBtn").disabled = true;
+
   await addDoc(collection(db,"payments"),{
     patientId: user.uid,
-    serviceType: service,
-    duration: Number(duration),
-    amountTotal: Number(amount),
+    serviceType: recap.service,
+    duration: Number(recap.duration),
+    amountTotal: Number(recap.totalAmount),
     status: "paid_pending_match",
     createdAt: serverTimestamp()
   });
 
-  // Nettoyage léger
-  sessionStorage.removeItem("totalAmount");
-
-  // Étape suivante : succès paiement
   window.location.href = "paiement-succes.html";
 };
 </script>
