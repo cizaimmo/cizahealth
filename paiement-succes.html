@@ -6,10 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-html,body{overscroll-behavior:none}
+html,body{
+  overscroll-behavior:none;
+  height:100%;
+}
 :root{
   --blue:#123c8a;
-  --blue-soft:#f1f5fc;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
@@ -114,16 +116,16 @@ body{
 
     <div class="card">
       <div class="status">Identité du patient</div>
-      <div class="row"><span>Nom complet</span><strong id="fullName">—</strong></div>
-      <div class="row"><span>Âge</span><strong id="age">—</strong></div>
-      <div class="row"><span>Province</span><strong id="province">—</strong></div>
-      <div class="row"><span>Patient ID</span><strong id="patientId">—</strong></div>
+      <div class="row"><span>Nom complet</span><strong id="uiFullName">—</strong></div>
+      <div class="row"><span>Âge</span><strong id="uiAge">—</strong></div>
+      <div class="row"><span>Province</span><strong id="uiProvince">—</strong></div>
+      <div class="row"><span>Patient ID</span><strong id="uiPatientId">—</strong></div>
     </div>
 
     <div class="card">
       <div class="status">Dossier de la demande</div>
-      <div class="row"><span>Numéro de dossier</span><strong id="requestId">—</strong></div>
-      <div class="row"><span>Service</span><strong id="serviceType">—</strong></div>
+      <div class="row"><span>Numéro de dossier</span><strong id="uiRequestId">—</strong></div>
+      <div class="row"><span>Service</span><strong id="uiServiceType">—</strong></div>
       <div class="row"><span>Statut</span><strong>En attente de professionnel</strong></div>
     </div>
 
@@ -144,27 +146,48 @@ body{
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* 🔑 ID DE LA DEMANDE (source unique) */
-const requestId = sessionStorage.getItem("lastRequestId");
+import {
+  doc, getDoc,
+  collection, query, where, orderBy, limit, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId) return;
+  if(!user) return;
 
-  const snap = await getDoc(doc(db,"requests",requestId));
-  if(!snap.exists()) return;
+  let requestDoc = null;
 
-  const r = snap.data();
+  // 1️⃣ tentative via sessionStorage
+  const storedId = sessionStorage.getItem("lastRequestId");
+  if(storedId){
+    const snap = await getDoc(doc(db,"requests",storedId));
+    if(snap.exists()) requestDoc = snap;
+  }
 
-  fullName.innerText  = r.fullName || "—";
-  age.innerText       = r.age ? r.age+" ans" : "—";
-  province.innerText  = r.province || "—";
-  patientId.innerText = r.patientId || "—";
-  requestId.innerText = snap.id;
-  serviceType.innerText =
-    r.serviceType === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
+  // 2️⃣ fallback robuste (dernier dossier du patient)
+  if(!requestDoc){
+    const q = query(
+      collection(db,"requests"),
+      where("patientUid","==",user.uid),
+      orderBy("createdAt","desc"),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    if(!snap.empty) requestDoc = snap.docs[0];
+  }
+
+  if(!requestDoc) return;
+
+  const r = requestDoc.data();
+
+  uiFullName.innerText  = r.fullName || "—";
+  uiAge.innerText       = r.age ? r.age+" ans" : "—";
+  uiProvince.innerText  = r.province || "—";
+  uiPatientId.innerText = r.patientId || "—";
+  uiRequestId.innerText = requestDoc.id;
+  uiServiceType.innerText =
+    r.serviceType === "teleconsultation"
+      ? "Téléconsultation"
+      : "Aide à domicile";
 });
 </script>
 
