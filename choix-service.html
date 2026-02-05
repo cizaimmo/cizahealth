@@ -40,9 +40,7 @@ body{
   align-items:center;
   gap:12px;
 }
-.header img{
-  height:48px;
-}
+.header img{height:48px}
 .header a{
   margin-left:auto;
   text-decoration:none;
@@ -68,9 +66,7 @@ body{
 }
 
 /* CONTENT */
-.content{
-  padding:30px 26px;
-}
+.content{padding:30px 26px}
 
 /* GRID */
 .grid{
@@ -78,9 +74,7 @@ body{
   gap:22px;
 }
 @media(min-width:800px){
-  .grid{
-    grid-template-columns:1fr 1fr;
-  }
+  .grid{grid-template-columns:1fr 1fr}
 }
 
 /* CARD */
@@ -93,9 +87,7 @@ body{
   border:2px solid transparent;
   transition:.2s;
 }
-.card:hover{
-  border-color:var(--blue);
-}
+.card:hover{border-color:var(--blue)}
 .card h3{
   margin:0 0 10px;
   font-size:18px;
@@ -131,7 +123,6 @@ body{
     <img
       src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
       alt="CizaHealth+">
-    <!-- ✅ CORRIGÉ ICI -->
     <a href="dashboard-client.html">← Espace patient</a>
   </div>
 
@@ -182,7 +173,7 @@ body{
 
 </div>
 
-<!-- 🔐 AUTH CHECK -->
+<!-- 🔐 AUTH + REDIRECTION CORRIGÉE -->
 <script type="module">
 import { auth } from "./firebase.js";
 import { onAuthStateChanged }
@@ -195,15 +186,15 @@ onAuthStateChanged(auth, (user)=>{
   }
 });
 
-// Choix service → stockage temporaire + redirection
+// ✅ NOUVEAU FLOW VALIDÉ
 document.getElementById("teleconsultation").onclick = ()=>{
   sessionStorage.setItem("selectedService","teleconsultation");
-  window.location.href = "choix-duree.html";
+  window.location.href = "form-teleconsultation.html";
 };
 
 document.getElementById("homecare").onclick = ()=>{
-  sessionStorage.setItem("selectedService","home_care");
-  window.location.href = "choix-duree.html";
+  sessionStorage.setItem("selectedService","aide-domicile");
+  window.location.href = "form-aide-domicile.html";
 };
 </script>
 
