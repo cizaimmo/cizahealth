@@ -36,6 +36,8 @@ body{
 .header{
   padding:16px 22px;
   border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
 }
 .header img{height:48px}
 
@@ -58,28 +60,33 @@ body{
 /* CONTENT */
 .content{
   padding:30px 26px;
-  text-align:center;
 }
 
 /* CARD */
 .card{
   border-radius:var(--radius);
-  padding:28px;
+  padding:26px;
   background:#fff;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
   margin-bottom:22px;
+}
+
+/* ROW */
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+  font-size:14.5px;
+}
+.row span{
+  color:var(--muted);
 }
 
 /* STATUS */
 .status{
   font-size:18px;
   font-weight:700;
-  margin-bottom:10px;
-}
-.sub{
-  font-size:14px;
-  color:var(--muted);
-  line-height:1.6;
+  margin-bottom:12px;
 }
 
 /* CTA */
@@ -114,34 +121,74 @@ body{
 <body>
 <div class="app">
 
+  <!-- HEADER -->
   <div class="header">
     <img
       src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
       alt="CizaHealth+">
   </div>
 
+  <!-- HERO -->
   <div class="hero">
     <h1>Paiement confirmé</h1>
-    <p>Merci. Votre demande est en cours de prise en charge.</p>
+    <p>Votre demande est enregistrée et en cours de prise en charge.</p>
   </div>
 
+  <!-- CONTENT -->
   <div class="content">
 
+    <!-- IDENTITÉ PATIENT -->
     <div class="card">
-      <div class="status">Recherche d’un professionnel</div>
-      <div class="sub">
-        Nous recherchons actuellement un professionnel de santé
-        disponible dans votre province.<br>
-        Vous serez informé dès qu’un professionnel est assigné.
+      <div class="status">Identité du patient</div>
+
+      <div class="row">
+        <span>Nom complet</span>
+        <strong id="fullName">—</strong>
+      </div>
+
+      <div class="row">
+        <span>Âge</span>
+        <strong id="age">—</strong>
+      </div>
+
+      <div class="row">
+        <span>Province</span>
+        <strong id="province">—</strong>
+      </div>
+
+      <div class="row">
+        <span>Patient ID</span>
+        <strong id="patientId">—</strong>
       </div>
     </div>
 
-    <button class="cta" id="viewBtn">
+    <!-- DOSSIER -->
+    <div class="card">
+      <div class="status">Dossier de la demande</div>
+
+      <div class="row">
+        <span>Numéro de dossier</span>
+        <strong id="requestId">—</strong>
+      </div>
+
+      <div class="row">
+        <span>Service</span>
+        <strong id="serviceType">—</strong>
+      </div>
+
+      <div class="row">
+        <span>Statut</span>
+        <strong>En attente de professionnel</strong>
+      </div>
+    </div>
+
+    <button class="cta" onclick="location.href='etat-demande.html'">
       Voir l’état de ma demande
     </button>
 
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
     <img
       src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
@@ -153,10 +200,43 @@ body{
 
 </div>
 
-<script>
-/* ✅ NAVIGATION SIMPLE, FIABLE */
-document.getElementById("viewBtn").addEventListener("click", ()=>{
-  window.location.href = "etat-demande.html";
+<!-- 🔐 LECTURE FIRESTORE : SOURCE UNIQUE -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, orderBy, limit, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
+
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
+
+  const snap = await getDocs(q);
+  if(snap.empty) return;
+
+  const d = snap.docs[0];
+  const r = d.data();
+
+  document.getElementById("fullName").innerText  = r.fullName || "—";
+  document.getElementById("age").innerText       = r.age ? r.age + " ans" : "—";
+  document.getElementById("province").innerText  = r.province || "—";
+  document.getElementById("patientId").innerText = r.patientId || "—";
+  document.getElementById("requestId").innerText = d.id;
+  document.getElementById("serviceType").innerText =
+    r.serviceType === "teleconsultation"
+      ? "Téléconsultation"
+      : "Aide à domicile";
 });
 </script>
 
