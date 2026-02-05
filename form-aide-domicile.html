@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Aide à domicile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+html,body{margin:0;overscroll-behavior:none}
+:root{
+  --blue:#123c8a;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+}
+.header button{
+  background:none;border:none;color:var(--blue);font-size:14px;cursor:pointer
+}
+.header img{height:46px;margin-left:auto}
+
+.hero{
+  padding:28px 24px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+
+.content{padding:26px}
+
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  margin-top:14px;
+  color:var(--muted);
+}
+select,textarea{
+  width:100%;
+  margin-top:6px;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #dfe5f0;
+  font-size:14px;
+  font-family:inherit;
+}
+
+.cta{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.footer{
+  margin-top:auto;
+  padding:22px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <button onclick="history.back()">← Retour</button>
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <div class="hero">
+    <h2>Aide à domicile</h2>
+    <p>Décrivez le type d’assistance nécessaire.</p>
+  </div>
+
+  <div class="content">
+
+    <div class="card">
+      <label>Type d’assistance</label>
+      <select id="type">
+        <option value="">— Sélectionner —</option>
+        <option>Personne âgée</option>
+        <option>Soins infirmiers</option>
+        <option>Aide quotidienne</option>
+        <option>Suivi post-hospitalisation</option>
+        <option>Autre</option>
+      </select>
+
+      <label>Détails / informations utiles</label>
+      <textarea id="details" rows="4" placeholder="Expliquez la situation…"></textarea>
+    </div>
+
+    <button class="cta" onclick="submitForm()">Continuer</button>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP<br>Service non urgent
+  </div>
+
+</div>
+
+<script>
+function submitForm(){
+  sessionStorage.setItem("serviceRecap", JSON.stringify({
+    service: "home_care",
+    assistanceType: document.getElementById("type").value,
+    details: document.getElementById("details").value
+  }));
+
+  location.href = "choix-duree.html";
+}
+</script>
+
+</body>
+</html>
