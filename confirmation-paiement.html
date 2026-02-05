@@ -187,22 +187,22 @@ body{
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc,
   collection, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* 🔐 AUTH */
 onAuthStateChanged(auth,(user)=>{
-  if(!user){
-    window.location.href="login.html";
-  }
+  if(!user) window.location.href="login.html";
 });
 
-/* 📦 FLOW */
+/* 📦 DONNÉES */
 const recap = JSON.parse(sessionStorage.getItem("serviceRecap") || "null");
+const medical = JSON.parse(sessionStorage.getItem("medicalForm") || "null");
 
 if(recap){
   serviceLabel.innerText =
@@ -217,7 +217,7 @@ if(recap){
   amountLabel.innerText = recap.totalAmount;
 }
 
-/* ✅ CONFIRMATION PAIEMENT */
+/* ✅ CONFIRMATION */
 document.getElementById("payBtn").onclick = async ()=>{
   if(!recap) return;
 
@@ -226,38 +226,45 @@ document.getElementById("payBtn").onclick = async ()=>{
 
   try{
     const user = auth.currentUser;
-    if(!user){
-      window.location.href="login.html";
-      return;
-    }
+    if(!user) return;
 
-    const snap = await getDoc(doc(db,"patients",user.uid));
-    if(!snap.exists()){
+    const pSnap = await getDoc(doc(db,"patients",user.uid));
+    if(!pSnap.exists()){
       btn.disabled = false;
       return;
     }
 
-    const p = snap.data();
+    const p = pSnap.data();
 
-    await addDoc(collection(db,"requests"),{
-      userId: user.uid,              // ✅ CONFORME AUX RULES
+    const ref = await addDoc(collection(db,"requests"),{
+      userId: user.uid,
       patientUid: user.uid,
       patientId: p.patientId,
       fullName: p.fullName || "",
+      gender: p.gender || "",
       age: p.age || null,
       province: p.province || "",
+
       serviceType: recap.service,
       duration: Number(recap.duration),
       amount: Number(recap.totalAmount),
+
+      /* ✅ INFOS MÉDICALES */
+      motif: medical?.motif || "",
+      symptoms: medical?.symptoms || [],
+      details: medical?.details || "",
+      assistanceType: medical?.assistanceType || "",
+
       status: "pending",
       createdAt: serverTimestamp()
     });
 
+    sessionStorage.setItem("lastRequestId", ref.id);
     window.location.href = "paiement-succes.html";
 
   }catch(e){
+    console.error(e);
     btn.disabled = false;
-    console.error("Erreur création demande :", e);
   }
 };
 </script>
