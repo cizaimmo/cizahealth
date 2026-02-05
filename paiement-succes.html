@@ -3,30 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Paiement confirmé</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <style>
 html,body{
   margin:0;
+  padding:0;
   overscroll-behavior:none;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
 }
+
 :root{
   --blue:#123c8a;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
 }
+
 *{box-sizing:border-box}
 
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
   background:#f4f7fb;
   color:var(--text);
 }
 
 .app{
   max-width:900px;
-  margin:auto;
+  margin:0 auto;
   min-height:100vh;
   background:#fff;
   display:flex;
@@ -45,10 +50,11 @@ body{
   border:none;
   color:var(--blue);
   font-size:14px;
+  font-weight:500;
   cursor:pointer;
 }
 .header img{
-  height:48px;
+  height:46px;
   margin-left:auto;
 }
 
@@ -59,36 +65,61 @@ body{
   color:#fff;
   text-align:center;
 }
+.hero h1{
+  margin:0 0 8px;
+  font-size:24px;
+}
+.hero p{
+  margin:0;
+  font-size:14.5px;
+  opacity:.95;
+}
 
 /* CONTENT */
 .content{
-  padding:30px 26px;
+  padding:26px;
+  display:flex;
+  flex-direction:column;
 }
 
 /* CARD */
 .card{
+  width:100%;
   border-radius:var(--radius);
-  padding:26px;
+  padding:24px;
   background:#fff;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
   margin-bottom:22px;
 }
 
+/* TITLES */
 .status{
-  font-size:18px;
+  font-size:17px;
   font-weight:700;
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 
+/* ROWS */
 .row{
   display:flex;
   justify-content:space-between;
+  align-items:center;
+  gap:12px;
   margin-bottom:10px;
   font-size:14.5px;
 }
-.row span{color:var(--muted)}
+.row span{
+  color:var(--muted);
+  flex-shrink:0;
+}
+.row strong{
+  text-align:right;
+  font-weight:600;
+}
 
+/* CTA */
 .cta{
+  margin-top:8px;
   width:100%;
   padding:16px;
   border:none;
@@ -110,7 +141,7 @@ body{
   color:#8a95a8;
 }
 .footer img{
-  height:44px;
+  height:42px;
   margin-bottom:8px;
 }
 </style>
@@ -121,7 +152,7 @@ body{
 
   <!-- HEADER -->
   <div class="header">
-    <button onclick="history.back()">← Retour</button>
+    <button onclick="safeBack()">← Retour</button>
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
@@ -138,6 +169,7 @@ body{
     <div class="card">
       <div class="status">Identité du patient</div>
       <div class="row"><span>Nom complet</span><strong id="fullName">—</strong></div>
+      <div class="row"><span>Genre</span><strong id="gender">—</strong></div>
       <div class="row"><span>Âge</span><strong id="age">—</strong></div>
       <div class="row"><span>Province</span><strong id="province">—</strong></div>
       <div class="row"><span>Patient ID</span><strong id="patientId">—</strong></div>
@@ -165,7 +197,7 @@ body{
 
 </div>
 
-<!-- 🔐 LOGIQUE STABLE -->
+<!-- LOGIQUE FIRESTORE STABLE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -174,23 +206,32 @@ import {
   collection, query, where, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+function safeBack(){
+  if(history.length > 1){
+    history.back();
+  }else{
+    location.href = "dashboard-client.html";
+  }
+}
+
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     location.href = "login.html";
     return;
   }
 
-  /* 1️⃣ IDENTITÉ PATIENT (SOURCE UNIQUE) */
+  /* IDENTITÉ PATIENT */
   const patientSnap = await getDoc(doc(db,"patients",user.uid));
   if(patientSnap.exists()){
     const p = patientSnap.data();
     fullName.innerText  = p.fullName || "—";
+    gender.innerText    = p.gender || "—";
     age.innerText       = p.age ? p.age + " ans" : "—";
     province.innerText  = p.province || "—";
     patientId.innerText = p.patientId || "—";
   }
 
-  /* 2️⃣ DEMANDE (ID OU DERNIÈRE) */
+  /* DEMANDE */
   let reqSnap = null;
   const lastId = sessionStorage.getItem("lastRequestId");
 
