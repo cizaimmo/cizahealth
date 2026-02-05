@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | État de la demande</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header img{height:48px}
+
+/* HERO */
+.hero{
+  padding:32px 26px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  text-align:center;
+}
+.hero h1{
+  margin:0 0 10px;
+  font-size:24px;
+}
+.hero p{
+  font-size:14.5px;
+  opacity:.95;
+}
+
+/* CONTENT */
+.content{
+  padding:30px 26px;
+  text-align:center;
+}
+
+/* CARD */
+.card{
+  border-radius:var(--radius);
+  padding:28px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+
+/* STATUS */
+.status{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+.sub{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* LOADER */
+.loader{
+  margin:20px auto 0;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:4px solid #e3e8f2;
+  border-top-color:var(--blue);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{
+  height:44px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+">
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Demande en cours</h1>
+    <p>Veuillez patienter pendant l’assignation d’un professionnel.</p>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="card">
+      <div class="status" id="statusLabel">
+        Recherche d’un professionnel…
+      </div>
+      <div class="sub" id="statusDesc">
+        Un professionnel de santé est en cours de sélection.
+        Vous serez automatiquement redirigé dès qu’il est disponible.
+      </div>
+      <div class="loader"></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </div>
+
+</div>
+
+<!-- 🔐 AUTH + REQUEST STATUS -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, onSnapshot, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    window.location.href = "login.html";
+    return;
+  }
+
+  // écouter la dernière request du patient
+  const q = query(
+    collection(db,"requests"),
+    where("userId","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
+
+  onSnapshot(q, (snap)=>{
+    if(snap.empty) return;
+
+    const r = snap.docs[0].data();
+
+    if(r.status === "assigned"){
+      window.location.href = "consultation.html";
+    }
+
+    if(r.status === "cancelled"){
+      document.getElementById("statusLabel").innerText =
+        "Demande annulée";
+      document.getElementById("statusDesc").innerText =
+        "Votre demande a été annulée. Vous pouvez en créer une nouvelle.";
+    }
+  });
+});
+</script>
+
+</body>
+</html>
