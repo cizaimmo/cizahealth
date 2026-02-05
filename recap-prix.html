@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Récapitulatif & prix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-soft:#f1f5fc;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header img{
+  height:48px;
+}
+.header a{
+  margin-left:auto;
+  text-decoration:none;
+  font-size:14px;
+  color:var(--blue);
+  font-weight:500;
+}
+
+/* HERO */
+.hero{
+  padding:30px 26px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.hero h1{
+  margin:0 0 8px;
+  font-size:24px;
+}
+.hero p{
+  font-size:14.5px;
+  opacity:.95;
+}
+
+/* CONTENT */
+.content{
+  padding:30px 26px;
+}
+
+/* CARD */
+.card{
+  border-radius:var(--radius);
+  padding:24px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.line{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:12px;
+  font-size:14.5px;
+}
+.total{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px dashed #e1e6f0;
+  font-size:17px;
+  font-weight:700;
+}
+
+/* INFO */
+.info{
+  margin-top:18px;
+  background:var(--blue-soft);
+  border-left:4px solid var(--blue);
+  padding:16px;
+  border-radius:16px;
+  font-size:13px;
+  line-height:1.6;
+  color:#1a2f55;
+}
+
+/* CTA */
+.cta{
+  margin-top:22px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{
+  height:44px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+">
+    <a href="choix-duree.html">← Choix de la durée</a>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Récapitulatif du service</h1>
+    <p>Vérifiez les informations avant de continuer.</p>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="card" id="recapCard">
+      <div class="line">
+        <span>Service</span>
+        <span id="serviceLabel">—</span>
+      </div>
+
+      <div class="line">
+        <span>Durée</span>
+        <span id="durationLabel">—</span>
+      </div>
+
+      <div class="line" id="travelLine" style="display:none;">
+        <span>Frais de déplacement</span>
+        <span id="travelFee">—</span>
+      </div>
+
+      <div class="total">
+        Total à payer :
+        <span id="totalAmount">—</span> BIF
+      </div>
+    </div>
+
+    <div class="info">
+      Le paiement est requis pour démarrer le service.
+      Le montant est fixé par CizaHealth+.
+    </div>
+
+    <button class="cta" id="continueBtn">
+      Continuer vers le paiement
+    </button>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <img
+      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+      alt="CizaHealth+">
+    <div>
+      © 2026 CizaHealth+ — CIZA GROUP<br>
+      Plateforme de santé numérique • Service non urgent
+    </div>
+  </div>
+
+</div>
+
+<!-- 🔐 AUTH + PRICING -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Sécurité : patient connecté uniquement
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    window.location.href = "login.html";
+  }
+});
+
+// Vérifier flow
+const service = sessionStorage.getItem("selectedService");
+const duration = sessionStorage.getItem("selectedDuration");
+
+if(!service || !duration){
+  window.location.href = "choix-service.html";
+}
+
+const serviceLabel = document.getElementById("serviceLabel");
+const durationLabel = document.getElementById("durationLabel");
+const totalAmount = document.getElementById("totalAmount");
+const travelLine = document.getElementById("travelLine");
+const travelFee = document.getElementById("travelFee");
+
+async function loadPricing(){
+  if(service === "teleconsultation"){
+    serviceLabel.innerText = "Téléconsultation";
+    durationLabel.innerText = duration + " minutes";
+
+    const snap = await getDoc(doc(db,"pricing","teleconsultation"));
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+    let price = 0;
+
+    if(duration == 10) price = data.basic.price;
+    if(duration == 20) price = data.standard.price;
+    if(duration == 30) price = data.plus.price;
+
+    totalAmount.innerText = price;
+    sessionStorage.setItem("totalAmount", price);
+  }
+
+  if(service === "home_care"){
+    serviceLabel.innerText = "Aide à domicile";
+    durationLabel.innerText = duration + " heure(s)";
+
+    const snap = await getDoc(doc(db,"pricing","home_care"));
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+
+    const durationKey = duration + "h";
+    const servicePrice = data.durations[durationKey].price;
+    const province = sessionStorage.getItem("patientProvince") || "Bujumbura";
+    const travel = data.travelFee[province] || 0;
+
+    travelLine.style.display = "flex";
+    travelFee.innerText = travel + " BIF";
+
+    const total = servicePrice + travel;
+    totalAmount.innerText = total;
+    sessionStorage.setItem("totalAmount", total);
+  }
+}
+
+loadPricing();
+
+document.getElementById("continueBtn").onclick = ()=>{
+  window.location.href = "confirmation-paiement.html";
+};
+</script>
+
+</body>
+</html>
