@@ -200,7 +200,6 @@ body{
 
 </div>
 
-<!-- 🔐 AUTH + PRICING -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
@@ -208,14 +207,12 @@ import { onAuthStateChanged }
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Sécurité : patient connecté uniquement
 onAuthStateChanged(auth, (user)=>{
   if(!user){
     window.location.href = "login.html";
   }
 });
 
-// Vérifier flow
 const service = sessionStorage.getItem("selectedService");
 const duration = sessionStorage.getItem("selectedDuration");
 
@@ -230,6 +227,8 @@ const travelLine = document.getElementById("travelLine");
 const travelFee = document.getElementById("travelFee");
 
 async function loadPricing(){
+  let price = 0;
+
   if(service === "teleconsultation"){
     serviceLabel.innerText = "Téléconsultation";
     durationLabel.innerText = duration + " minutes";
@@ -238,14 +237,9 @@ async function loadPricing(){
     if(!snap.exists()) return;
 
     const data = snap.data();
-    let price = 0;
-
     if(duration == 10) price = data.basic.price;
     if(duration == 20) price = data.standard.price;
     if(duration == 30) price = data.plus.price;
-
-    totalAmount.innerText = price;
-    sessionStorage.setItem("totalAmount", price);
   }
 
   if(service === "home_care"){
@@ -256,7 +250,6 @@ async function loadPricing(){
     if(!snap.exists()) return;
 
     const data = snap.data();
-
     const durationKey = duration + "h";
     const servicePrice = data.durations[durationKey].price;
     const province = sessionStorage.getItem("patientProvince") || "Bujumbura";
@@ -265,16 +258,22 @@ async function loadPricing(){
     travelLine.style.display = "flex";
     travelFee.innerText = travel + " BIF";
 
-    const total = servicePrice + travel;
-    totalAmount.innerText = total;
-    sessionStorage.setItem("totalAmount", total);
+    price = servicePrice + travel;
   }
+
+  totalAmount.innerText = price;
+  sessionStorage.setItem("totalAmount", price);
 }
 
 loadPricing();
 
 document.getElementById("continueBtn").onclick = ()=>{
-  window.location.href = "confirmation-paiement.html";
+  sessionStorage.setItem("serviceRecap", JSON.stringify({
+    service,
+    duration,
+    totalAmount: sessionStorage.getItem("totalAmount")
+  }));
+  window.location.href = "paiement.html";
 };
 </script>
 
