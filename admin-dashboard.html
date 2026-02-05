@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Administration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1100px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 20px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header strong{font-size:16px}
+.header .sub{
+  font-size:12px;
+  color:var(--muted);
+}
+.header button{
+  border:none;
+  background:none;
+  color:#8a1f1f;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* CONTENT */
+.content{
+  padding:20px;
+}
+h2{
+  margin:24px 0 12px;
+  font-size:18px;
+}
+
+/* LIST */
+.list{
+  display:grid;
+  gap:14px;
+}
+@media(min-width:768px){
+  .list{grid-template-columns:1fr 1fr}
+}
+
+/* CARD */
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:var(--radius);
+  padding:16px;
+}
+.name{
+  font-weight:700;
+  font-size:16px;
+}
+.meta{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--muted);
+}
+.proid{
+  margin-top:8px;
+  font-size:13px;
+  background:#eef3ff;
+  padding:8px 12px;
+  border-radius:12px;
+  display:inline-block;
+}
+
+/* STATUS BADGES */
+.status-badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+}
+.status-pending{
+  background:#fff4cc;
+  color:#8a6d00;
+}
+.status-pending-info{
+  background:#ffe2cc;
+  color:#8a4b00;
+}
+.status-validated{
+  background:#dff5e6;
+  color:#1b6b3a;
+}
+.status-rejected{
+  background:#fde0e0;
+  color:#8a1f1f;
+}
+
+/* ACTION BUTTONS */
+button.validate{
+  margin-top:12px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+.admin-actions{
+  margin-top:12px;
+  display:grid;
+  gap:8px;
+}
+button.info{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:#f6a623;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+button.reject{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:#b3261e;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+textarea.admin-note{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-family:inherit;
+  font-size:13px;
+}
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:30px;
+  color:var(--muted);
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:16px;
+  font-size:12px;
+  opacity:.6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <strong>Administration CizaHealth+</strong><br>
+      <span class="sub">Application officielle — WebView (Apple App Store & Google Play)</span>
+    </div>
+    <button id="logoutBtn">Déconnexion</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <h2>Professionnels en attente</h2>
+    <div id="pendingList" class="list">
+      <div class="empty">Chargement…</div>
+    </div>
+
+    <h2>Professionnels validés</h2>
+    <div id="validatedList" class="list">
+      <div class="empty">Chargement…</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — Administration
+  </div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, getDocs,
+  doc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// LOGOUT
+document.getElementById("logoutBtn").onclick = async ()=>{
+  await signOut(auth);
+  location.href = "/cizahealth/index.html";
+};
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    location.href="/cizahealth/index.html";
+    return;
+  }
+
+  // Vérifier admin
+  const adminSnap = await getDocs(
+    query(
+      collection(db,"users"),
+      where("__name__","==",user.uid),
+      where("role","==","admin")
+    )
+  );
+
+  if(adminSnap.empty){
+    document.body.innerHTML = "Accès refusé";
+    return;
+  }
+
+  const pendingList   = document.getElementById("pendingList");
+  const validatedList = document.getElementById("validatedList");
+
+  pendingList.innerHTML = "";
+  validatedList.innerHTML = "";
+
+  const q = query(
+    collection(db,"users"),
+    where("role","in",["doctor","aide","pharmacy_partner"])
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    pendingList.innerHTML = `<div class="empty">Aucun professionnel</div>`;
+    validatedList.innerHTML = `<div class="empty">—</div>`;
+    return;
+  }
+
+  snap.forEach(d=>{
+    const u = d.data();
+
+    const statusMap = {
+      pending:{text:"EN ATTENTE",cls:"status-pending"},
+      pending_info:{text:"INFOS MANQUANTES",cls:"status-pending-info"},
+      validated:{text:"VALIDÉ",cls:"status-validated"},
+      rejected:{text:"REFUSÉ",cls:"status-rejected"}
+    };
+
+    const badge = statusMap[u.status]
+      ? `<div class="status-badge ${statusMap[u.status].cls}">
+           ${statusMap[u.status].text}
+         </div>` : "";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="name">${u.fullName || "—"}</div>
+      <div class="meta">
+        ${u.role} • ${u.province || "—"}<br>
+        ${u.email || ""}
+      </div>
+      ${badge}
+      ${u.proId ? `<div class="proid">ProID : <b>${u.proId}</b></div>` : ""}
+    `;
+
+    // EN ATTENTE / INFOS MANQUANTES
+    if(u.status === "pending" || u.status === "pending_info"){
+      const btn = document.createElement("button");
+      btn.className = "validate";
+      btn.textContent = "Valider le professionnel";
+
+      btn.onclick = async ()=>{
+        const proId = "CH-PRO-" + Date.now().toString().slice(-6);
+        await updateDoc(doc(db,"users",d.id),{
+          status:"validated",
+          proId,
+          validatedAt: serverTimestamp(),
+          lastStatusChangeAt: serverTimestamp()
+        });
+        location.reload();
+      };
+
+      const actions = document.createElement("div");
+      actions.className = "admin-actions";
+
+      const infoBtn = document.createElement("button");
+      infoBtn.className = "info";
+      infoBtn.textContent = "Demander des informations";
+
+      const rejectBtn = document.createElement("button");
+      rejectBtn.className = "reject";
+      rejectBtn.textContent = "Refuser";
+
+      const note = document.createElement("textarea");
+      note.className = "admin-note";
+      note.placeholder = "Message ou motif (obligatoire)";
+      note.style.display = "none";
+
+      let actionType = null;
+
+      infoBtn.onclick = ()=>{
+        actionType = "pending_info";
+        note.style.display = "block";
+      };
+
+      rejectBtn.onclick = ()=>{
+        actionType = "rejected";
+        note.style.display = "block";
+      };
+
+      note.onblur = async ()=>{
+        if(!actionType || !note.value.trim()) return;
+        await updateDoc(doc(db,"users",d.id),{
+          status: actionType,
+          validationNote: note.value.trim(),
+          lastStatusChangeAt: serverTimestamp()
+        });
+        location.reload();
+      };
+
+      actions.appendChild(infoBtn);
+      actions.appendChild(rejectBtn);
+      actions.appendChild(note);
+
+      card.appendChild(btn);
+      card.appendChild(actions);
+      pendingList.appendChild(card);
+    }
+
+    // VALIDÉ
+    if(u.status === "validated"){
+      validatedList.appendChild(card);
+    }
+  });
+
+  if(!pendingList.innerHTML)
+    pendingList.innerHTML = `<div class="empty">Aucun dossier en attente</div>`;
+
+  if(!validatedList.innerHTML)
+    validatedList.innerHTML = `<div class="empty">Aucun professionnel validé</div>`;
+});
+</script>
+
+</body>
+</html>
