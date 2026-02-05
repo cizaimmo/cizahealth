@@ -23,7 +23,7 @@ body{
 }
 
 .app{
-  max-width:420px;
+  max-width:960px;
   margin:auto;
   min-height:100vh;
   background:#fff;
@@ -33,42 +33,41 @@ body{
 
 /* HEADER */
 .topbar{
-  padding:16px 20px;
+  padding:16px 22px;
   display:flex;
   align-items:center;
-  gap:12px;
   border-bottom:1px solid #eef1f6;
 }
-.topbar a{
-  text-decoration:none;
+.topbar button{
+  background:none;
+  border:none;
   color:var(--blue);
   font-size:14px;
   font-weight:500;
+  cursor:pointer;
 }
 .logo{
   margin-left:auto;
 }
-.logo img{
-  height:38px;
-}
+.logo img{height:40px}
 
 /* CONTENT */
 .content{
-  padding:22px;
+  padding:26px;
   flex:1;
 }
 
 .card{
   background:#fff;
   border-radius:var(--radius);
-  padding:20px;
+  padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.card + .card{margin-top:16px}
+.card + .card{margin-top:18px}
 
 .row{
-  margin-bottom:10px;
   font-size:14px;
+  margin-bottom:10px;
 }
 .row span{
   display:block;
@@ -80,7 +79,7 @@ body{
 .method{
   border:1.5px solid #dfe5f0;
   border-radius:16px;
-  padding:14px;
+  padding:16px;
   cursor:pointer;
   font-weight:600;
 }
@@ -92,21 +91,21 @@ body{
 
 /* CTA */
 .cta{
-  margin-top:18px;
+  margin-top:22px;
   width:100%;
-  padding:16px;
+  padding:18px;
   border:none;
-  border-radius:18px;
+  border-radius:20px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
-  font-size:15px;
+  font-size:16px;
   font-weight:600;
   cursor:pointer;
 }
 
 /* FOOTER */
 .footer{
-  padding:18px;
+  padding:22px;
   border-top:1px solid #eef1f6;
   text-align:center;
   font-size:12px;
@@ -114,7 +113,7 @@ body{
 }
 .footer img{
   height:40px;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
 </style>
 </head>
@@ -124,9 +123,9 @@ body{
 
   <!-- HEADER -->
   <div class="topbar">
-    <a href="recapitulatif-prix.html">← Retour</a>
+    <button onclick="history.back()">← Retour</button>
     <div class="logo">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     </div>
   </div>
 
@@ -175,38 +174,40 @@ body{
 </div>
 
 <script>
-/* 🔐 LECTURE DU RÉCAP — OBLIGATOIRE */
-const recapRaw = sessionStorage.getItem("serviceRecap");
-if(!recapRaw){
-  window.location.href = "dashboard-client.html";
+/* 🔐 LECTURE SOUPLE DU RÉCAP (PAS DE REDIRECTION AUTOMATIQUE) */
+let recap = null;
+try{
+  recap = JSON.parse(sessionStorage.getItem("serviceRecap"));
+}catch(e){}
+
+if(!recap){
+  document.getElementById("serviceLabel").innerText = "—";
+  document.getElementById("durationLabel").innerText = "—";
+  document.getElementById("amountLabel").innerText = "—";
+}else{
+  document.getElementById("serviceLabel").innerText =
+    recap.service === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
+
+  document.getElementById("durationLabel").innerText =
+    recap.duration + (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
+
+  document.getElementById("amountLabel").innerText = recap.totalAmount;
 }
 
-const recap = JSON.parse(recapRaw);
-
-document.getElementById("serviceLabel").innerText =
-  recap.service === "teleconsultation"
-    ? "Téléconsultation"
-    : "Aide à domicile";
-
-document.getElementById("durationLabel").innerText =
-  recap.duration + (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
-
-document.getElementById("amountLabel").innerText = recap.totalAmount;
-
-/* 💳 MÉTHODE */
+/* MÉTHODE */
 let paymentMethod = "ecocash";
-function selectMethod(el, val){
+function selectMethod(el,val){
   document.querySelectorAll(".method").forEach(m=>m.classList.remove("active"));
   el.classList.add("active");
   paymentMethod = val;
 }
 
-/* ✅ PAIEMENT (MOCK PHASE 1) */
+/* PAIEMENT MOCK — AUCUNE BOUCLE */
 document.getElementById("payBtn").onclick = ()=>{
   sessionStorage.setItem("paymentResult", JSON.stringify({
     status:"paid",
-    method: paymentMethod,
-    amount: recap.totalAmount
+    method:paymentMethod,
+    amount: recap ? recap.totalAmount : 0
   }));
   window.location.href = "confirmation-paiement.html";
 };
