@@ -137,21 +137,16 @@ body{
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <button onclick="history.back()">← Retour</button>
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
-      alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   </div>
 
-  <!-- HERO -->
   <div class="hero">
     <h1>Confirmer le paiement</h1>
     <p>Merci de vérifier les informations avant de confirmer.</p>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
 
     <div class="card">
@@ -180,10 +175,8 @@ body{
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
       © 2026 CizaHealth+ — CIZA GROUP<br>
       Plateforme de santé numérique • Service non urgent
@@ -192,38 +185,60 @@ body{
 
 </div>
 
-<script>
-/* 📦 LECTURE DU FLOW (SANS BLOQUER) */
-let recap = null;
-try{
-  recap = JSON.parse(sessionStorage.getItem("serviceRecap"));
-}catch(e){}
+<!-- 🔐 AJOUT CIBLÉ : CRÉATION DE LA DEMANDE -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc,
+  collection, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Affichage */
+/* 📦 LECTURE DU FLOW */
+const recap = JSON.parse(sessionStorage.getItem("serviceRecap") || "null");
+
 if(recap){
-  document.getElementById("serviceLabel").innerText =
-    recap.service === "teleconsultation"
-      ? "Téléconsultation"
-      : "Aide à domicile";
-
-  document.getElementById("durationLabel").innerText =
-    recap.duration +
-    (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
-
-  document.getElementById("amountLabel").innerText = recap.totalAmount;
+  serviceLabel.innerText =
+    recap.service === "teleconsultation" ? "Téléconsultation" : "Aide à domicile";
+  durationLabel.innerText =
+    recap.duration + (recap.service === "teleconsultation" ? " minutes" : " heure(s)");
+  amountLabel.innerText = recap.totalAmount;
 }
 
-/* ✅ CONFIRMATION (MOCK — AUCUN FIRESTORE) */
-document.getElementById("payBtn").onclick = ()=>{
+document.getElementById("payBtn").onclick = async ()=>{
   if(!recap) return;
 
-  sessionStorage.setItem("paymentConfirmed","true");
-  sessionStorage.setItem("paymentData", JSON.stringify({
-    service: recap.service,
-    duration: recap.duration,
-    amount: recap.totalAmount
-  }));
+  const user = auth.currentUser;
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
 
+  // 🔹 1. Charger identité patient (SOURCE UNIQUE)
+  const snap = await getDoc(doc(db,"patients",user.uid));
+  if(!snap.exists()){
+    alert("Dossier patient introuvable.");
+    return;
+  }
+
+  const p = snap.data();
+
+  // 🔹 2. Créer UNE DEMANDE = UN DOSSIER
+  await addDoc(collection(db,"requests"),{
+    patientUid: user.uid,
+    patientId: p.patientId,           // ✅ permanent
+    fullName: p.fullName || "",
+    age: p.age || null,
+    province: p.province || "",
+    serviceType: recap.service,
+    duration: Number(recap.duration),
+    amount: Number(recap.totalAmount),
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  // 🔹 3. Redirection
   window.location.href = "paiement-succes.html";
 };
 </script>
