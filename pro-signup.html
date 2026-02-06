@@ -27,22 +27,25 @@ body{
   display:flex;
   flex-direction:column;
 }
+.topbar{padding:18px 20px}
+.back{text-decoration:none;color:var(--blue);font-weight:600}
+.header{text-align:center;padding:10px 20px 0}
+.header img{height:120px}
 .content{padding:24px 20px}
-h2{text-align:center;margin-bottom:20px}
-
-label{display:block;margin-top:18px;font-weight:600;font-size:14px}
+h1{text-align:center;font-size:20px;margin-bottom:6px}
+.subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
+label{display:block;margin-top:18px;font-size:14px;font-weight:600}
 input,select{
   width:100%;
   margin-top:8px;
   padding:14px;
   border-radius:14px;
-  border:1.6px solid #e6ebf5;
+  border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-
-button{
+.cta{margin-top:28px}
+.cta button{
   width:100%;
-  margin-top:28px;
   padding:16px;
   border:none;
   border-radius:18px;
@@ -50,22 +53,39 @@ button{
   color:#fff;
   font-weight:600;
   font-size:15px;
-  cursor:pointer;
 }
-
-.info{
-  margin-top:18px;
+.info-box{
+  margin-top:26px;
+  border:1.6px solid #e6ebf5;
+  border-radius:18px;
+  padding:16px;
   font-size:13px;
-  opacity:.8;
+  opacity:.85;
+}
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-  <div class="content">
 
-    <h2>Inscription professionnelle</h2>
+  <div class="topbar">
+    <a href="/cizahealth/pro-login.html" class="back">← Retour</a>
+  </div>
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <div class="content">
+    <h1>Inscription professionnelle</h1>
+    <div class="subtitle">Professionnels de santé & intervenants</div>
 
     <label>Nom complet</label>
     <input id="fullName">
@@ -86,16 +106,16 @@ button{
     <label>Téléphone</label>
     <input id="phone">
 
-    <label>Rôle</label>
+    <label>Profession</label>
     <select id="role">
       <option value="">Sélectionner</option>
       <option value="doctor">Médecin</option>
       <option value="nurse">Infirmier / Infirmière</option>
-      <option value="aide">Intervenant aide à domicile</option>
+      <option value="aide">Aide à domicile</option>
     </select>
 
     <label>Spécialité</label>
-    <input id="specialty">
+    <input id="specialty" placeholder="Ex: Médecine générale">
 
     <label>Expérience</label>
     <input id="experience" placeholder="Ex: 5 ans">
@@ -110,97 +130,77 @@ button{
       <option>Kayanza</option>
     </select>
 
-    <label>Diplôme (PDF obligatoire)</label>
+    <label>Diplôme (PDF)</label>
     <input id="diploma" type="file" accept="application/pdf">
 
-    <label>Certificat / Autorisation (PDF obligatoire)</label>
+    <label>Autorisation / Certificat (PDF)</label>
     <input id="license" type="file" accept="application/pdf">
 
     <label>Mot de passe</label>
     <input id="password" type="password">
 
-    <button id="submitBtn">Soumettre ma demande</button>
-
-    <div class="info">
-      ⏳ Votre compte sera examiné par l’administration.<br>
-      Aucun patient ne pourra vous contacter avant validation.
+    <div class="cta">
+      <button onclick="submitPro()">Soumettre ma demande</button>
     </div>
 
+    <div class="info-box">
+      ⏳ Votre compte sera <b>examiné par l’administration</b>.<br>
+      Aucun patient ne pourra vous contacter avant validation.
+    </div>
   </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
 </div>
 
-<!-- 🔐 SIGNUP PRO — STABLE & PROD -->
-<script type="module">
-import { auth, db, storage } from "./firebase.js";
-import { createUserWithEmailAndPassword }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+<!-- 🔥 FIREBASE CLASSIQUE (COMME AVANT — STABLE) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js"></script>
 
-/* DOM */
-const submitBtn = document.getElementById("submitBtn");
-const fullName = document.getElementById("fullName");
-const birthDate = document.getElementById("birthDate");
-const gender = document.getElementById("gender");
-const email = document.getElementById("email");
-const phone = document.getElementById("phone");
-const role = document.getElementById("role");
-const specialty = document.getElementById("specialty");
-const experience = document.getElementById("experience");
-const province = document.getElementById("province");
-const diploma = document.getElementById("diploma");
-const license = document.getElementById("license");
-const password = document.getElementById("password");
+<script>
+firebase.initializeApp({
+  apiKey: "XXX",
+  authDomain: "XXX",
+  projectId: "XXX",
+  storageBucket: "XXX"
+});
 
-/* SUBMIT */
-submitBtn.addEventListener("click", async () => {
-  if (submitBtn.disabled) return;
-  submitBtn.disabled = true;
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-  try {
-    if (
-      !fullName.value ||
-      !birthDate.value ||
-      !gender.value ||
-      !email.value ||
-      !phone.value ||
-      !role.value ||
-      !province.value ||
-      !diploma.files[0] ||
-      !license.files[0] ||
-      password.value.length < 6
-    ) {
-      alert("Veuillez compléter tous les champs obligatoires");
-      submitBtn.disabled = false;
-      return;
-    }
+async function submitPro(){
+  try{
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
-    // 1️⃣ AUTH
-    const cred = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
+    const cred = await auth.createUserWithEmailAndPassword(
+      document.getElementById("email").value,
+      document.getElementById("password").value
     );
     const uid = cred.user.uid;
 
-    // 2️⃣ UPLOAD DOCUMENTS
-    const diplomaRef = ref(storage, `proDocs/${uid}/diplome.pdf`);
-    const licenseRef = ref(storage, `proDocs/${uid}/autorisation.pdf`);
+    const diplomaFile = document.getElementById("diploma").files[0];
+    const licenseFile = document.getElementById("license").files[0];
 
-    await uploadBytes(diplomaRef, diploma.files[0]);
-    await uploadBytes(licenseRef, license.files[0]);
+    const diplomaRef = storage.ref(`proDocs/${uid}/diplome.pdf`);
+    const licenseRef = storage.ref(`proDocs/${uid}/autorisation.pdf`);
 
-    const diplomaUrl = await getDownloadURL(diplomaRef);
-    const licenseUrl = await getDownloadURL(licenseRef);
+    await diplomaRef.put(diplomaFile);
+    await licenseRef.put(licenseFile);
 
-    // 3️⃣ FIRESTORE — ADMIN VOIT TOUT
-    await setDoc(doc(db, "users", uid), {
+    const diplomaUrl = await diplomaRef.getDownloadURL();
+    const licenseUrl = await licenseRef.getDownloadURL();
+
+    await db.collection("users").doc(uid).set({
       fullName: fullName.value,
       birthDate: birthDate.value,
       gender: gender.value,
-      role: role.value,                // doctor | nurse | aide
+      role: role.value,
       specialty: specialty.value,
       experience: experience.value,
       province: province.value,
@@ -209,18 +209,16 @@ submitBtn.addEventListener("click", async () => {
       diplomaPdf: diplomaUrl,
       licensePdf: licenseUrl,
       status: "pending",
-      createdAt: serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // 4️⃣ REDIRECTION
-    location.href = "/cizahealth/pro-attente.html";
+    window.location.href = "/cizahealth/pro-attente.html";
 
-  } catch (e) {
-    console.error(e);
+  }catch(e){
     alert("Erreur lors de l’inscription");
-    submitBtn.disabled = false;
+    console.error(e);
   }
-});
+}
 </script>
 
 </body>
