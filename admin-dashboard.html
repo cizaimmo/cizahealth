@@ -22,7 +22,7 @@ body{
   background:var(--bg);
 }
 .app{
-  max-width:1300px;
+  max-width:1400px;
   margin:auto;
   background:#fff;
   min-height:100vh;
@@ -137,11 +137,13 @@ import {
   doc, updateDoc, addDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* LOGOUT */
 logoutBtn.onclick = async()=>{
   await signOut(auth);
   location.href="/cizahealth/index.html";
 };
 
+/* AUTH + ADMIN CHECK */
 onAuthStateChanged(auth, async(user)=>{
   if(!user){location.href="/cizahealth/index.html";return;}
 
@@ -150,7 +152,10 @@ onAuthStateChanged(auth, async(user)=>{
     where("__name__","==",user.uid),
     where("role","==","admin"))
   );
-  if(adminCheck.empty){document.body.innerHTML="Accès refusé";return;}
+  if(adminCheck.empty){
+    document.body.innerHTML="Accès refusé";
+    return;
+  }
 
   const list=document.getElementById("list");
 
@@ -161,15 +166,19 @@ onAuthStateChanged(auth, async(user)=>{
 
   snap.forEach(d=>{
     const u=d.data();
-
     const card=document.createElement("div");
     card.className="card";
+
+    const statusClass =
+      u.accountStatus==="suspended" ? "suspended" :
+      u.status==="validated" ? "validated" :
+      u.status==="rejected" ? "rejected" : "pending";
 
     card.innerHTML=`
       <strong>${u.fullName||"—"}</strong><br>
       <span>${u.role} • ${u.province||""}</span><br>
-      <span class="badge ${u.accountStatus==="suspended"?"suspended":u.status}">
-        ${u.accountStatus==="suspended"?"SUSPENDU":(u.status||"pending").toUpperCase()}
+      <span class="badge ${statusClass}">
+        ${u.accountStatus==="suspended"?"SUSPENDU":(u.status||"EN ATTENTE").toUpperCase()}
       </span>
 
       <div class="section">
@@ -198,6 +207,12 @@ onAuthStateChanged(auth, async(user)=>{
         ${u.diplomaPdf?`<a href="${u.diplomaPdf}" target="_blank">📄 Diplôme</a><br>`:""}
         ${u.licensePdf?`<a href="${u.licensePdf}" target="_blank">📄 Autorisation</a><br>`:""}
         ${u.photoUrl?`<a href="${u.photoUrl}" target="_blank">🖼 Photo</a>`:""}
+      </div>
+
+      <div class="section">
+        <strong>Paiement</strong>
+        Mode : Mobile Money (EcoCash / Lumicash / eNoti)<br>
+        Acceptation signée : ${u.paymentAgreementSigned?"OUI":"NON"}
       </div>
     `;
 
@@ -247,10 +262,10 @@ onAuthStateChanged(auth, async(user)=>{
     r.className="reject";
     r.textContent="Refuser";
     r.onclick=async()=>{
-      if(!note.value)return;
+      if(!note.value.trim())return;
       await updateDoc(doc(db,"users",d.id),{
         status:"rejected",
-        validationNote:note.value
+        validationNote:note.value.trim()
       });
       await log("reject_pro");
       location.reload();
