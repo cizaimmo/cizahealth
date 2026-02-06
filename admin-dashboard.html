@@ -22,20 +22,18 @@ body{
   background:var(--bg);
 }
 .app{
-  max-width:1400px;
+  max-width:1500px;
   margin:auto;
   background:#fff;
   min-height:100vh;
   display:flex;
   flex-direction:column;
 }
-
-/* HEADER */
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:14px 20px;
+  padding:16px 20px;
   border-bottom:1px solid #e6ebf5;
 }
 header strong{font-size:16px}
@@ -46,8 +44,6 @@ header button{
   font-weight:600;
   cursor:pointer;
 }
-
-/* CONTENT */
 .content{padding:20px}
 .list{
   display:grid;
@@ -72,7 +68,6 @@ header button{
 .validated{background:#dff5e6;color:#1b6b3a}
 .rejected{background:#fde0e0;color:#8a1f1f}
 .suspended{background:#eee;color:#444}
-
 .section{
   margin-top:10px;
   font-size:13px;
@@ -145,13 +140,17 @@ logoutBtn.onclick = async()=>{
 
 /* AUTH + ADMIN CHECK */
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){location.href="/cizahealth/index.html";return;}
+  if(!user){
+    location.href="/cizahealth/index.html";
+    return;
+  }
 
   const adminCheck = await getDocs(
     query(collection(db,"users"),
     where("__name__","==",user.uid),
     where("role","==","admin"))
   );
+
   if(adminCheck.empty){
     document.body.innerHTML="Accès refusé";
     return;
@@ -166,6 +165,7 @@ onAuthStateChanged(auth, async(user)=>{
 
   snap.forEach(d=>{
     const u=d.data();
+
     const card=document.createElement("div");
     card.className="card";
 
@@ -176,9 +176,11 @@ onAuthStateChanged(auth, async(user)=>{
 
     card.innerHTML=`
       <strong>${u.fullName||"—"}</strong><br>
-      <span>${u.role} • ${u.province||""}</span><br>
+      ${u.role} • ${u.province||""}<br>
       <span class="badge ${statusClass}">
-        ${u.accountStatus==="suspended"?"SUSPENDU":(u.status||"EN ATTENTE").toUpperCase()}
+        ${u.accountStatus==="suspended"
+          ? "SUSPENDU"
+          : (u.status||"EN ATTENTE").toUpperCase()}
       </span>
 
       <div class="section">
@@ -199,7 +201,7 @@ onAuthStateChanged(auth, async(user)=>{
         <strong>Conformité</strong>
         Diplôme n° : ${u.diplomaNumber||"—"}<br>
         Autorisation n° : ${u.licenseNumber||"—"}<br>
-        CNI : ${u.idNumber||"—"}
+        Carte ID : ${u.idNumber||"—"}
       </div>
 
       <div class="section">
@@ -212,12 +214,18 @@ onAuthStateChanged(auth, async(user)=>{
       <div class="section">
         <strong>Paiement</strong>
         Mode : Mobile Money (EcoCash / Lumicash / eNoti)<br>
-        Acceptation signée : ${u.paymentAgreementSigned?"OUI":"NON"}
+        Accord signé : ${u.paymentAgreementSigned ? "OUI" : "NON"}
       </div>
+
+      ${u.proId?`
+      <div class="section">
+        <strong>ProID</strong>
+        ${u.proId}
+      </div>`:""}
     `;
 
     const note=document.createElement("textarea");
-    note.placeholder="Motif (obligatoire pour refus)";
+    note.placeholder="Motif obligatoire pour refus / info";
 
     const actions=document.createElement("div");
     actions.className="actions";
@@ -234,12 +242,13 @@ onAuthStateChanged(auth, async(user)=>{
     if(u.status!=="validated"){
       const v=document.createElement("button");
       v.className="validate";
-      v.textContent="Valider";
+      v.textContent="Valider le professionnel";
       v.onclick=async()=>{
         await updateDoc(doc(db,"users",d.id),{
           status:"validated",
           proId:"PRO-"+Date.now(),
-          validatedAt:serverTimestamp()
+          validatedAt:serverTimestamp(),
+          validatedBy:user.uid
         });
         await log("validate_pro");
         location.reload();
@@ -249,10 +258,14 @@ onAuthStateChanged(auth, async(user)=>{
 
     const s=document.createElement("button");
     s.className="suspend";
-    s.textContent=u.accountStatus==="suspended"?"Réactiver":"Suspendre";
+    s.textContent=
+      u.accountStatus==="suspended"
+      ?"Réactiver le pro"
+      :"Suspendre le pro";
     s.onclick=async()=>{
       await updateDoc(doc(db,"users",d.id),{
-        accountStatus:u.accountStatus==="suspended"?"active":"suspended"
+        accountStatus:
+          u.accountStatus==="suspended"?"active":"suspended"
       });
       await log("toggle_suspend");
       location.reload();
@@ -260,7 +273,7 @@ onAuthStateChanged(auth, async(user)=>{
 
     const r=document.createElement("button");
     r.className="reject";
-    r.textContent="Refuser";
+    r.textContent="Refuser le pro";
     r.onclick=async()=>{
       if(!note.value.trim())return;
       await updateDoc(doc(db,"users",d.id),{
