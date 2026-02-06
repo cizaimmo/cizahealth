@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Espace professionnel</title>
+<title>CizaHealth+ | Tableau professionnel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,6 +10,8 @@
   --blue:#123c8a;
   --blue-soft:#f1f5fc;
   --green:#3b8f6b;
+  --orange:#e67e22;
+  --red:#c0392b;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
@@ -24,11 +26,10 @@ body{
 }
 
 .app{
-  max-width:1000px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
@@ -42,30 +43,19 @@ body{
   gap:12px;
 }
 .header img{height:48px}
-.header .title{
-  font-weight:600;
-  font-size:15px;
-}
+.header .title{font-weight:600}
 
 /* HERO */
 .hero{
-  padding:30px 26px;
+  padding:26px;
   background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
 }
-.hero h1{
-  margin:0 0 6px;
-  font-size:22px;
-}
-.hero p{
-  font-size:14.5px;
-  opacity:.95;
-}
+.hero h1{margin:0;font-size:22px}
+.hero p{margin:6px 0 0;font-size:14.5px;opacity:.95}
 
 /* CONTENT */
-.content{
-  padding:26px;
-}
+.content{padding:26px}
 
 /* GRID */
 .grid{
@@ -73,9 +63,7 @@ body{
   gap:22px;
 }
 @media(min-width:900px){
-  .grid{
-    grid-template-columns:1fr 1fr;
-  }
+  .grid{grid-template-columns:1fr 1fr}
 }
 
 /* CARD */
@@ -85,29 +73,57 @@ body{
   background:#fff;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.card h3{
-  margin:0 0 12px;
-  font-size:16px;
-}
+.card h3{margin:0 0 14px;font-size:16px}
 
-/* LIST */
+/* ITEM */
 .item{
-  padding:12px 0;
+  padding:14px 0;
   border-bottom:1px solid #eef1f6;
   font-size:14px;
 }
 .item:last-child{border-bottom:none}
-.status{
+
+/* STATUS */
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:14px;
   font-size:12px;
   font-weight:600;
-  color:var(--green);
+}
+.pending{background:#fef3e6;color:var(--orange)}
+.assigned{background:#e8f6f0;color:var(--green)}
+.done{background:#eef1f6;color:#555}
+
+/* BUTTON */
+.btn{
+  margin-top:10px;
+  padding:10px 14px;
+  border:none;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.btn-secondary{
+  background:#eef1f6;
+  color:#333;
 }
 
-/* EMPTY */
-.empty{
-  font-size:13px;
-  color:var(--muted);
+/* TOGGLE */
+.toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
 }
+.toggle input{transform:scale(1.2)}
+
+.empty{font-size:13px;color:var(--muted)}
 
 /* FOOTER */
 .footer{
@@ -118,134 +134,220 @@ body{
   font-size:12px;
   color:#8a95a8;
 }
-.footer img{
-  height:44px;
-  margin-bottom:8px;
-}
+.footer img{height:44px;margin-bottom:8px}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div class="title">Espace professionnel de santé</div>
+<!-- HEADER -->
+<div class="header">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="title">Espace professionnel de santé</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Tableau de bord professionnel</h1>
+  <p>Gestion des demandes, consultations et rémunérations</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- DISPONIBILITÉ -->
+  <div class="card">
+    <h3>Disponibilité</h3>
+    <div class="toggle">
+      <input type="checkbox" id="availabilityToggle">
+      <label for="availabilityToggle">Je suis disponible pour prendre des patients</label>
+    </div>
   </div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <h1>Tableau de suivi professionnel</h1>
-    <p>
-      Suivi des prises en charge médicales et des rémunérations associées.
-    </p>
-  </div>
+  <div class="grid">
 
-  <!-- CONTENT -->
-  <div class="content">
-
-    <div class="grid">
-
-      <!-- CONSULTATIONS -->
-      <div class="card">
-        <h3>Prises en charge récentes</h3>
-        <div id="consultationsList" class="empty">
-          Chargement des activités…
-        </div>
-      </div>
-
-      <!-- PAYOUTS -->
-      <div class="card">
-        <h3>Rémunérations professionnelles</h3>
-        <div id="payoutsList" class="empty">
-          Les rémunérations sont traitées selon le calendrier établi.
-        </div>
-      </div>
-
+    <!-- DEMANDES -->
+    <div class="card">
+      <h3>Demandes en attente</h3>
+      <div id="requestsList" class="empty">Chargement…</div>
     </div>
 
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div>
-      © 2026 CizaHealth+ — CIZA GROUP<br>
-      Plateforme de santé numérique • Service non urgent
+    <!-- CONSULTATIONS -->
+    <div class="card">
+      <h3>Consultations récentes</h3>
+      <div id="consultationsList" class="empty">Chargement…</div>
     </div>
+
+    <!-- PAYOUTS -->
+    <div class="card">
+      <h3>Rémunérations</h3>
+      <div id="payoutsList" class="empty">Chargement…</div>
+    </div>
+
   </div>
 
 </div>
 
-<!-- 🔐 AUTH + DATA -->
+<!-- FOOTER -->
+<div class="footer">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div>© 2026 CizaHealth+ — CIZA GROUP<br>Service non urgent</div>
+</div>
+
+</div>
+
+<!-- 🔐 LOGIQUE PRODUCTION -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, orderBy, limit, getDocs
+  collection, query, where, orderBy, limit,
+  getDocs, doc, updateDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+let currentUser = null;
+
+/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
+  currentUser = user;
+  loadAvailability();
+  loadRequests();
+  loadConsultations();
+  loadPayouts();
+});
 
-  /* CONSULTATIONS */
-  const cq = query(
-    collection(db,"consultations"),
-    where("proId","==",user.uid),
-    orderBy("createdAt","desc"),
+/* DISPONIBILITÉ */
+async function loadAvailability(){
+  const ref = doc(db,"professionals",currentUser.uid);
+  const snap = await getDocs(query(collection(db,"professionals"),where("__name__","==",currentUser.uid)));
+  if(!snap.empty){
+    availabilityToggle.checked = snap.docs[0].data().available === true;
+  }
+}
+
+availabilityToggle.onchange = async ()=>{
+  await updateDoc(doc(db,"professionals",currentUser.uid),{
+    available: availabilityToggle.checked
+  });
+};
+
+/* DEMANDES */
+async function loadRequests(){
+  const q = query(
+    collection(db,"requests"),
+    where("status","==","pending"),
+    orderBy("createdAt","asc"),
     limit(5)
   );
+  const snap = await getDocs(q);
+  const box = document.getElementById("requestsList");
+  box.innerHTML="";
 
-  const csnap = await getDocs(cq);
-  const clist = document.getElementById("consultationsList");
-  clist.innerHTML="";
-
-  if(csnap.empty){
-    clist.innerHTML = `<div class="empty">Aucune prise en charge récente</div>`;
-  }else{
-    csnap.forEach(d=>{
-      const div = document.createElement("div");
-      div.className="item";
-      div.innerHTML = `
-        Prise en charge médicale<br>
-        <span class="status">Rapport transmis</span>
-      `;
-      clist.appendChild(div);
-    });
+  if(snap.empty){
+    box.innerHTML = `<div class="empty">Aucune demande en attente</div>`;
+    return;
   }
 
-  /* PAYOUTS */
-  const pq = query(
+  snap.forEach(d=>{
+    const r = d.data();
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      ${r.serviceType} • ${r.province}<br>
+      <span class="badge pending">En attente</span>
+      <button class="btn btn-primary" onclick="takeRequest('${d.id}')">
+        Prendre en charge
+      </button>
+    `;
+    box.appendChild(div);
+  });
+}
+
+/* PRENDRE EN CHARGE */
+window.takeRequest = async function(id){
+  const ref = doc(db,"requests",id);
+  try{
+    await runTransaction(db, async(tx)=>{
+      const snap = await tx.get(ref);
+      if(!snap.exists() || snap.data().status !== "pending"){
+        throw "Indisponible";
+      }
+      tx.update(ref,{
+        status:"assigned",
+        assignedTo: currentUser.uid,
+        assignedAt: new Date()
+      });
+    });
+    location.href="consultation-pro.html?request="+id;
+  }catch{
+    alert("Demande déjà prise.");
+    loadRequests();
+  }
+};
+
+/* CONSULTATIONS */
+async function loadConsultations(){
+  const q = query(
+    collection(db,"requests"),
+    where("assignedTo","==",currentUser.uid),
+    orderBy("assignedAt","desc"),
+    limit(5)
+  );
+  const snap = await getDocs(q);
+  const box = document.getElementById("consultationsList");
+  box.innerHTML="";
+
+  if(snap.empty){
+    box.innerHTML=`<div class="empty">Aucune consultation</div>`;
+    return;
+  }
+
+  snap.forEach(d=>{
+    const r = d.data();
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      ${r.serviceType}<br>
+      <span class="badge assigned">En cours / terminée</span>
+    `;
+    box.appendChild(div);
+  });
+}
+
+/* PAYOUTS */
+async function loadPayouts(){
+  const q = query(
     collection(db,"payouts"),
-    where("proId","==",user.uid),
+    where("proId","==",currentUser.uid),
     orderBy("createdAt","desc"),
     limit(3)
   );
+  const snap = await getDocs(q);
+  const box = document.getElementById("payoutsList");
+  box.innerHTML="";
 
-  const psnap = await getDocs(pq);
-  const plist = document.getElementById("payoutsList");
-  plist.innerHTML="";
-
-  if(psnap.empty){
-    plist.innerHTML = `<div class="empty">Aucune rémunération enregistrée</div>`;
-  }else{
-    psnap.forEach(d=>{
-      const p = d.data();
-      const div = document.createElement("div");
-      div.className="item";
-      div.innerHTML = `
-        ${p.amount} BIF<br>
-        <span class="status">${p.status}</span>
-      `;
-      plist.appendChild(div);
-    });
+  if(snap.empty){
+    box.innerHTML=`<div class="empty">Aucun paiement</div>`;
+    return;
   }
-});
+
+  snap.forEach(d=>{
+    const p = d.data();
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      ${p.amount} BIF<br>
+      <span class="badge done">${p.status}</span>
+    `;
+    box.appendChild(div);
+  });
+}
 </script>
 
 </body>
