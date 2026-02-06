@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Consultation en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --green:#3b8f6b;
+  --orange:#e67e22;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:#f4f7fb;
+  color:var(--text);
+}
+
+.app{
+  max-width:1000px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+}
+.header button{
+  background:none;
+  border:none;
+  color:var(--blue);
+  font-size:14px;
+  cursor:pointer;
+}
+.header img{
+  height:46px;
+  margin-left:auto;
+}
+
+/* HERO */
+.hero{
+  padding:28px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.hero h1{margin:0;font-size:22px}
+.hero p{margin:6px 0 0;font-size:14.5px;opacity:.95}
+
+/* CONTENT */
+.content{padding:26px}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+
+.card h3{
+  margin:0 0 14px;
+  font-size:17px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+  font-size:14.5px;
+}
+.row span{color:var(--muted)}
+
+.list{
+  font-size:14px;
+  margin-top:6px;
+}
+.list li{margin-bottom:6px}
+
+/* BADGE */
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:14px;
+  font-size:12px;
+  font-weight:600;
+  background:#eef1f6;
+}
+
+/* CTA */
+.cta{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:22px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <button onclick="history.back()">← Tableau pro</button>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Consultation médicale</h1>
+  <p>Lecture du dossier patient et prise en charge</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PATIENT -->
+  <div class="card">
+    <h3>Identité du patient</h3>
+    <div class="row"><span>Nom</span><strong id="pName">—</strong></div>
+    <div class="row"><span>Genre</span><strong id="pGender">—</strong></div>
+    <div class="row"><span>Âge</span><strong id="pAge">—</strong></div>
+    <div class="row"><span>Province</span><strong id="pProvince">—</strong></div>
+    <div class="row"><span>Patient ID</span><strong id="pId">—</strong></div>
+  </div>
+
+  <!-- DEMANDE -->
+  <div class="card">
+    <h3>Dossier médical</h3>
+    <div class="row"><span>Service</span><strong id="service">—</strong></div>
+    <div class="row"><span>Durée</span><strong id="duration">—</strong></div>
+    <div class="row"><span>Motif</span><strong id="motif">—</strong></div>
+
+    <div>
+      <span style="color:var(--muted);font-size:13px">Symptômes</span>
+      <ul class="list" id="symptoms"></ul>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <span>Détails</span>
+      <strong id="details">—</strong>
+    </div>
+
+    <div style="margin-top:12px">
+      <span class="badge">Statut : en cours</span>
+    </div>
+  </div>
+
+  <button class="cta" onclick="startConsultation()">
+    Commencer la consultation
+  </button>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2026 CizaHealth+ — CIZA GROUP<br>Service non urgent
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, updateDoc } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* UTIL */
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("request");
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user || !requestId){
+    location.href="login.html";
+    return;
+  }
+
+  const ref = doc(db,"requests",requestId);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    alert("Demande introuvable");
+    location.href="dashboard-pro.html";
+    return;
+  }
+
+  const r = snap.data();
+
+  // 🔐 Sécurité : seul le pro assigné
+  if(r.assignedTo !== user.uid){
+    alert("Accès refusé");
+    location.href="dashboard-pro.html";
+    return;
+  }
+
+  /* PATIENT */
+  pName.innerText     = r.fullName || "—";
+  pGender.innerText   = r.gender || "—";
+  pAge.innerText      = r.age ? r.age+" ans" : "—";
+  pProvince.innerText = r.province || "—";
+  pId.innerText       = r.patientId || "—";
+
+  /* DOSSIER */
+  service.innerText =
+    r.serviceType === "teleconsultation"
+      ? "Téléconsultation"
+      : "Aide à domicile";
+
+  duration.innerText =
+    r.duration
+      ? (r.serviceType==="teleconsultation"
+          ? r.duration+" minutes"
+          : r.duration+" heure(s)")
+      : "—";
+
+  motif.innerText   = r.motif || r.assistanceType || "—";
+  details.innerText = r.details || "—";
+
+  symptoms.innerHTML="";
+  if(r.symptoms && r.symptoms.length){
+    r.symptoms.forEach(s=>{
+      const li=document.createElement("li");
+      li.textContent=s;
+      symptoms.appendChild(li);
+    });
+  }else{
+    symptoms.innerHTML="<li>Aucun symptôme déclaré</li>";
+  }
+});
+
+/* START */
+window.startConsultation = async ()=>{
+  await updateDoc(doc(db,"requests",requestId),{
+    status:"in_progress",
+    startedAt:new Date()
+  });
+  alert("Consultation démarrée");
+};
+</script>
+
+</body>
+</html>
