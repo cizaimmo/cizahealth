@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Inscription professionnelle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+.content{padding:24px 20px}
+label{display:block;margin-top:18px;font-weight:600}
+input,select{
+  width:100%;
+  margin-top:8px;
+  padding:14px;
+  border-radius:14px;
+  border:1.6px solid #e6ebf5;
+}
+button{
+  width:100%;
+  margin-top:28px;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<div class="content">
+
+<h2>Inscription professionnelle</h2>
+
+<label>Nom complet</label>
+<input id="fullName">
+
+<label>Date de naissance</label>
+<input id="birthDate" type="date">
+
+<label>Genre</label>
+<select id="gender">
+  <option value="">Choisir</option>
+  <option value="male">Homme</option>
+  <option value="female">Femme</option>
+</select>
+
+<label>Email</label>
+<input id="email" type="email">
+
+<label>Téléphone</label>
+<input id="phone">
+
+<label>Rôle</label>
+<select id="role">
+  <option value="">Sélectionner</option>
+  <option value="doctor">Médecin</option>
+  <option value="nurse">Infirmier / Infirmière</option>
+  <option value="aide">Aide à domicile</option>
+</select>
+
+<label>Spécialité</label>
+<input id="specialty">
+
+<label>Expérience</label>
+<input id="experience" placeholder="Ex: 5 ans">
+
+<label>Province de service</label>
+<select id="province">
+  <option value="">Choisir</option>
+  <option>Bujumbura</option>
+  <option>Gitega</option>
+  <option>Ngozi</option>
+</select>
+
+<label>Diplôme (PDF)</label>
+<input id="diploma" type="file" accept="application/pdf">
+
+<label>Certificat / Autorisation (PDF)</label>
+<input id="license" type="file" accept="application/pdf">
+
+<label>Mot de passe</label>
+<input id="password" type="password">
+
+<button id="submitBtn">Soumettre</button>
+
+</div>
+</div>
+
+<script type="module">
+import { auth, db, storage } from "./firebase.js";
+import { createUserWithEmailAndPassword } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+submitBtn.onclick = async () => {
+  submitBtn.disabled = true;
+
+  try{
+    const cred = await createUserWithEmailAndPassword(
+      auth, email.value, password.value
+    );
+    const uid = cred.user.uid;
+
+    const diplomaRef = ref(storage, `proDocs/${uid}/diploma.pdf`);
+    const licenseRef = ref(storage, `proDocs/${uid}/license.pdf`);
+
+    await uploadBytes(diplomaRef, diploma.files[0]);
+    await uploadBytes(licenseRef, license.files[0]);
+
+    const diplomaUrl = await getDownloadURL(diplomaRef);
+    const licenseUrl = await getDownloadURL(licenseRef);
+
+    await setDoc(doc(db,"users",uid),{
+      fullName: fullName.value,
+      birthDate: birthDate.value,
+      gender: gender.value,
+      role: role.value,
+      specialty: specialty.value,
+      experience: experience.value,
+      province: province.value,
+      phone: phone.value,
+      email: email.value,
+      diplomaPdf: diplomaUrl,
+      licensePdf: licenseUrl,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    location.href="/cizahealth/pro-attente.html";
+
+  }catch(e){
+    alert("Erreur");
+    submitBtn.disabled=false;
+  }
+};
+</script>
+</body>
+</html>
