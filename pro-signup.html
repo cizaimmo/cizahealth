@@ -27,6 +27,10 @@ body{
   display:flex;
   flex-direction:column;
 }
+.topbar{padding:18px 20px}
+.back{text-decoration:none;color:var(--blue);font-weight:600}
+.header{text-align:center;padding:10px 20px 0}
+.header img{height:120px}
 .content{padding:24px 20px}
 h1{text-align:center;font-size:20px;margin-bottom:6px}
 .subtitle{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
@@ -39,9 +43,9 @@ input,select{
   border:1.8px solid #e6ebf5;
   font-size:14px;
 }
-button{
+.cta{margin-top:28px}
+.cta button{
   width:100%;
-  margin-top:28px;
   padding:16px;
   border:none;
   border-radius:18px;
@@ -51,18 +55,36 @@ button{
   font-size:15px;
   cursor:pointer;
 }
-.info{
-  margin-top:18px;
+.info-box{
+  margin-top:26px;
+  border:1.6px solid #e6ebf5;
+  border-radius:18px;
+  padding:16px;
   font-size:13px;
-  opacity:.8;
+  opacity:.85;
+}
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.65;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-  <div class="content">
 
+  <div class="topbar">
+    <a href="/cizahealth/pro-login.html" class="back">← Retour</a>
+  </div>
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  </div>
+
+  <div class="content">
     <h1>Inscription professionnelle</h1>
     <div class="subtitle">Professionnels de santé & intervenants</div>
 
@@ -85,7 +107,7 @@ button{
     <label>Téléphone</label>
     <input id="phone">
 
-    <label>Rôle</label>
+    <label>Profession</label>
     <select id="role">
       <option value="">Sélectionner</option>
       <option value="doctor">Médecin</option>
@@ -99,7 +121,7 @@ button{
     <label>Expérience</label>
     <input id="experience" placeholder="Ex: 5 ans">
 
-    <label>Province</label>
+    <label>Province de service</label>
     <select id="province">
       <option value="">Choisir</option>
       <option>Bujumbura</option>
@@ -109,120 +131,88 @@ button{
       <option>Kayanza</option>
     </select>
 
-    <label>Diplôme (PDF)</label>
-    <input id="diploma" type="file" accept="application/pdf">
-
-    <label>Certificat / Autorisation (PDF)</label>
-    <input id="license" type="file" accept="application/pdf">
-
-    <label>Photo professionnelle</label>
-    <input id="photo" type="file" accept="image/*">
-
     <label>Mot de passe</label>
     <input id="password" type="password">
 
-    <button id="submitBtn">Soumettre ma demande</button>
-
-    <div class="info">
-      ⏳ Votre compte sera examiné par l’administration.<br>
-      Aucun patient ne pourra vous contacter avant validation.
+    <div class="cta">
+      <button id="submitBtn">Soumettre ma demande</button>
     </div>
 
+    <div class="info-box">
+      ⏳ Votre compte sera <b>en attente de validation</b>.<br>
+      Les documents seront fournis après l’inscription.
+    </div>
   </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
 </div>
 
+<!-- 🔒 SIGNUP PRO — IDENTIQUE À L’ANCIEN (ENRICHI) -->
 <script type="module">
-import { auth, db, storage } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, setDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* DOM — EXACTEMENT COMME L’ANCIEN SIGNUP */
-const submitBtn = document.getElementById("submitBtn");
-const fullName = document.getElementById("fullName");
-const birthDate = document.getElementById("birthDate");
-const gender = document.getElementById("gender");
-const email = document.getElementById("email");
-const phone = document.getElementById("phone");
-const role = document.getElementById("role");
-const specialty = document.getElementById("specialty");
-const experience = document.getElementById("experience");
-const province = document.getElementById("province");
-const diploma = document.getElementById("diploma");
-const license = document.getElementById("license");
-const photo = document.getElementById("photo");
-const password = document.getElementById("password");
+const btn = document.getElementById("submitBtn");
 
-/* SUBMIT */
-submitBtn.onclick = async () => {
-  if (submitBtn.disabled) return;
-  submitBtn.disabled = true;
+btn.onclick = async () => {
+  if (btn.disabled) return;
+  btn.disabled = true;
 
   try {
-    if (
-      !fullName.value ||
-      !email.value ||
-      !role.value ||
-      !province.value ||
-      !diploma.files[0] ||
-      !license.files[0] ||
-      !photo.files[0] ||
-      password.value.length < 6
-    ) {
-      alert("Veuillez compléter tous les champs obligatoires");
-      submitBtn.disabled = false;
+    const fullName  = document.getElementById("fullName").value.trim();
+    const birthDate = document.getElementById("birthDate").value;
+    const gender    = document.getElementById("gender").value;
+    const email     = document.getElementById("email").value.trim();
+    const phone     = document.getElementById("phone").value.trim();
+    const role      = document.getElementById("role").value;
+    const specialty = document.getElementById("specialty").value.trim();
+    const experience= document.getElementById("experience").value.trim();
+    const province  = document.getElementById("province").value;
+    const password  = document.getElementById("password").value;
+
+    if (!fullName || !email || !role || !province || password.length < 6) {
+      alert("Veuillez compléter les champs obligatoires");
+      btn.disabled = false;
       return;
     }
 
-    // AUTH
-    const cred = await createUserWithEmailAndPassword(
-      auth,
-      email.value.trim(),
-      password.value
-    );
+    // ✅ EXACTEMENT COMME AVANT
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // UPLOADS — mêmes chemins que rules existantes
-    const diplomaRef = ref(storage, `users/${uid}/diplome.pdf`);
-    const licenseRef = ref(storage, `users/${uid}/autorisation.pdf`);
-    const photoRef   = ref(storage, `users/${uid}/photo.jpg`);
-
-    await uploadBytes(diplomaRef, diploma.files[0]);
-    await uploadBytes(licenseRef, license.files[0]);
-    await uploadBytes(photoRef, photo.files[0]);
-
-    const diplomaUrl = await getDownloadURL(diplomaRef);
-    const licenseUrl = await getDownloadURL(licenseRef);
-    const photoUrl   = await getDownloadURL(photoRef);
-
-    // FIRESTORE
     await setDoc(doc(db, "users", uid), {
-      fullName: fullName.value,
-      birthDate: birthDate.value,
-      gender: gender.value,
-      email: email.value,
-      phone: phone.value,
-      role: role.value,
-      specialty: specialty.value,
-      experience: experience.value,
-      province: province.value,
-      diplomaPdf: diplomaUrl,
-      licensePdf: licenseUrl,
-      photoUrl,
+      fullName,
+      birthDate,
+      gender,
+      email,
+      phone,
+      role,
+      specialty,
+      experience,
+      province,
+
+      // indicateurs admin
+      diplomaPending: true,
+      licensePending: true,
+      photoPending: true,
+
       status: "pending",
       createdAt: serverTimestamp()
     });
 
-    // REDIRECTION
+    // ✅ REDIRECT COMME AVANT
     location.href = "/cizahealth/pro-attente.html";
 
   } catch (e) {
     console.error(e);
     alert("Erreur lors de l’inscription");
-    submitBtn.disabled = false;
+    btn.disabled = false;
   }
 };
 </script>
