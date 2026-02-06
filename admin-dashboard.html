@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Administration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --ok:#1b6b3a;
+  --warn:#c58a00;
+  --err:#8a1f1f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+}
+.app{
+  max-width:1300px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  border-bottom:1px solid #e6ebf5;
+}
+header strong{font-size:16px}
+header button{
+  border:none;
+  background:none;
+  color:var(--err);
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* CONTENT */
+.content{padding:20px}
+.list{
+  display:grid;
+  gap:16px;
+}
+@media(min-width:900px){
+  .list{grid-template-columns:1fr 1fr}
+}
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:16px;
+  padding:16px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+}
+.pending{background:#fff4cc;color:#8a6d00}
+.validated{background:#dff5e6;color:#1b6b3a}
+.rejected{background:#fde0e0;color:#8a1f1f}
+.suspended{background:#eee;color:#444}
+
+.section{
+  margin-top:10px;
+  font-size:13px;
+}
+.section strong{display:block}
+.actions{
+  margin-top:12px;
+  display:grid;
+  gap:8px;
+}
+.actions button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.validate{background:var(--blue);color:#fff}
+.reject{background:var(--err);color:#fff}
+.suspend{background:#555;color:#fff}
+textarea{
+  width:100%;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+footer{
+  margin-top:auto;
+  text-align:center;
+  font-size:12px;
+  padding:14px;
+  opacity:.6;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <strong>Administration CizaHealth+</strong>
+  <button id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="content">
+  <h3>Professionnels</h3>
+  <div id="list" class="list"></div>
+</div>
+
+<footer>
+© 2026 CizaHealth+ — Administration
+</footer>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, getDocs, query, where,
+  doc, updateDoc, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+logoutBtn.onclick = async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){location.href="/cizahealth/index.html";return;}
+
+  const adminCheck = await getDocs(
+    query(collection(db,"users"),
+    where("__name__","==",user.uid),
+    where("role","==","admin"))
+  );
+  if(adminCheck.empty){document.body.innerHTML="Accès refusé";return;}
+
+  const list=document.getElementById("list");
+
+  const snap = await getDocs(
+    query(collection(db,"users"),
+    where("role","in",["doctor","nurse","aide"]))
+  );
+
+  snap.forEach(d=>{
+    const u=d.data();
+
+    const card=document.createElement("div");
+    card.className="card";
+
+    card.innerHTML=`
+      <strong>${u.fullName||"—"}</strong><br>
+      <span>${u.role} • ${u.province||""}</span><br>
+      <span class="badge ${u.accountStatus==="suspended"?"suspended":u.status}">
+        ${u.accountStatus==="suspended"?"SUSPENDU":(u.status||"pending").toUpperCase()}
+      </span>
+
+      <div class="section">
+        <strong>Identité</strong>
+        Naissance : ${u.birthDate||"—"}<br>
+        Genre : ${u.gender||"—"}<br>
+        Téléphone : ${u.phone||"—"}<br>
+        Email : ${u.email||"—"}
+      </div>
+
+      <div class="section">
+        <strong>Profession</strong>
+        Spécialité : ${u.specialty||"—"}<br>
+        Expérience : ${u.experience||"—"}
+      </div>
+
+      <div class="section">
+        <strong>Conformité</strong>
+        Diplôme n° : ${u.diplomaNumber||"—"}<br>
+        Autorisation n° : ${u.licenseNumber||"—"}<br>
+        CNI : ${u.idNumber||"—"}
+      </div>
+
+      <div class="section">
+        <strong>Documents</strong>
+        ${u.diplomaPdf?`<a href="${u.diplomaPdf}" target="_blank">📄 Diplôme</a><br>`:""}
+        ${u.licensePdf?`<a href="${u.licensePdf}" target="_blank">📄 Autorisation</a><br>`:""}
+        ${u.photoUrl?`<a href="${u.photoUrl}" target="_blank">🖼 Photo</a>`:""}
+      </div>
+    `;
+
+    const note=document.createElement("textarea");
+    note.placeholder="Motif (obligatoire pour refus)";
+
+    const actions=document.createElement("div");
+    actions.className="actions";
+
+    const log = async(action)=>{
+      await addDoc(collection(db,"auditLogs"),{
+        actorId:user.uid,
+        action,
+        targetId:d.id,
+        timestamp:serverTimestamp()
+      });
+    };
+
+    if(u.status!=="validated"){
+      const v=document.createElement("button");
+      v.className="validate";
+      v.textContent="Valider";
+      v.onclick=async()=>{
+        await updateDoc(doc(db,"users",d.id),{
+          status:"validated",
+          proId:"PRO-"+Date.now(),
+          validatedAt:serverTimestamp()
+        });
+        await log("validate_pro");
+        location.reload();
+      };
+      actions.appendChild(v);
+    }
+
+    const s=document.createElement("button");
+    s.className="suspend";
+    s.textContent=u.accountStatus==="suspended"?"Réactiver":"Suspendre";
+    s.onclick=async()=>{
+      await updateDoc(doc(db,"users",d.id),{
+        accountStatus:u.accountStatus==="suspended"?"active":"suspended"
+      });
+      await log("toggle_suspend");
+      location.reload();
+    };
+
+    const r=document.createElement("button");
+    r.className="reject";
+    r.textContent="Refuser";
+    r.onclick=async()=>{
+      if(!note.value)return;
+      await updateDoc(doc(db,"users",d.id),{
+        status:"rejected",
+        validationNote:note.value
+      });
+      await log("reject_pro");
+      location.reload();
+    };
+
+    actions.append(s,r,note);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+});
+</script>
+
+</body>
+</html>
