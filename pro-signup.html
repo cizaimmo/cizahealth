@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>CizaHealth+ | Inscription professionnelle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 :root{
   --blue:#0a2a5e;
@@ -27,14 +28,18 @@ body{
   flex-direction:column;
 }
 .content{padding:24px 20px}
-label{display:block;margin-top:18px;font-weight:600}
+h2{text-align:center;margin-bottom:20px}
+
+label{display:block;margin-top:18px;font-weight:600;font-size:14px}
 input,select{
   width:100%;
   margin-top:8px;
   padding:14px;
   border-radius:14px;
   border:1.6px solid #e6ebf5;
+  font-size:14px;
 }
+
 button{
   width:100%;
   margin-top:28px;
@@ -44,93 +49,145 @@ button{
   background:var(--blue);
   color:#fff;
   font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.info{
+  margin-top:18px;
+  font-size:13px;
+  opacity:.8;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-<div class="content">
+  <div class="content">
 
-<h2>Inscription professionnelle</h2>
+    <h2>Inscription professionnelle</h2>
 
-<label>Nom complet</label>
-<input id="fullName">
+    <label>Nom complet</label>
+    <input id="fullName">
 
-<label>Date de naissance</label>
-<input id="birthDate" type="date">
+    <label>Date de naissance</label>
+    <input id="birthDate" type="date">
 
-<label>Genre</label>
-<select id="gender">
-  <option value="">Choisir</option>
-  <option value="male">Homme</option>
-  <option value="female">Femme</option>
-</select>
+    <label>Genre</label>
+    <select id="gender">
+      <option value="">Choisir</option>
+      <option value="male">Homme</option>
+      <option value="female">Femme</option>
+    </select>
 
-<label>Email</label>
-<input id="email" type="email">
+    <label>Email professionnel</label>
+    <input id="email" type="email">
 
-<label>Téléphone</label>
-<input id="phone">
+    <label>Téléphone</label>
+    <input id="phone">
 
-<label>Rôle</label>
-<select id="role">
-  <option value="">Sélectionner</option>
-  <option value="doctor">Médecin</option>
-  <option value="nurse">Infirmier / Infirmière</option>
-  <option value="aide">Aide à domicile</option>
-</select>
+    <label>Rôle</label>
+    <select id="role">
+      <option value="">Sélectionner</option>
+      <option value="doctor">Médecin</option>
+      <option value="nurse">Infirmier / Infirmière</option>
+      <option value="aide">Intervenant aide à domicile</option>
+    </select>
 
-<label>Spécialité</label>
-<input id="specialty">
+    <label>Spécialité</label>
+    <input id="specialty">
 
-<label>Expérience</label>
-<input id="experience" placeholder="Ex: 5 ans">
+    <label>Expérience</label>
+    <input id="experience" placeholder="Ex: 5 ans">
 
-<label>Province de service</label>
-<select id="province">
-  <option value="">Choisir</option>
-  <option>Bujumbura</option>
-  <option>Gitega</option>
-  <option>Ngozi</option>
-</select>
+    <label>Province de service</label>
+    <select id="province">
+      <option value="">Choisir</option>
+      <option>Bujumbura</option>
+      <option>Gitega</option>
+      <option>Ngozi</option>
+      <option>Muyinga</option>
+      <option>Kayanza</option>
+    </select>
 
-<label>Diplôme (PDF)</label>
-<input id="diploma" type="file" accept="application/pdf">
+    <label>Diplôme (PDF obligatoire)</label>
+    <input id="diploma" type="file" accept="application/pdf">
 
-<label>Certificat / Autorisation (PDF)</label>
-<input id="license" type="file" accept="application/pdf">
+    <label>Certificat / Autorisation (PDF obligatoire)</label>
+    <input id="license" type="file" accept="application/pdf">
 
-<label>Mot de passe</label>
-<input id="password" type="password">
+    <label>Mot de passe</label>
+    <input id="password" type="password">
 
-<button id="submitBtn">Soumettre</button>
+    <button id="submitBtn">Soumettre ma demande</button>
 
+    <div class="info">
+      ⏳ Votre compte sera examiné par l’administration.<br>
+      Aucun patient ne pourra vous contacter avant validation.
+    </div>
+
+  </div>
 </div>
-</div>
 
+<!-- 🔐 SIGNUP PRO — STABLE & PROD -->
 <script type="module">
 import { auth, db, storage } from "./firebase.js";
-import { createUserWithEmailAndPassword } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, setDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import {
-  ref, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { createUserWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-submitBtn.onclick = async () => {
+/* DOM */
+const submitBtn = document.getElementById("submitBtn");
+const fullName = document.getElementById("fullName");
+const birthDate = document.getElementById("birthDate");
+const gender = document.getElementById("gender");
+const email = document.getElementById("email");
+const phone = document.getElementById("phone");
+const role = document.getElementById("role");
+const specialty = document.getElementById("specialty");
+const experience = document.getElementById("experience");
+const province = document.getElementById("province");
+const diploma = document.getElementById("diploma");
+const license = document.getElementById("license");
+const password = document.getElementById("password");
+
+/* SUBMIT */
+submitBtn.addEventListener("click", async () => {
+  if (submitBtn.disabled) return;
   submitBtn.disabled = true;
 
-  try{
+  try {
+    if (
+      !fullName.value ||
+      !birthDate.value ||
+      !gender.value ||
+      !email.value ||
+      !phone.value ||
+      !role.value ||
+      !province.value ||
+      !diploma.files[0] ||
+      !license.files[0] ||
+      password.value.length < 6
+    ) {
+      alert("Veuillez compléter tous les champs obligatoires");
+      submitBtn.disabled = false;
+      return;
+    }
+
+    // 1️⃣ AUTH
     const cred = await createUserWithEmailAndPassword(
-      auth, email.value, password.value
+      auth,
+      email.value,
+      password.value
     );
     const uid = cred.user.uid;
 
-    const diplomaRef = ref(storage, `proDocs/${uid}/diploma.pdf`);
-    const licenseRef = ref(storage, `proDocs/${uid}/license.pdf`);
+    // 2️⃣ UPLOAD DOCUMENTS
+    const diplomaRef = ref(storage, `proDocs/${uid}/diplome.pdf`);
+    const licenseRef = ref(storage, `proDocs/${uid}/autorisation.pdf`);
 
     await uploadBytes(diplomaRef, diploma.files[0]);
     await uploadBytes(licenseRef, license.files[0]);
@@ -138,11 +195,12 @@ submitBtn.onclick = async () => {
     const diplomaUrl = await getDownloadURL(diplomaRef);
     const licenseUrl = await getDownloadURL(licenseRef);
 
-    await setDoc(doc(db,"users",uid),{
+    // 3️⃣ FIRESTORE — ADMIN VOIT TOUT
+    await setDoc(doc(db, "users", uid), {
       fullName: fullName.value,
       birthDate: birthDate.value,
       gender: gender.value,
-      role: role.value,
+      role: role.value,                // doctor | nurse | aide
       specialty: specialty.value,
       experience: experience.value,
       province: province.value,
@@ -154,13 +212,16 @@ submitBtn.onclick = async () => {
       createdAt: serverTimestamp()
     });
 
-    location.href="/cizahealth/pro-attente.html";
+    // 4️⃣ REDIRECTION
+    location.href = "/cizahealth/pro-attente.html";
 
-  }catch(e){
-    alert("Erreur");
-    submitBtn.disabled=false;
+  } catch (e) {
+    console.error(e);
+    alert("Erreur lors de l’inscription");
+    submitBtn.disabled = false;
   }
-};
+});
 </script>
+
 </body>
 </html>
