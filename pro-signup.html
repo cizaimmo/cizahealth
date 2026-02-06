@@ -119,9 +119,9 @@ input,select{
     <input id="specialty">
 
     <label>Expérience</label>
-    <input id="experience" placeholder="Ex: 5 ans">
+    <input id="experience">
 
-    <label>Province de service</label>
+    <label>Province</label>
     <select id="province">
       <option value="">Choisir</option>
       <option>Bujumbura</option>
@@ -131,10 +131,10 @@ input,select{
       <option>Kayanza</option>
     </select>
 
-    <label>Diplôme (PDF obligatoire)</label>
+    <label>Diplôme (PDF)</label>
     <input id="diploma" type="file" accept="application/pdf">
 
-    <label>Certificat / Autorisation (PDF obligatoire)</label>
+    <label>Certificat / Autorisation (PDF)</label>
     <input id="license" type="file" accept="application/pdf">
 
     <label>Photo professionnelle</label>
@@ -144,12 +144,12 @@ input,select{
     <input id="password" type="password">
 
     <div class="cta">
-      <button id="submitBtn">Soumettre ma demande</button>
+      <!-- ✅ FIX CRITIQUE -->
+      <button id="submitBtn" type="button">Soumettre ma demande</button>
     </div>
 
     <div class="info-box">
-      ⏳ Votre compte sera <b>en attente de validation</b>.<br><br>
-      Aucun patient ne pourra vous contacter avant validation.
+      ⏳ Votre compte sera en attente de validation.
     </div>
   </div>
 
@@ -159,7 +159,6 @@ input,select{
 
 </div>
 
-<!-- 🔒 SIGNUP PRO — VERSION STABLE & VALIDÉE -->
 <script type="module">
 import { auth, db, storage } from "./firebase.js";
 import { createUserWithEmailAndPassword }
@@ -169,55 +168,20 @@ import { doc, setDoc, serverTimestamp }
 import { ref, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* 🔗 DOM (OBLIGATOIRE) */
 const submitBtn = document.getElementById("submitBtn");
-const fullName  = document.getElementById("fullName");
-const birthDate = document.getElementById("birthDate");
-const gender    = document.getElementById("gender");
-const email     = document.getElementById("email");
-const phone     = document.getElementById("phone");
-const role      = document.getElementById("role");
-const specialty = document.getElementById("specialty");
-const experience= document.getElementById("experience");
-const province  = document.getElementById("province");
-const diploma   = document.getElementById("diploma");
-const license   = document.getElementById("license");
-const photo     = document.getElementById("photo");
-const password  = document.getElementById("password");
 
-/* 🚀 SUBMIT */
 submitBtn.addEventListener("click", async () => {
-  if (submitBtn.disabled) return;
   submitBtn.disabled = true;
 
   try {
-    if (
-      !fullName.value ||
-      !birthDate.value ||
-      !gender.value ||
-      !email.value ||
-      !phone.value ||
-      !role.value ||
-      !province.value ||
-      !diploma.files[0] ||
-      !license.files[0] ||
-      !photo.files[0] ||
-      password.value.length < 6
-    ) {
-      alert("Veuillez compléter tous les champs obligatoires");
-      submitBtn.disabled = false;
-      return;
-    }
-
-    // 1️⃣ AUTH
     const cred = await createUserWithEmailAndPassword(
       auth,
       email.value.trim(),
       password.value
     );
+
     const uid = cred.user.uid;
 
-    // 2️⃣ UPLOAD (chemins compatibles rules existantes)
     const diplomaRef = ref(storage, `users/${uid}/diplome.pdf`);
     const licenseRef = ref(storage, `users/${uid}/autorisation.pdf`);
     const photoRef   = ref(storage, `users/${uid}/photo.jpg`);
@@ -230,26 +194,27 @@ submitBtn.addEventListener("click", async () => {
     const licenseUrl = await getDownloadURL(licenseRef);
     const photoUrl   = await getDownloadURL(photoRef);
 
-    // 3️⃣ FIRESTORE — ADMIN REÇOIT TOUT
     await setDoc(doc(db,"users",uid),{
       fullName: fullName.value,
       birthDate: birthDate.value,
       gender: gender.value,
       email: email.value,
       phone: phone.value,
-      role: role.value,              // doctor | nurse | aide
+      role: role.value,
       specialty: specialty.value,
       experience: experience.value,
       province: province.value,
       diplomaPdf: diplomaUrl,
       licensePdf: licenseUrl,
-      photoUrl: photoUrl,
+      photoUrl,
       status: "pending",
       createdAt: serverTimestamp()
     });
 
-    // 4️⃣ REDIRECTION
-    location.href = "/cizahealth/pro-attente.html";
+    // ✅ SAFARI / IOS SAFE REDIRECT
+    setTimeout(() => {
+      window.location.assign("/cizahealth/pro-attente.html");
+    }, 300);
 
   } catch (e) {
     console.error(e);
