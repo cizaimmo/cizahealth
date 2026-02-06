@@ -38,7 +38,11 @@ body{
   align-items:center;
 }
 .header button{
-  background:none;border:none;color:var(--blue);font-size:14px;cursor:pointer
+  background:none;
+  border:none;
+  color:var(--blue);
+  font-size:14px;
+  cursor:pointer;
 }
 .header img{height:46px;margin-left:auto}
 
@@ -58,12 +62,15 @@ body{
   margin-bottom:22px;
 }
 
+h3{margin:0 0 12px;font-size:18px}
+
 label{
   display:block;
   font-size:13px;
   margin-top:14px;
   color:var(--muted);
 }
+
 select,textarea{
   width:100%;
   margin-top:6px;
@@ -72,6 +79,18 @@ select,textarea{
   border:1px solid #dfe5f0;
   font-size:14px;
   font-family:inherit;
+}
+
+.checkbox-group{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.checkbox-group label{
+  margin:0;
+  font-size:14px;
+  color:var(--text);
 }
 
 .cta{
@@ -107,24 +126,46 @@ select,textarea{
 
   <div class="hero">
     <h2>Aide à domicile</h2>
-    <p>Décrivez le type d’assistance nécessaire.</p>
+    <p>Décrivez précisément le type d’assistance nécessaire.</p>
   </div>
 
   <div class="content">
 
     <div class="card">
-      <label>Type d’assistance</label>
-      <select id="type">
+      <h3>Informations sur l’assistance</h3>
+
+      <label>Qui a besoin d’aide ?</label>
+      <select id="beneficiaryType" required>
         <option value="">— Sélectionner —</option>
-        <option>Personne âgée</option>
-        <option>Soins infirmiers</option>
-        <option>Aide quotidienne</option>
-        <option>Suivi post-hospitalisation</option>
-        <option>Autre</option>
+        <option value="Personne âgée">Personne âgée</option>
+        <option value="Adulte">Adulte</option>
+        <option value="Enfant">Enfant</option>
+        <option value="Personne en situation de handicap">Personne en situation de handicap</option>
+        <option value="Autre">Autre</option>
       </select>
 
-      <label>Détails / informations utiles</label>
-      <textarea id="details" rows="4" placeholder="Expliquez la situation…"></textarea>
+      <label>Type d’assistance demandée</label>
+      <select id="assistanceType" required>
+        <option value="">— Sélectionner —</option>
+        <option value="Soins infirmiers">Soins infirmiers</option>
+        <option value="Aide à la mobilité">Aide à la mobilité</option>
+        <option value="Aide à l’hygiène">Aide à l’hygiène</option>
+        <option value="Surveillance médicale">Surveillance médicale</option>
+        <option value="Accompagnement quotidien">Accompagnement quotidien</option>
+        <option value="Autre">Autre</option>
+      </select>
+
+      <label>Problèmes ou besoins constatés</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" value="Difficulté à se déplacer"> Difficulté à se déplacer</label>
+        <label><input type="checkbox" value="Perte d’autonomie"> Perte d’autonomie</label>
+        <label><input type="checkbox" value="Maladie chronique"> Maladie chronique</label>
+        <label><input type="checkbox" value="Convalescence"> Convalescence</label>
+      </div>
+
+      <label>Détails complémentaires</label>
+      <textarea id="details" rows="4"
+        placeholder="État général, fréquence souhaitée, contraintes particulières…"></textarea>
     </div>
 
     <button class="cta" onclick="submitForm()">Continuer</button>
@@ -139,10 +180,29 @@ select,textarea{
 
 <script>
 function submitForm(){
+
+  const assistanceType = document.getElementById("assistanceType").value;
+  const beneficiaryType = document.getElementById("beneficiaryType").value;
+
+  if(!assistanceType || !beneficiaryType){
+    alert("Veuillez sélectionner le type d’assistance et le bénéficiaire.");
+    return;
+  }
+
+  const symptoms = [];
+  document.querySelectorAll('input[type=checkbox]:checked')
+    .forEach(cb => symptoms.push(cb.value));
+
+  /* ✅ ÉCRITURE GARANTIE */
+  sessionStorage.setItem("medicalForm", JSON.stringify({
+    assistanceType: assistanceType,
+    beneficiaryType: beneficiaryType,
+    symptoms: symptoms,
+    details: document.getElementById("details").value || ""
+  }));
+
   sessionStorage.setItem("serviceRecap", JSON.stringify({
-    service: "home_care",
-    assistanceType: document.getElementById("type").value,
-    details: document.getElementById("details").value
+    service: "home_care"
   }));
 
   location.href = "choix-duree.html";
