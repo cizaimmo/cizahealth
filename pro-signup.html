@@ -107,29 +107,51 @@ input,select{
     <label>Téléphone</label>
     <input id="phone">
 
-    <label>Profession</label>
+    <label>Rôle</label>
     <select id="role">
       <option value="">Sélectionner</option>
       <option value="doctor">Médecin</option>
       <option value="nurse">Infirmier / Infirmière</option>
-      <option value="aide">Intervenant aide à domicile</option>
+      <option value="aide">Aide à domicile</option>
     </select>
 
     <label>Spécialité</label>
     <input id="specialty">
 
-    <label>Expérience</label>
-    <input id="experience" placeholder="Ex: 5 ans">
+    <label>Années d’expérience</label>
+    <input id="experience" placeholder="Ex : 5">
 
     <label>Province de service</label>
     <select id="province">
       <option value="">Choisir</option>
-      <option>Bujumbura</option>
+      <option>Bubanza</option>
+      <option>Bujumbura Mairie</option>
+      <option>Bujumbura Rural</option>
+      <option>Bururi</option>
+      <option>Cankuzo</option>
+      <option>Cibitoke</option>
       <option>Gitega</option>
-      <option>Ngozi</option>
-      <option>Muyinga</option>
+      <option>Karuzi</option>
       <option>Kayanza</option>
+      <option>Kirundo</option>
+      <option>Makamba</option>
+      <option>Muramvya</option>
+      <option>Muyinga</option>
+      <option>Mwaro</option>
+      <option>Ngozi</option>
+      <option>Rumonge</option>
+      <option>Rutana</option>
+      <option>Ruyigi</option>
     </select>
+
+    <label>Numéro de diplôme</label>
+    <input id="diplomaNumber">
+
+    <label>Numéro d’autorisation / certificat</label>
+    <input id="licenseNumber">
+
+    <label>Numéro de carte d’identité</label>
+    <input id="idNumber">
 
     <label>Mot de passe</label>
     <input id="password" type="password">
@@ -139,8 +161,8 @@ input,select{
     </div>
 
     <div class="info-box">
-      ⏳ Votre compte sera <b>en attente de validation</b>.<br>
-      Les documents seront fournis après l’inscription.
+      ⏳ Votre compte sera examiné par l’administration.<br>
+      Les documents originaux seront demandés après inscription.
     </div>
   </div>
 
@@ -150,7 +172,6 @@ input,select{
 
 </div>
 
-<!-- 🔒 SIGNUP PRO — IDENTIQUE À L’ANCIEN (ENRICHI) -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { createUserWithEmailAndPassword }
@@ -165,48 +186,38 @@ btn.onclick = async () => {
   btn.disabled = true;
 
   try {
-    const fullName  = document.getElementById("fullName").value.trim();
-    const birthDate = document.getElementById("birthDate").value;
-    const gender    = document.getElementById("gender").value;
-    const email     = document.getElementById("email").value.trim();
-    const phone     = document.getElementById("phone").value.trim();
-    const role      = document.getElementById("role").value;
-    const specialty = document.getElementById("specialty").value.trim();
-    const experience= document.getElementById("experience").value.trim();
-    const province  = document.getElementById("province").value;
-    const password  = document.getElementById("password").value;
+    const fullName = document.getElementById("fullName").value.trim();
+    const email    = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-    if (!fullName || !email || !role || !province || password.length < 6) {
+    if (!fullName || !email || password.length < 6) {
       alert("Veuillez compléter les champs obligatoires");
       btn.disabled = false;
       return;
     }
 
-    // ✅ EXACTEMENT COMME AVANT
+    // ✅ EXACTEMENT COMME L’ANCIEN
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
     await setDoc(doc(db, "users", uid), {
       fullName,
-      birthDate,
-      gender,
+      birthDate: birthDate.value,
+      gender: gender.value,
       email,
-      phone,
-      role,
-      specialty,
-      experience,
-      province,
-
-      // indicateurs admin
-      diplomaPending: true,
-      licensePending: true,
-      photoPending: true,
+      phone: phone.value,
+      role: role.value,
+      specialty: specialty.value,
+      experience: experience.value,
+      province: province.value,
+      diplomaNumber: diplomaNumber.value,
+      licenseNumber: licenseNumber.value,
+      idNumber: idNumber.value,
 
       status: "pending",
       createdAt: serverTimestamp()
     });
 
-    // ✅ REDIRECT COMME AVANT
     location.href = "/cizahealth/pro-attente.html";
 
   } catch (e) {
