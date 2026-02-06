@@ -121,7 +121,7 @@ input,select{
     <label>Expérience</label>
     <input id="experience" placeholder="Ex: 5 ans">
 
-    <label>Province</label>
+    <label>Province de service</label>
     <select id="province">
       <option value="">Choisir</option>
       <option>Bujumbura</option>
@@ -131,10 +131,10 @@ input,select{
       <option>Kayanza</option>
     </select>
 
-    <label>Diplôme (PDF)</label>
+    <label>Diplôme (PDF obligatoire)</label>
     <input id="diploma" type="file" accept="application/pdf">
 
-    <label>Certificat / Autorisation (PDF)</label>
+    <label>Certificat / Autorisation (PDF obligatoire)</label>
     <input id="license" type="file" accept="application/pdf">
 
     <label>Photo professionnelle</label>
@@ -159,6 +159,7 @@ input,select{
 
 </div>
 
+<!-- 🔒 SIGNUP PRO — VERSION STABLE & VALIDÉE -->
 <script type="module">
 import { auth, db, storage } from "./firebase.js";
 import { createUserWithEmailAndPassword }
@@ -168,13 +169,47 @@ import { doc, setDoc, serverTimestamp }
 import { ref, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-const btn = document.getElementById("submitBtn");
+/* 🔗 DOM (OBLIGATOIRE) */
+const submitBtn = document.getElementById("submitBtn");
+const fullName  = document.getElementById("fullName");
+const birthDate = document.getElementById("birthDate");
+const gender    = document.getElementById("gender");
+const email     = document.getElementById("email");
+const phone     = document.getElementById("phone");
+const role      = document.getElementById("role");
+const specialty = document.getElementById("specialty");
+const experience= document.getElementById("experience");
+const province  = document.getElementById("province");
+const diploma   = document.getElementById("diploma");
+const license   = document.getElementById("license");
+const photo     = document.getElementById("photo");
+const password  = document.getElementById("password");
 
-btn.onclick = async () => {
-  if (btn.disabled) return;
-  btn.disabled = true;
+/* 🚀 SUBMIT */
+submitBtn.addEventListener("click", async () => {
+  if (submitBtn.disabled) return;
+  submitBtn.disabled = true;
 
   try {
+    if (
+      !fullName.value ||
+      !birthDate.value ||
+      !gender.value ||
+      !email.value ||
+      !phone.value ||
+      !role.value ||
+      !province.value ||
+      !diploma.files[0] ||
+      !license.files[0] ||
+      !photo.files[0] ||
+      password.value.length < 6
+    ) {
+      alert("Veuillez compléter tous les champs obligatoires");
+      submitBtn.disabled = false;
+      return;
+    }
+
+    // 1️⃣ AUTH
     const cred = await createUserWithEmailAndPassword(
       auth,
       email.value.trim(),
@@ -182,7 +217,7 @@ btn.onclick = async () => {
     );
     const uid = cred.user.uid;
 
-    // ✅ CHEMINS AUTORISÉS PAR RULES EXISTANTES
+    // 2️⃣ UPLOAD (chemins compatibles rules existantes)
     const diplomaRef = ref(storage, `users/${uid}/diplome.pdf`);
     const licenseRef = ref(storage, `users/${uid}/autorisation.pdf`);
     const photoRef   = ref(storage, `users/${uid}/photo.jpg`);
@@ -195,31 +230,33 @@ btn.onclick = async () => {
     const licenseUrl = await getDownloadURL(licenseRef);
     const photoUrl   = await getDownloadURL(photoRef);
 
+    // 3️⃣ FIRESTORE — ADMIN REÇOIT TOUT
     await setDoc(doc(db,"users",uid),{
       fullName: fullName.value,
       birthDate: birthDate.value,
       gender: gender.value,
       email: email.value,
       phone: phone.value,
-      role: role.value,
+      role: role.value,              // doctor | nurse | aide
       specialty: specialty.value,
       experience: experience.value,
       province: province.value,
       diplomaPdf: diplomaUrl,
       licensePdf: licenseUrl,
-      photoUrl,
+      photoUrl: photoUrl,
       status: "pending",
       createdAt: serverTimestamp()
     });
 
+    // 4️⃣ REDIRECTION
     location.href = "/cizahealth/pro-attente.html";
 
-  } catch(e){
+  } catch (e) {
     console.error(e);
     alert("Erreur lors de l’inscription");
-    btn.disabled = false;
+    submitBtn.disabled = false;
   }
-};
+});
 </script>
 
 </body>
