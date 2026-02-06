@@ -131,13 +131,15 @@ body{
   <!-- HEADER -->
   <div class="header">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div class="title">Espace professionnel</div>
+    <div class="title">Espace professionnel de santé</div>
   </div>
 
   <!-- HERO -->
   <div class="hero">
-    <h1>Bienvenue</h1>
-    <p>Suivi de vos consultations et paiements.</p>
+    <h1>Tableau de suivi professionnel</h1>
+    <p>
+      Suivi des prises en charge médicales et des rémunérations associées.
+    </p>
   </div>
 
   <!-- CONTENT -->
@@ -147,15 +149,17 @@ body{
 
       <!-- CONSULTATIONS -->
       <div class="card">
-        <h3>Consultations récentes</h3>
-        <div id="consultationsList" class="empty">Chargement…</div>
+        <h3>Prises en charge récentes</h3>
+        <div id="consultationsList" class="empty">
+          Chargement des activités…
+        </div>
       </div>
 
       <!-- PAYOUTS -->
       <div class="card">
-        <h3>Rémunérations</h3>
+        <h3>Rémunérations professionnelles</h3>
         <div id="payoutsList" class="empty">
-          Les paiements sont traités toutes les deux semaines.
+          Les rémunérations sont traitées selon le calendrier établi.
         </div>
       </div>
 
@@ -189,7 +193,7 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  // CONSULTATIONS
+  /* CONSULTATIONS */
   const cq = query(
     collection(db,"consultations"),
     where("proId","==",user.uid),
@@ -202,21 +206,20 @@ onAuthStateChanged(auth, async(user)=>{
   clist.innerHTML="";
 
   if(csnap.empty){
-    clist.innerHTML = `<div class="empty">Aucune consultation</div>`;
+    clist.innerHTML = `<div class="empty">Aucune prise en charge récente</div>`;
   }else{
     csnap.forEach(d=>{
-      const c = d.data();
       const div = document.createElement("div");
       div.className="item";
       div.innerHTML = `
-        Consultation terminée<br>
-        <span class="status">Rapport soumis</span>
+        Prise en charge médicale<br>
+        <span class="status">Rapport transmis</span>
       `;
       clist.appendChild(div);
     });
   }
 
-  // PAYOUTS
+  /* PAYOUTS */
   const pq = query(
     collection(db,"payouts"),
     where("proId","==",user.uid),
@@ -229,7 +232,7 @@ onAuthStateChanged(auth, async(user)=>{
   plist.innerHTML="";
 
   if(psnap.empty){
-    plist.innerHTML = `<div class="empty">Aucun paiement encore</div>`;
+    plist.innerHTML = `<div class="empty">Aucune rémunération enregistrée</div>`;
   }else{
     psnap.forEach(d=>{
       const p = d.data();
