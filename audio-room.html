@@ -2,121 +2,238 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Appel audio sécurisé</title>
+<title>CizaHealth+ | Consultation audio sécurisée</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --blue:#123c8a;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:20px;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:#0a1a2f;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
+  background:var(--bg);
+  color:var(--text);
 }
-.box{
+.app{
+  max-width:600px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+.header{
+  padding:16px;
+  border-bottom:1px solid #eef1f6;
   text-align:center;
+  font-weight:600;
+}
+.content{
+  padding:20px;
+  flex:1;
+}
+.card{
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:16px;
+}
+.status{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.chat{
+  border:1px solid #e5eaf3;
+  border-radius:14px;
+  padding:12px;
+  height:200px;
+  overflow-y:auto;
+  font-size:14px;
+}
+.msg{
+  margin-bottom:8px;
+}
+.msg strong{color:var(--blue)}
+.input-row{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+input{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #dfe5f0;
 }
 button{
-  padding:16px 22px;
+  padding:14px;
   border:none;
-  border-radius:18px;
-  background:#3b8f6b;
+  border-radius:16px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
   color:#fff;
-  font-size:15px;
   font-weight:600;
   cursor:pointer;
 }
-.status{
-  margin-top:14px;
-  font-size:14px;
-  opacity:.85;
+button.danger{
+  background:#c0392b;
+}
+.footer{
+  padding:14px;
+  border-top:1px solid #eef1f6;
 }
 </style>
 </head>
 
 <body>
-<div class="box">
-  <h2>Appel audio sécurisé</h2>
-  <button id="startBtn">Démarrer l’appel</button>
-  <div class="status" id="status">En attente…</div>
+<div class="app">
+
+  <div class="header">
+    Consultation audio sécurisée
+  </div>
+
+  <div class="content">
+
+    <div class="card">
+      <div class="status" id="callStatus">Connexion en cours…</div>
+      <audio id="remoteAudio" autoplay></audio>
+      <button class="danger" onclick="endCall()">Terminer l’appel</button>
+    </div>
+
+    <div class="card">
+      <div class="status">Chat sécurisé</div>
+      <div class="chat" id="chatBox"></div>
+      <div class="input-row">
+        <input id="chatInput" placeholder="Écrire un message…">
+        <button onclick="sendMessage()">Envoyer</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    CizaHealth+ — Appel non enregistré
+  </div>
+
 </div>
 
 <script type="module">
-import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  doc, setDoc, onSnapshot, getDoc
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params = new URLSearchParams(location.search);
-const requestId = params.get("request");
+/* 🔧 CONFIG FIREBASE (utilise TON firebase.js si tu veux) */
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-let pc, localStream;
+/* 🔑 PARAMÈTRES URL */
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("request") || "TEST123";
+const role = params.get("role") || "patient";
 
-const iceServers = [{ urls:"stun:stun.l.google.com:19302" }];
+/* 🔊 WEBRTC */
+const pc = new RTCPeerConnection();
+const roomRef = doc(db,"audioRooms",requestId);
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return;
-  }
-
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()) return;
-
-  const r = reqSnap.data();
-  if(user.uid !== r.userId && user.uid !== r.assignedTo){
-    alert("Non autorisé");
-    return;
-  }
-
-  document.getElementById("startBtn").onclick = startCall;
+navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+  stream.getTracks().forEach(track=>pc.addTrack(track,stream));
 });
 
-async function startCall(){
-  document.getElementById("status").innerText="Connexion audio…";
+pc.ontrack = e=>{
+  document.getElementById("remoteAudio").srcObject = e.streams[0];
+};
 
-  localStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+pc.onicecandidate = e=>{
+  if(e.candidate){
+    updateDoc(roomRef,{
+      ice: arrayUnion(JSON.stringify(e.candidate))
+    });
+  }
+};
 
-  pc = new RTCPeerConnection({ iceServers });
+async function init(){
+  const snap = await getDoc(roomRef);
 
-  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+  if(!snap.exists()){
+    await setDoc(roomRef,{});
+  }
 
-  pc.ontrack = e=>{
-    const audio = document.createElement("audio");
-    audio.srcObject = e.streams[0];
-    audio.autoplay = true;
-    document.body.appendChild(audio);
-  };
+  if(role === "patient"){
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await updateDoc(roomRef,{offer});
+    callStatus.innerText="En attente du professionnel…";
+  }
 
-  pc.onicecandidate = e=>{
-    if(e.candidate){
-      setDoc(doc(db,"calls",requestId),{
-        ice: JSON.stringify(e.candidate)
-      },{ merge:true });
+  onSnapshot(roomRef, async s=>{
+    const d = s.data();
+
+    if(d.offer && role==="pro" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(d.offer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await updateDoc(roomRef,{answer});
+      callStatus.innerText="Appel connecté";
     }
-  };
 
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
+    if(d.answer && role==="patient" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(d.answer);
+      callStatus.innerText="Appel connecté";
+    }
 
-  await setDoc(doc(db,"calls",requestId),{
-    offer: JSON.stringify(offer)
-  });
+    if(d.ice){
+      d.ice.forEach(c=>{
+        pc.addIceCandidate(JSON.parse(c));
+      });
+    }
 
-  onSnapshot(doc(db,"calls",requestId), async snap=>{
-    const data = snap.data();
-    if(data?.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.answer));
-      document.getElementById("status").innerText="Appel en cours";
+    if(d.chat){
+      chatBox.innerHTML="";
+      d.chat.forEach(m=>{
+        const div=document.createElement("div");
+        div.className="msg";
+        div.innerHTML=`<strong>${m.role}:</strong> ${m.text}`;
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop=chatBox.scrollHeight;
+    }
+
+    if(d.ended){
+      callStatus.innerText="Appel terminé";
+      pc.close();
     }
   });
 }
+
+init();
+
+/* 💬 CHAT */
+function sendMessage(){
+  const text = chatInput.value.trim();
+  if(!text) return;
+  updateDoc(roomRef,{
+    chat: arrayUnion({role,text,at:Date.now()})
+  });
+  chatInput.value="";
+}
+
+/* 🔚 FIN APPEL */
+function endCall(){
+  updateDoc(roomRef,{ended:true});
+}
 </script>
+
 </body>
 </html>
