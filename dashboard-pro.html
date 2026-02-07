@@ -16,259 +16,42 @@
   --radius:22px;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:var(--bg);
-  color:var(--text);
-}
-.app{
-  max-width:1200px;
-  margin:auto;
-  min-height:100vh;
-  background:#fff;
-  display:flex;
-  flex-direction:column;
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;background:var(--bg);color:var(--text)}
+.app{max-width:1200px;margin:auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
 
-/* ===== HEADER ===== */
-header{
-  position:sticky;
-  top:0;
-  z-index:20;
-  background:#fff;
-  border-bottom:1px solid #eef1f6;
-  padding:18px 22px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:14px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-.brand img{height:38px}
-.brand strong{font-size:16px}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #eef1f6;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:36px}
 .brand span{font-size:12px;color:var(--muted)}
-.topRight{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
+.topRight{display:flex;gap:10px;align-items:center}
 
-.status{
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-  border:1px solid #e6ebf5;
-}
-.status.available{background:#eaf6f0;color:var(--green)}
-.status.busy{background:#eef4ff;color:#123c8a}
-.status.suspended{background:#fdecea;color:var(--red)}
+.status{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #e6ebf5}
+.available{background:#eaf6f0;color:var(--green)}
+.busy{background:#eef4ff;color:#123c8a}
 
-.logout{
-  border:none;
-  background:none;
-  color:var(--red);
-  font-weight:700;
-  cursor:pointer;
-}
-.iconBtn{
-  border:1px solid #e6ebf5;
-  background:#fff;
-  border-radius:12px;
-  padding:8px 10px;
-  cursor:pointer;
-  font-weight:700;
-  color:var(--text);
-}
-.iconBtn:hover{background:#f7f9ff}
-.badgeDot{
-  min-width:22px;height:22px;padding:0 8px;
-  border-radius:999px;
-  background:#eef4ff;
-  color:#123c8a;
-  font-size:12px;
-  font-weight:800;
-  border:1px solid #d9e6ff;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
+.iconBtn{border:1px solid #e6ebf5;background:#fff;border-radius:12px;padding:8px 10px;cursor:pointer;font-weight:700}
+.badgeDot{background:#eef4ff;border:1px solid #d9e6ff;border-radius:999px;padding:2px 8px;font-size:12px}
 
-/* ===== CONTENT ===== */
-.content{
-  padding:26px;
-  display:grid;
-  gap:26px;
-}
+.logout{border:none;background:none;color:var(--red);font-weight:700;cursor:pointer}
 
-/* PROFIL */
-.profileCard{
-  background:#f9fbff;
-  border:1px solid #e6ebf5;
-  border-radius:18px;
-  padding:18px;
-}
-.profileCard strong{font-size:16px}
-.profileMeta{font-size:13px;color:var(--muted);margin-top:4px}
+.content{padding:26px;display:grid;gap:26px}
 
-/* KPI */
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:18px;
-}
-.kpi{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-}
-.kpi strong{font-size:22px}
+.card{background:#fff;border-radius:22px;padding:22px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
+.card h3{margin:0 0 8px}
 
-/* CARDS */
-.card{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:22px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-}
-.card h3{margin:0 0 10px}
-.smallMuted{font-size:12px;color:var(--muted);margin-top:6px}
+.request{border:1px solid #eef1f6;border-radius:16px;padding:16px;margin-bottom:12px}
+.tag{font-size:12px;background:#f2f5fb;border:1px solid #e6ebf5;padding:4px 10px;border-radius:999px;color:var(--muted)}
 
-.request{
-  border:1px solid #eef1f6;
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:14px;
-}
-.request.busyBorder{border-color:#d9e6ff;background:#fbfdff}
-.reqTop{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.reqTags{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:10px;
-}
-.tag{
-  background:#f2f5fb;
-  border:1px solid #e6ebf5;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-  color:var(--muted);
-}
-.actions{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-  margin-top:12px;
-}
-.actions button{
-  padding:12px;
-  border:none;
-  border-radius:14px;
-  font-weight:800;
-  color:#fff;
-  cursor:pointer;
-}
-.actions button:disabled{opacity:.6;cursor:not-allowed}
-.audio{background:#123c8a}
-.chat{background:#1b6b3a}
-.close{background:#c0392b}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.actions button{padding:12px;border:none;border-radius:14px;font-weight:800;color:#fff;cursor:pointer}
+.accept{background:#1b6b3a}
+.refuse{background:#c0392b}
+.chat{background:#123c8a}
+.call{background:#6c5ce7}
 
-.notif{
-  font-size:13px;
-  padding:10px;
-  border-bottom:1px dashed #eee;
-  cursor:pointer;
-}
-.notif.unread{background:#eef4ff;font-weight:700}
-.empty{font-size:14px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px}
 
-/* FOOTER */
-footer{
-  margin-top:auto;
-  padding:20px;
-  border-top:1px solid #eef1f6;
-  text-align:center;
-  font-size:12px;
-  color:#6b7a90;
-}
-
-/* MODAL */
-.modalBack{
-  position:fixed;
-  inset:0;
-  background:rgba(10,26,47,.35);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  z-index:50;
-}
-.modal{
-  width:min(720px,100%);
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 18px 60px rgba(10,26,47,.25);
-  overflow:hidden;
-}
-.modalHead{
-  padding:16px 18px;
-  border-bottom:1px solid #eef1f6;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-.modalHead strong{font-size:15px}
-.modalBody{padding:16px 18px}
-.modalBody label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}
-.modalBody textarea{
-  width:100%;
-  border:1px solid #e6ebf5;
-  border-radius:14px;
-  padding:12px;
-  min-height:120px;
-  font-family:inherit;
-  resize:vertical;
-}
-.modalBody input{
-  width:100%;
-  border:1px solid #e6ebf5;
-  border-radius:14px;
-  padding:12px;
-  font-family:inherit;
-}
-.modalFoot{
-  padding:14px 18px;
-  border-top:1px solid #eef1f6;
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  flex-wrap:wrap;
-}
-.btn{
-  border:none;
-  border-radius:14px;
-  padding:12px 14px;
-  font-weight:900;
-  cursor:pointer;
-}
-.btnGhost{background:#f2f5fb;color:#0a1a2f;border:1px solid #e6ebf5}
-.btnDanger{background:var(--red);color:#fff}
+footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:center;font-size:12px;color:#6b7a90}
 </style>
 </head>
 
@@ -277,517 +60,112 @@ footer{
 
 <header>
   <div class="brand">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
       <strong>CizaHealth+</strong><br>
       <span>Dashboard professionnel</span>
     </div>
   </div>
-
   <div class="topRight">
-    <button class="iconBtn" id="markAllReadBtn" title="Marquer toutes les notifications comme lues">🔔 <span id="unreadCount" class="badgeDot">0</span></button>
-    <span class="status available" id="proStatus">Disponible</span>
+    <button class="iconBtn" id="markAllReadBtn">🔔 <span id="unreadCount" class="badgeDot">0</span></button>
+    <span id="proStatus" class="status available">Disponible</span>
     <button class="logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>
 
 <div class="content">
 
-  <div class="profileCard">
-    <strong id="proName">—</strong>
-    <div class="profileMeta" id="proMeta">—</div>
-    <div class="profileMeta" id="proProvince">—</div>
-  </div>
+<div class="card">
+  <h3>🟡 Requêtes en attente</h3>
+  <div id="pendingList" class="empty">Chargement…</div>
+</div>
 
-  <div class="kpis">
-    <div class="kpi">Consultations aujourd’hui<br><strong id="kpiToday">0</strong></div>
-    <div class="kpi">Demandes actives<br><strong id="kpiWaiting">0</strong></div>
-    <div class="kpi">Revenus estimés<br><strong id="kpiRevenue">0 BIF</strong></div>
-  </div>
+<div class="card">
+  <h3>🔵 Requêtes acceptées</h3>
+  <div id="assignedList" class="empty">Aucune demande</div>
+</div>
 
-  <div class="card" id="activeCard">
-    <h3>Demandes assignées</h3>
-    <div class="smallMuted">“Démarrer” passe en consultation • “Chat” crée un chat MVP • “Clôturer” exige une note + crée transaction + audit.</div>
-    <div id="requestsList" class="empty">Chargement…</div>
-  </div>
-
-  <div class="card">
-    <h3>Historique des consultations</h3>
-    <div class="smallMuted">Liste des demandes clôturées (lecture seule).</div>
-    <div id="historyList" class="empty">Chargement…</div>
-  </div>
-
-  <div class="card" id="notifCard">
-    <h3>Notifications</h3>
-    <div class="smallMuted">Clique une notification pour la marquer comme lue. Si elle contient une demande, elle s’ouvre automatiquement.</div>
-    <div id="notificationsList" class="empty">Aucune notification</div>
-  </div>
+<div class="card">
+  <h3>🔔 Notifications</h3>
+  <div id="notificationsList" class="empty">Aucune notification</div>
+</div>
 
 </div>
 
 <footer>
-  © 2026 <strong>CizaHealth+</strong> — CIZA GROUP<br>
-  Plateforme professionnelle de santé • Accès sécurisé • Données confidentielles
+© 2026 <strong>CizaHealth+</strong> — Plateforme sécurisée
 </footer>
 
-</div>
-
-<!-- MODAL CLOTURE -->
-<div class="modalBack" id="closeModalBack">
-  <div class="modal">
-    <div class="modalHead">
-      <strong>Clôturer la demande</strong>
-      <button class="btn btnGhost" id="closeModalX">Fermer</button>
-    </div>
-    <div class="modalBody">
-      <div id="closeModalSummary" class="smallMuted">—</div>
-
-      <label>Résumé / Note de consultation (obligatoire)</label>
-      <textarea id="closeNote" placeholder="Résumé clair : symptômes, constat, recommandation, orientation, etc."></textarea>
-
-      <label>Montant à enregistrer (BIF) — optionnel</label>
-      <input id="closeAmount" type="number" min="0" placeholder="Ex: 5000">
-
-      <div class="smallMuted">Une transaction + un audit log seront créés. Patient notifié si patientUid existe dans la demande.</div>
-    </div>
-    <div class="modalFoot">
-      <button class="btn btnGhost" id="closeModalCancel">Annuler</button>
-      <button class="btn btnDanger" id="closeModalConfirm">Confirmer la clôture</button>
-    </div>
-  </div>
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, getDoc, collection, query, where,
-  onSnapshot, updateDoc, addDoc, serverTimestamp, orderBy,
-  setDoc, getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, onSnapshot, updateDoc, doc, addDoc, serverTimestamp } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-logoutBtn.onclick=async()=>{
-  await signOut(auth);
-  location.href="/cizahealth/index.html";
-};
+logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html";};
 
-const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-
-function setProStatus(mode){
-  // mode: available | busy | suspended
-  if(mode==="suspended"){
-    proStatus.textContent="Suspendu";
-    proStatus.className="status suspended";
-    return;
-  }
-  if(mode==="busy"){
-    proStatus.textContent="En consultation";
-    proStatus.className="status busy";
-    return;
-  }
-  proStatus.textContent="Disponible";
-  proStatus.className="status available";
-}
-
-async function audit(actor, action, target, extra={}){
-  await addDoc(collection(db,"auditLogs"),{ actor, action, target, extra, at:serverTimestamp() });
-}
-async function notify(fromUid, toUid, title, message, requestId=null){
-  if(!toUid) return;
-  await addDoc(collection(db,"notifications"),{
-    toUid, title, message,
-    requestId: requestId || null,
-    read:false,
-    createdAt:serverTimestamp(),
-    createdBy:fromUid
-  });
-}
-
-function safeTxt(x){ return (x==null) ? "—" : String(x); }
-function money(x){
-  const n = Number(x||0);
-  if(!Number.isFinite(n)) return "0";
-  return String(Math.round(n));
-}
-
-function getPatientUidFromRequest(r){
-  return r.patientUid || r.patientId || r.clientUid || r.userUid || null;
-}
-
-let currentUser=null;
-let currentPro=null;
-
-const patientCache=new Map();
-async function getPatient(uid){
-  if(!uid) return null;
-  if(patientCache.has(uid)) return patientCache.get(uid);
-  try{
-    const s = await getDoc(doc(db,"users",uid));
-    const val = s.exists() ? s.data() : null;
-    patientCache.set(uid,val);
-    return val;
-  }catch(e){
-    patientCache.set(uid,null);
-    return null;
-  }
-}
-
-/* MODAL CLOTURE */
-let pendingClose={requestId:null, requestData:null};
-
-function openCloseModal(requestId, requestData){
-  pendingClose={requestId, requestData};
-  closeNote.value="";
-  closeAmount.value="";
-
-  const r = requestData || {};
-  const suggested = (r.proAmount ?? r.pricePro ?? r.proFee ?? r.amount ?? r.price ?? 5000);
-  closeAmount.value = Number(suggested||0);
-
-  const base=[
-    `Demande : ${requestId}`,
-    `Service : ${r.serviceType||r.type||"—"}`,
-    `Statut : ${r.status||"—"}`,
-    `Province : ${r.province||"—"}`
-  ];
-  const puid = getPatientUidFromRequest(r);
-  if(puid) base.push(`Patient UID : ${puid}`);
-  closeModalSummary.textContent = base.join(" • ");
-
-  closeModalBack.style.display="flex";
-}
-function closeCloseModal(){
-  closeModalBack.style.display="none";
-  pendingClose={requestId:null, requestData:null};
-}
-closeModalX.onclick=closeCloseModal;
-closeModalCancel.onclick=closeCloseModal;
-closeModalBack.addEventListener("click",(e)=>{ if(e.target===closeModalBack) closeCloseModal(); });
-
-/* Marquer tout lu (sans snapshot infini) */
-markAllReadBtn.onclick = async ()=>{
-  if(!currentUser) return;
-  try{
-    const q = query(collection(db,"notifications"),where("toUid","==",currentUser.uid),where("read","==",false));
-    const snap = await getDocs(q);
-    for(const d of snap.docs){
-      await updateDoc(doc(db,"notifications",d.id),{read:true});
-    }
-  }catch(e){
-    alert("Impossible de marquer tout comme lu.");
-  }
-};
-
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, user=>{
   if(!user) return location.href="/cizahealth/index.html";
-  currentUser=user;
 
-  const snap=await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()) return document.body.innerHTML="Accès refusé";
+  /* 🔵 PENDING */
+  onSnapshot(query(collection(db,"requests"),where("status","==","pending")), snap=>{
+    pendingList.innerHTML="";
+    if(snap.empty) return pendingList.innerHTML='<div class="empty">Aucune requête</div>';
 
-  const pro=snap.data();
-  currentPro=pro;
-
-  /* Sécurité métier */
-  if(!["doctor","nurse","aide"].includes(pro.role) || pro.status!=="validated" || !pro.documentsVerified || pro.accountStatus==="suspended"){
-    setProStatus("suspended");
-    document.body.innerHTML="<h2 style='padding:40px'>Compte non autorisé</h2>";
-    return;
-  }
-
-  proName.textContent = pro.fullName || "—";
-  proMeta.textContent = `${pro.specialty||"—"} • ${pro.proId||"—"}`;
-  proProvince.textContent = `Province : ${pro.province||"—"}`;
-
-  /* REQUESTS (actives) + KPI + statut dynamique */
-  const rq = query(collection(db,"requests"), where("assignedProUid","==",user.uid));
-  const requestDomMap = new Map(); // requestId -> element
-
-  onSnapshot(rq, async (s)=>{
-    requestsList.innerHTML="";
-    requestDomMap.clear();
-
-    let today=0, active=0, anyBusy=false;
-
-    // Active list
-    for(const d of s.docs){
+    snap.forEach(d=>{
       const r=d.data();
-
-      const closedToday =
-        r.status==="closed" &&
-        r.closedAt?.toDate &&
-        r.closedAt.toDate() >= todayStart;
-      if(closedToday) today++;
-
-      const isActive = ["assigned","in_progress"].includes(r.status);
-      if(isActive) active++;
-
-      if(r.status==="in_progress") anyBusy=true;
-
-      if(isActive){
-        const patientUid = getPatientUidFromRequest(r);
-        const patient = await getPatient(patientUid);
-
-        const patientName = patient?.fullName || patient?.name || (patientUid ? ("UID: "+patientUid.slice(0,8)+"…") : "—");
-        const service = r.serviceType || r.type || "—";
-        const province = r.province || pro.province || "—";
-        const created = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "—";
-
-        const div=document.createElement("div");
-        div.className="request"+(r.status==="in_progress"?" busyBorder":"");
-        div.dataset.requestId = d.id;
-
-        div.innerHTML=`
-<div class="reqTop">
-  <div>
-    <strong>Service</strong> — ${safeTxt(service)}<br>
-    <strong>Patient</strong> — ${safeTxt(patientName)}
-  </div>
-  <div class="tag">${r.status==="in_progress"?"🟦 En cours":"🟩 Assignée"}</div>
-</div>
-
-<div class="reqTags">
-  <span class="tag">📌 ${safeTxt(province)}</span>
-  <span class="tag">🗓️ ${safeTxt(created)}</span>
-  ${patient?.phone?`<span class="tag">📞 ${safeTxt(patient.phone)}</span>`:""}
-  ${patient?.email?`<span class="tag">✉️ ${safeTxt(patient.email)}</span>`:""}
-</div>
-
-<div class="actions">
-  <button class="audio">${r.status==="in_progress"?"En cours":"Démarrer"}</button>
-  <button class="chat">Chat</button>
-  <button class="close">Clôturer</button>
-</div>
-`;
-
-        // Sécurité double clic
-        const btnStart = div.querySelector(".audio");
-        const btnChat  = div.querySelector(".chat");
-        const btnClose = div.querySelector(".close");
-
-        if(r.status==="in_progress"){
-          btnStart.disabled=true;
-        }
-
-        btnStart.onclick = async ()=>{
-          try{
-            btnStart.disabled=true;
-            await updateDoc(doc(db,"requests",d.id),{
-              status:"in_progress",
-              startedAt: serverTimestamp(),
-              lastUpdatedAt: serverTimestamp()
-            });
-            await audit(user.uid,"start_request",d.id,{status:"in_progress"});
-          }catch(e){
-            btnStart.disabled=false;
-            alert("Impossible de démarrer la demande.");
-          }
-        };
-
-        btnChat.onclick = async ()=>{
-          try{
-            btnChat.disabled=true;
-            const chatId = `CHAT_${d.id}_${user.uid}`;
-            await setDoc(doc(db,"chats",chatId),{
-              chatId,
-              requestId: d.id,
-              proUid: user.uid,
-              patientUid: patientUid || null,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
-              status:"active"
-            },{merge:true});
-            await audit(user.uid,"open_chat",chatId,{requestId:d.id});
-
-            // Si tu crées chat.html plus tard, ça s’ouvrira direct
-            // Sinon, fallback
-            const url = `chat.html?chatId=${encodeURIComponent(chatId)}&requestId=${encodeURIComponent(d.id)}`;
-            try{
-              location.href = url;
-            }catch(_){
-              alert("Chat prêt. ID: "+chatId);
-            }
-          }catch(e){
-            btnChat.disabled=false;
-            alert("Impossible d’ouvrir le chat.");
-          }
-        };
-
-        btnClose.onclick = ()=>{
-          openCloseModal(d.id, r);
-        };
-
-        requestsList.appendChild(div);
-        requestDomMap.set(d.id, div);
-      }
-    }
-
-    kpiToday.textContent=today;
-    kpiWaiting.textContent=active;
-
-    if(!requestsList.innerHTML){
-      requestsList.innerHTML='<div class="empty">Aucune demande active</div>';
-    }
-
-    // Statut pro dynamique
-    setProStatus(anyBusy ? "busy" : "available");
-  });
-
-  /* Historique (clôturées) */
-  onSnapshot(rq, async (s)=>{
-    historyList.innerHTML="";
-    let has=false;
-
-    for(const d of s.docs){
-      const r=d.data();
-      if(r.status!=="closed") continue;
-      has=true;
-
-      const service = r.serviceType || r.type || "—";
-      const closed = r.closedAt?.toDate ? r.closedAt.toDate().toLocaleString() : "—";
-
       const div=document.createElement("div");
       div.className="request";
       div.innerHTML=`
-<strong>Service</strong> — ${safeTxt(service)}<br>
-<span class="tag">✅ Clôturée</span>
-<span class="tag">🗓️ ${safeTxt(closed)}</span>
-`;
-
-      historyList.appendChild(div);
-    }
-
-    if(!has) historyList.innerHTML='<div class="empty">Aucune consultation clôturée</div>';
-  });
-
-  /* CONFIRM CLOSE (modal) */
-  closeModalConfirm.onclick = async ()=>{
-    const requestId = pendingClose.requestId;
-    const r = pendingClose.requestData;
-
-    if(!requestId || !r) return closeCloseModal();
-
-    const note = (closeNote.value||"").trim();
-    if(!note) return alert("Note obligatoire avant clôture.");
-
-    const amount = Number(closeAmount.value||0);
-    const safeAmount = Number.isFinite(amount) ? amount : 0;
-
-    const ok = confirm("Confirmer la clôture ? Cette action est enregistrée.");
-    if(!ok) return;
-
-    closeModalConfirm.disabled=true;
-
-    try{
-      // Update request
-      await updateDoc(doc(db,"requests",requestId),{
-        status:"closed",
-        closedAt: serverTimestamp(),
-        closedBy: currentUser.uid,
-        closeNote: note,
-        lastUpdatedAt: serverTimestamp()
+<strong>${r.serviceType||"Service"}</strong><br>
+<span class="tag">${r.province||"—"}</span>
+<div class="actions">
+  <button class="accept">✅ Accepter</button>
+  <button class="refuse">❌ Refuser</button>
+  <button class="chat">💬 Chat</button>
+</div>`;
+      div.querySelector(".accept").onclick=()=>updateDoc(doc(db,"requests",d.id),{
+        status:"assigned",
+        assignedProUid:user.uid,
+        assignedAt:serverTimestamp()
       });
-
-      // Transaction
-      const suggested = (r.proAmount ?? r.pricePro ?? r.proFee ?? r.amount ?? r.price ?? 5000);
-      const finalAmount = safeAmount>0 ? safeAmount : Number(suggested||0) || 0;
-
-      const patientUid = getPatientUidFromRequest(r);
-
-      await addDoc(collection(db,"transactions"),{
-        requestId,
-        proUid: currentUser.uid,
-        patientUid: patientUid || null,
-        amount: finalAmount,
-        currency:"BIF",
-        status:"success",
-        method: r.paymentMethod || "wallet",
-        createdAt: serverTimestamp(),
-        meta:{
-          specialty: currentPro?.specialty || null,
-          province: currentPro?.province || null
-        }
+      div.querySelector(".refuse").onclick=()=>updateDoc(doc(db,"requests",d.id),{
+        status:"refused_by_pro",
+        refusedBy:user.uid,
+        refusedAt:serverTimestamp()
       });
-
-      // Audit
-      await audit(currentUser.uid,"close_request",requestId,{
-        amount: finalAmount,
-        notePreview: note.slice(0,140)
-      });
-
-      // Notify patient (optional)
-      if(patientUid){
-        await notify(currentUser.uid, patientUid, "Consultation clôturée", "Votre consultation a été clôturée. Merci.", requestId);
-      }
-
-      closeCloseModal();
-    }catch(e){
-      alert("Impossible de clôturer la demande.");
-    }finally{
-      closeModalConfirm.disabled=false;
-    }
-  };
-
-  /* Revenus (success) */
-  onSnapshot(query(collection(db,"transactions"),where("proUid","==",user.uid)), s=>{
-    let total=0;
-    s.forEach(d=>{
-      const t=d.data();
-      if(t.status && t.status!=="success") return;
-      total += Number(t.amount||0);
+      div.querySelector(".chat").onclick=()=>alert("Chat activé après acceptation");
+      pendingList.appendChild(div);
     });
-    kpiRevenue.textContent = money(total)+" BIF";
   });
 
-  /* Notifications (unread count + read on click + jump to request) */
-  const notifsQ = query(collection(db,"notifications"),where("toUid","==",user.uid),orderBy("createdAt","desc"));
+  /* 🔵 ASSIGNED */
+  onSnapshot(query(collection(db,"requests"),where("assignedProUid","==",user.uid)), snap=>{
+    assignedList.innerHTML="";
+    if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
 
-  onSnapshot(notifsQ, s=>{
-    notificationsList.innerHTML="";
-    let unread=0;
-
-    if(s.empty){
-      notificationsList.innerHTML='<div class="empty">Aucune notification</div>';
-      unreadCount.textContent="0";
-      return;
-    }
-
-    s.forEach(d=>{
-      const n=d.data();
-      if(!n.read) unread++;
-
+    snap.forEach(d=>{
+      const r=d.data();
       const div=document.createElement("div");
-      div.className="notif"+(n.read?"":" unread");
-
-      const when = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString() : "";
-      div.innerHTML=`<strong>${n.title||"Info"}</strong><br>${n.message||""}${when?`<div class="smallMuted">${when}</div>`:""}`;
-
-      div.onclick = async ()=>{
-        try{
-          await updateDoc(doc(db,"notifications",d.id),{read:true});
-        }catch(e){}
-
-        // Si notification liée à requestId → focus
-        const rid = n.requestId || null;
-        if(rid){
-          // Scroll vers la carte demande si présente
-          const el = document.querySelector(`[data-request-id="${rid}"]`);
-          if(el){
-            el.scrollIntoView({behavior:"smooth",block:"center"});
-            el.style.boxShadow="0 0 0 3px rgba(18,60,138,.15)";
-            setTimeout(()=>{ el.style.boxShadow=""; }, 1200);
-          }
-        }
-      };
-
-      notificationsList.appendChild(div);
+      div.className="request";
+      div.innerHTML=`
+<strong>${r.serviceType}</strong><br>
+<span class="tag">En cours</span>
+<div class="actions">
+  <button class="call">☎️ Appeler</button>
+  <button class="chat">💬 Chat</button>
+</div>`;
+      div.querySelector(".call").onclick=()=>addDoc(collection(db,"callSessions"),{
+        requestId:d.id,proUid:user.uid,status:"ringing",createdAt:serverTimestamp()
+      });
+      div.querySelector(".chat").onclick=()=>alert("Chat interne");
+      assignedList.appendChild(div);
     });
-
-    unreadCount.textContent = String(unread);
   });
 
 });
 </script>
-
 </body>
 </html>
