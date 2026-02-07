@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Administration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --ok:#1b6b3a;
+  --warn:#c58a00;
+  --err:#8a1f1f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1500px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  border-bottom:1px solid #e6ebf5;
+}
+header .left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+header img{height:42px}
+header strong{font-size:16px}
+header button{
+  border:none;
+  background:none;
+  color:var(--err);
+  font-weight:600;
+  cursor:pointer;
+}
+.content{padding:20px}
+h2{margin:26px 0 10px;font-size:18px}
+.list{
+  display:grid;
+  gap:16px;
+}
+@media(min-width:900px){
+  .list{grid-template-columns:1fr 1fr}
+}
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:16px;
+  padding:16px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+  margin-top:6px;
+}
+.pending{background:#fff4cc;color:#8a6d00}
+.validated{background:#dff5e6;color:#1b6b3a}
+.rejected{background:#fde0e0;color:#8a1f1f}
+.suspended{background:#eee;color:#444}
+
+.section{
+  margin-top:10px;
+  font-size:13px;
+}
+.section strong{display:block}
+.section.note{
+  background:#f9f2f2;
+  padding:10px;
+  border-radius:10px;
+  margin-top:12px;
+  color:#8a1f1f;
+}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  font-size:13px;
+}
+
+.actions{
+  margin-top:14px;
+  display:grid;
+  gap:8px;
+}
+.actions button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.validate{background:var(--blue);color:#fff}
+.reject{background:var(--err);color:#fff}
+.suspend{background:#555;color:#fff}
+.pay{background:#1b6b3a;color:#fff}
+.notify{background:#f6a623;color:#fff}
+.assign{background:#5a3d8a;color:#fff}
+
+textarea{
+  width:100%;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+footer{
+  margin-top:auto;
+  text-align:center;
+  font-size:12px;
+  padding:16px;
+  opacity:.65;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="left">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <strong>Administration CizaHealth+</strong>
+  </div>
+  <button id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="content">
+
+<h2>Professionnels — En attente</h2>
+<div id="pendingList" class="list"></div>
+
+<h2>Professionnels — Validés</h2>
+<div id="validatedList" class="list"></div>
+
+<h2>Professionnels — Refusés</h2>
+<div id="rejectedList" class="list"></div>
+
+</div>
+
+<footer>
+© 2026 CizaHealth+ — CIZA GROUP • Administration
+</footer>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, getDocs, query, where,
+  doc, updateDoc, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+logoutBtn.onclick = async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
+
+function fmtTS(ts){
+  if(!ts) return "—";
+  if(ts.toDate) return ts.toDate().toLocaleString();
+  return "—";
+}
+
+async function audit(actor, action, target, extra={}){
+  await addDoc(collection(db,"auditLogs"),{
+    actor, action, target, extra,
+    at: serverTimestamp()
+  });
+}
+
+async function notify(actor, toUid, title, message){
+  await addDoc(collection(db,"notifications"),{
+    toUid, title, message,
+    read:false,
+    createdAt:serverTimestamp(),
+    createdBy:actor
+  });
+}
+
+async function activatePayment(actor, uid){
+  const slipId = "SLIP-"+Date.now();
+  await updateDoc(doc(db,"users",uid),{
+    paymentEnabled:true,
+    paymentAgreementSigned:true,
+    paymentSlipId:slipId,
+    paymentActivatedAt:serverTimestamp()
+  });
+  await audit(actor,"activate_payment",uid,{slipId});
+}
+
+async function assignRequest(actor, requestId, uid){
+  await updateDoc(doc(db,"requests",requestId),{
+    assignedProUid:uid,
+    assignedAt:serverTimestamp(),
+    assignedBy:actor,
+    assignMode:"manual_admin"
+  });
+  await audit(actor,"assign_request",uid,{requestId});
+}
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="/cizahealth/index.html"; return; }
+
+  const snap = await getDocs(
+    query(collection(db,"users"),
+    where("role","in",["doctor","nurse","aide"]))
+  );
+
+  const users=[];
+  snap.forEach(d=>users.push({id:d.id,u:d.data()}));
+
+  function render(list, el){
+    list.forEach(({id,u})=>{
+      const c=document.createElement("div");
+      const st=u.accountStatus==="suspended"?"suspended":
+        u.status==="validated"?"validated":
+        u.status==="rejected"?"rejected":"pending";
+
+      c.className="card";
+      c.innerHTML=`
+<strong>${u.fullName||"—"}</strong><br>
+${u.role} • ${u.province||"—"}<br>
+<span class="badge ${st}">${st.toUpperCase()}</span>
+
+<div class="section">
+<strong>Inscription</strong>${fmtTS(u.createdAt)}
+</div>
+
+<div class="section">
+<strong>Identité</strong>
+Naissance : ${u.birthDate||"—"}<br>
+Genre : ${u.gender||"—"}<br>
+Téléphone : ${u.phone||"—"}<br>
+Email : ${u.email||"—"}<br>
+Pièce : ${u.nationalIdType||"—"} — ${u.nationalIdNumber||"—"}
+</div>
+
+<div class="section">
+<strong>Profession</strong>
+Spécialité : ${u.specialty||"—"}<br>
+Expérience : ${u.experience||"—"}<br>
+N° diplôme : ${u.diplomaNumber||"—"}<br>
+N° certificat : ${u.certificateNumber||"—"}
+</div>
+
+<div class="section">
+<strong>Paiement</strong>
+Actif : ${u.paymentEnabled?"OUI":"NON"} • Slip : ${u.paymentSlipId||"—"}
+</div>
+
+${u.status==="validated"?`
+<div class="section">
+<strong>ProID</strong>${u.proId||"—"}
+</div>`:""}
+
+<div class="section">
+<strong>Dossier</strong>
+<div class="check">
+<input type="checkbox" id="chk-${id}" ${u.documentsVerified?"checked":""}>
+<label>Dossier validé par admin</label>
+</div>
+</div>
+`;
+
+      const chk=c.querySelector(`#chk-${id}`);
+      if(chk){
+        chk.addEventListener("change",async()=>{
+          await updateDoc(doc(db,"users",id),{
+            documentsVerified:chk.checked,
+            documentsVerifiedAt:serverTimestamp(),
+            documentsVerifiedBy:user.uid
+          });
+          await audit(user.uid,"documents_verified",id,{checked:chk.checked});
+        });
+      }
+
+      el.appendChild(c);
+    });
+  }
+
+  render(users.filter(x=>x.u.status!=="validated"&&x.u.status!=="rejected"),pendingList);
+  render(users.filter(x=>x.u.status==="validated"),validatedList);
+  render(users.filter(x=>x.u.status==="rejected"),rejectedList);
+});
+</script>
+
+</body>
+</html>
