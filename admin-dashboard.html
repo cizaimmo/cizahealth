@@ -175,6 +175,41 @@ const fmtTS=t=>t?.toDate?t.toDate().toLocaleString():"—";
 
 async function audit(a,act,t,e={}){await addDoc(collection(db,"auditLogs"),{actor:a,action:act,target:t,extra:e,at:serverTimestamp()});}
 async function notify(a,u,t,m){await addDoc(collection(db,"notifications"),{toUid:u,title:t,message:m,read:false,createdAt:serverTimestamp(),createdBy:a});}
+async function activatePayment(a,u){
+  const s="SLIP-"+Date.now();
+  await updateDoc(doc(db,"users",u),{
+    paymentEnabled:true,
+    paymentAgreementSigned:true,
+    paymentSlipId:s,
+    paymentActivatedAt:serverTimestamp()
+  });
+  await audit(a,"activate_payment",u,{s});
+}
+
+/* AJOUT: rendre proprement tous les champs d'une requête (sans toucher au HTML) */
+function requestDetailsHTML(r){
+  const order = [
+    "type","service","specialty","province","location","address",
+    "description","details","message","note","urgency","priority",
+    "patientUid","patientId","patientName","patientPhone","patientEmail",
+    "status","assignedProUid","assignedBy"
+  ];
+  const seen=new Set();
+  let html="";
+  order.forEach(k=>{
+    if(r[k]!==undefined && r[k]!==null && r[k]!=="" && !seen.has(k)){
+      seen.add(k);
+      html+=`<div class="section"><strong>${k}</strong>${String(r[k])}</div>`;
+    }
+  });
+  Object.keys(r||{}).forEach(k=>{
+    if(seen.has(k))return;
+    const v=r[k];
+    if(v===undefined || v===null || v==="")return;
+    html+=`<div class="section"><strong>${k}</strong>${(typeof v==="object" && v?.toDate)?fmtTS(v):String(v)}</div>`;
+  });
+  return html || `<div class="section"><strong>Données</strong>—</div>`;
+}
 
 onAuthStateChanged(auth,async(user)=>{
   if(!user)return location.href="/cizahealth/index.html";
@@ -185,59 +220,266 @@ onAuthStateChanged(auth,async(user)=>{
   const users=[];
   usersSnap.forEach(d=>users.push({id:d.id,u:d.data()}));
 
-  /* ================= REQUÊTES AVEC ASSIGNATION ================= */
+  /* ===== AJOUT SAFE : ONLINE / OFFLINE ===== */
+  users.forEach(p=>{
+    if(p.u.lastOnlineAt?.toMillis){
+      p.u.__online = (Date.now() - p.u.lastOnlineAt.toMillis()) < 120000;
+    }else{
+      p.u.__online = false;
+    }
+  });
 
-  const reqSnap = await getDocs(
-    query(collection(db,"requests"), where("status","==","pending"))
-  );
+  function render(list,el){
+    el.innerHTML="";
+    list.forEach(({id,u})=>{
+      const st=u.accountStatus==="suspended"
+        ?"suspended"
+        :u.status==="validated"
+        ?"validated"
+        :u.status==="rejected"
+        ?"rejected"
+        :"pending";
 
-  reqSnap.forEach(d=>{
-    const r=d.data();
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`
+<strong>${u.fullName||"—"}</strong><br>
+${u.role} • ${u.province||"—"}<br>
+<span class="badge ${st}">${st.toUpperCase()}</span>
+
+<div class="section"><strong>Inscription</strong>${fmtTS(u.createdAt)}</div>
+
+<div class="section"><strong>Identité</strong>
+Naissance : ${u.birthDate||"—"}<br>
+Genre : ${u.gender||"—"}<br>
+Téléphone : ${u.phone||"—"}<br>
+Email : ${u.email||"—"}<br>
+Pièce : ${u.nationalIdType||"—"} — ${u.nationalIdNumber||"—"}
+</div>
+
+<div class="section"><strong>Profession</strong>
+Spécialité : ${u.specialty||"—"}<br>
+Expérience : ${u.experience||"—"}<br>
+N° diplôme : ${u.diplomaNumber||"—"}<br>
+N° certificat : ${u.certificateNumber||"—"}
+</div>
+
+<div class="section"><strong>Paiement</strong>
+Actif : ${u.paymentEnabled?"OUI":"NON"} • Slip : ${u.paymentSlipId||"—"}
+</div>
+
+${u.status==="validated"
+  ?`<div class="section"><strong>ProID</strong>${u.proId||"—"}</div>`
+  :""
+}
+
+<div class="check">
+<input type="checkbox" ${u.documentsVerified?"checked":""} id="chk-${id}">
+<label>Dossier validé par admin</label>
+</div>
+`;
+
+      const chk=c.querySelector(`#chk-${id}`);
+      chk?.addEventListener("change",async()=>{
+        await updateDoc(doc(db,"users",id),{
+          documentsVerified:chk.checked,
+          documentsVerifiedAt:serverTimestamp(),
+          documentsVerifiedBy:user.uid
+        });
+        await audit(user.uid,"documents_verified",id,{checked:chk.checked});
+        if(chk.checked){
+          await notify(user.uid,id,"Dossier validé",
+            "Votre dossier professionnel a été validé par l’administration.");
+        }
+      });
+
+      const note=document.createElement("textarea");
+      note.placeholder="Motif admin obligatoire";
+
+      const a=document.createElement("div");
+      a.className="actions";
+
+      if(u.status!=="validated"){
+        const v=document.createElement("button");
+        v.className="validate";
+        v.textContent="Valider";
+        v.onclick=async()=>{
+          await updateDoc(doc(db,"users",id),{
+            status:"validated",
+            proId:u.proId||"PRO-"+Date.now(),
+            validatedAt:serverTimestamp()
+          });
+          await audit(user.uid,"validate_pro",id);
+          await notify(user.uid,id,"Compte validé",
+            "Votre compte professionnel a été validé.");
+          location.reload();
+        };
+        a.appendChild(v);
+      }
+
+      const p=document.createElement("button");
+      p.className="pay";
+      p.textContent=u.paymentEnabled?"Paiement actif":"Activer paiement";
+      p.disabled=!!u.paymentEnabled;
+      p.onclick=async()=>{
+        await activatePayment(user.uid,id);
+        await notify(user.uid,id,"Paiement activé","Votre paiement est actif.");
+        location.reload();
+      };
+
+      const n=document.createElement("button");
+      n.className="notify";
+      n.textContent="Notifier";
+      n.onclick=async()=>{
+        const m=prompt("Message");
+        if(!m)return;
+        await notify(user.uid,id,"Admin",m);
+      };
+
+      const s=document.createElement("button");
+      s.className="suspend";
+      s.textContent=u.accountStatus==="suspended"?"Réactiver":"Suspendre";
+      s.onclick=async()=>{
+        if(!note.value.trim())return alert("Motif requis");
+        const susp=u.accountStatus!=="suspended";
+        await updateDoc(doc(db,"users",id),{
+          accountStatus:susp?"suspended":"active",
+          validationNote:note.value,
+          lastStatusChangeAt:serverTimestamp()
+        });
+        await audit(user.uid,"toggle_suspend",id,{note:note.value});
+        await notify(
+          user.uid,
+          id,
+          susp?"Compte suspendu":"Compte réactivé",
+          susp?`Motif : ${note.value}`:"Votre compte a été réactivé."
+        );
+        location.reload();
+      };
+
+      const r=document.createElement("button");
+      r.className="reject";
+      r.textContent="Refuser";
+      r.onclick=async()=>{
+        if(!note.value.trim())return alert("Motif requis");
+        await updateDoc(doc(db,"users",id),{
+          status:"rejected",
+          validationNote:note.value,
+          lastStatusChangeAt:serverTimestamp()
+        });
+        await audit(user.uid,"reject_pro",id,{note:note.value});
+        await notify(user.uid,id,"Compte refusé",`Motif : ${note.value}`);
+        location.reload();
+      };
+
+      a.append(p,n,s,r,note);
+      c.appendChild(a);
+      el.appendChild(c);
+    });
+  }
+
+  render(users.filter(x=>x.u.status!=="validated"&&x.u.status!=="rejected"),pendingList);
+  render(users.filter(x=>x.u.status==="validated"),validatedList);
+  render(users.filter(x=>x.u.status==="rejected"),rejectedList);
+
+  /* ===== AJOUT VISUEL ONLINE / OFFLINE ===== */
+  setTimeout(()=>{
+    document.querySelectorAll(".card").forEach(card=>{
+      const name=card.querySelector("strong")?.innerText;
+      const pro=users.find(p=>p.u.fullName===name);
+      if(!pro)return;
+      const b=document.createElement("span");
+      b.className="badge "+(pro.u.__online?"validated":"suspended");
+      b.textContent=pro.u.__online?"EN LIGNE":"HORS LIGNE";
+      card.appendChild(b);
+    });
+  },300);
+
+  /* ================= REQUÊTES (COMPLET + ASSIGNATION) ================= */
+  requestsList.innerHTML="";
+
+  const reqSnapAll = await getDocs(collection(db,"requests"));
+  reqSnapAll.forEach(d=>{
+    const r=d.data()||{};
+    const status=(r.status||"pending").toLowerCase();
+    const badgeClass = status==="validated" ? "validated"
+      : status==="rejected" ? "rejected"
+      : status==="assigned" ? "validated"
+      : "pending";
+
     const c=document.createElement("div");
     c.className="card";
 
     c.innerHTML=`
-<strong>Requête patient</strong>
-<span class="badge pending">PENDING</span>
+<strong>Requête patient</strong><br>
+<span class="badge ${badgeClass}">${status.toUpperCase()}</span>
 
-<div class="section"><strong>Service</strong>${r.type||"—"}</div>
-<div class="section"><strong>Province</strong>${r.province||"—"}</div>
-<div class="section"><strong>Description</strong>${r.description||"—"}</div>
-<div class="section"><strong>Patient UID</strong>${r.patientUid||"—"}</div>
+${requestDetailsHTML(r)}
+
 <div class="section"><strong>Créée</strong>${fmtTS(r.createdAt)}</div>
 
+${status==="pending" ? `
 <div class="actions">
   <button class="assign">Assigner un professionnel</button>
 </div>
+` : ``}
 `;
 
-    c.querySelector(".assign").onclick = async()=>{
-      const pid = prompt("Entrer le ProID du professionnel");
-      if(!pid)return;
+    const btn=c.querySelector(".assign");
+    if(btn){
+      btn.onclick = async()=>{
+        const pid = prompt("Entrer le ProID du professionnel");
+        if(!pid)return;
 
-      const pro = users.find(p=>p.u.proId===pid && p.u.status==="validated");
-      if(!pro)return alert("Professionnel introuvable ou non validé");
+        const pro = users.find(p=>p.u.proId===pid && p.u.status==="validated");
+        if(!pro)return alert("Professionnel introuvable ou non validé");
 
-      await updateDoc(doc(db,"requests",d.id),{
-        assignedProUid: pro.id,
-        status:"assigned",
-        assignedBy: user.uid,
-        assignedAt: serverTimestamp()
-      });
+        await updateDoc(doc(db,"requests",d.id),{
+          assignedProUid: pro.id,
+          status:"assigned",
+          assignedBy: user.uid,
+          assignedAt: serverTimestamp()
+        });
 
-      await audit(user.uid,"manual_assign_request",d.id,{proId:pid});
-      await notify(
-        user.uid,
-        pro.id,
-        "Nouvelle demande assignée",
-        "Une demande patient vous a été assignée par l’administration."
-      );
+        await audit(user.uid,"manual_assign_request",d.id,{proId:pid});
+        await notify(
+          user.uid,
+          pro.id,
+          "Nouvelle demande assignée",
+          "Une demande patient vous a été assignée par l’administration."
+        );
 
-      alert("Demande assignée avec succès");
-      location.reload();
-    };
+        alert("Demande assignée avec succès");
+        location.reload();
+      };
+    }
 
     requestsList.appendChild(c);
+  });
+
+  /* ================= TRANSACTIONS ================= */
+  const txSnap = await getDocs(collection(db,"transactions"));
+  txSnap.forEach(d=>{
+    const t=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<strong>Transaction</strong><br>
+Montant : ${t.amount||"—"}<br>
+Statut : ${t.status||"—"}<br>
+Date : ${fmtTS(t.createdAt)}`;
+    transactionsList.appendChild(c);
+  });
+
+  /* ================= AUDIT ================= */
+  const auditSnap = await getDocs(collection(db,"auditLogs"));
+  auditSnap.forEach(d=>{
+    const a=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<strong>${a.action||"Action"}</strong><br>
+Acteur : ${a.actor||"—"}<br>
+Date : ${fmtTS(a.at)}`;
+    auditList.appendChild(c);
   });
 });
 </script>
