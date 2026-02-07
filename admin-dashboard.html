@@ -82,6 +82,13 @@ h2{margin:26px 0 10px;font-size:18px}
   font-size:13px;
 }
 .section strong{display:block}
+.section.note{
+  background:#f9f2f2;
+  padding:10px;
+  border-radius:10px;
+  margin-top:12px;
+  color:#8a1f1f;
+}
 .actions{
   margin-top:14px;
   display:grid;
@@ -224,6 +231,8 @@ onAuthStateChanged(auth, async(user)=>{
       </div>
 
       ${u.proId?`<div class="section"><strong>ProID</strong>${u.proId}</div>`:""}
+      ${u.validatedAt?`<div class="section"><strong>Validé le</strong>${u.validatedAt.toDate().toLocaleString()}</div>`:""}
+      ${u.validationNote?`<div class="section note"><strong>Motif admin</strong>${u.validationNote}</div>`:""}
     `;
 
     const note=document.createElement("textarea");
@@ -249,7 +258,8 @@ onAuthStateChanged(auth, async(user)=>{
         await updateDoc(doc(db,"users",d.id),{
           status:"validated",
           proId:u.proId || "PRO-"+Date.now(),
-          validatedAt:serverTimestamp()
+          validatedAt:serverTimestamp(),
+          validatedBy:user.uid
         });
         await log("validate_pro");
         location.reload();
