@@ -370,18 +370,106 @@ ${u.status==="validated"
     });
   },300);
 
-  const reqSnap = await getDocs(collection(db,"requests"));
-  reqSnap.forEach(d=>{
-    const r=d.data();
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`<strong>Requête</strong><br>
-Type : ${r.type||"—"}<br>
-Statut : ${r.status||"—"}<br>
-Créée : ${fmtTS(r.createdAt)}`;
-    requestsList.appendChild(c);
-  });
+  /* =====================================================
+   REQUÊTES – VUE ADMIN COMPLÈTE + ASSIGNATION + MATCHING
+   ===================================================== */
 
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onSnapshot(
+  query(collection(db,"requests"), where("status","==","pending")),
+  snap=>{
+    requestsList.innerHTML="";
+
+    snap.forEach(d=>{
+      const r = d.data();
+
+      const c = document.createElement("div");
+      c.className = "card";
+
+      c.innerHTML = `
+<strong>Requête Patient</strong><br>
+
+<div class="section"><strong>Identité patient</strong>
+Nom : ${r.patientName||"—"}<br>
+Téléphone : ${r.patientPhone||"—"}<br>
+UID : ${r.patientUid||"—"}
+</div>
+
+<div class="section"><strong>Détails demande</strong>
+Type : ${r.type||"—"}<br>
+Spécialité requise : ${r.specialty||r.type||"—"}<br>
+Province : ${r.province||"—"}<br>
+Description : ${r.description||"—"}
+</div>
+
+<div class="section"><strong>Statut</strong>
+Statut : ${r.status||"—"}<br>
+Créée : ${fmtTS(r.createdAt)}
+</div>
+
+<div class="actions">
+  <button class="assign">Assigner manuellement</button>
+</div>
+`;
+
+      /* ===== ASSIGNATION MANUELLE ===== */
+      c.querySelector(".assign").onclick = async ()=>{
+        const proId = prompt("Entrer le ProID du professionnel");
+        if(!proId) return;
+
+        const pro = users.find(p=>p.u.proId===proId && p.u.status==="validated");
+        if(!pro) return alert("Pro introuvable ou non validé");
+
+        await updateDoc(doc(db,"requests",d.id),{
+          assignedProUid: pro.id,
+          status: "assigned",
+          assignedBy: user.uid,
+          assignedAt: serverTimestamp()
+        });
+
+        await audit(user.uid,"manual_assign",d.id,{pro:pro.id});
+        await notify(
+          user.uid,
+          pro.id,
+          "Nouvelle demande assignée",
+          "Une demande patient vous a été assignée par l’administration."
+        );
+      };
+
+      /* ===== MATCHING AUTOMATIQUE MULTI-PRO ===== */
+      const eligible = users.filter(p=>
+        p.u.status==="validated" &&
+        p.u.specialty===r.type &&
+        p.u.province===r.province &&
+        p.u.__online
+      );
+
+      if(eligible.length){
+        const chosen = eligible[Math.floor(Math.random()*eligible.length)];
+
+        updateDoc(doc(db,"requests",d.id),{
+          assignedProUid: chosen.id,
+          status: "assigned",
+          assignedBy: "auto",
+          assignedAt: serverTimestamp()
+        });
+
+        audit(user.uid,"auto_match",d.id,{pro:chosen.id});
+        notify(
+          user.uid,
+          chosen.id,
+          "Nouvelle demande assignée",
+          "Une demande patient vous a été attribuée automatiquement."
+        );
+      }
+
+      requestsList.appendChild(c);
+    });
+  }
+);
+
+  
   const txSnap = await getDocs(collection(db,"transactions"));
   txSnap.forEach(d=>{
     const t=d.data();
