@@ -10,48 +10,176 @@
   --blue:#123c8a;
   --green:#1b6b3a;
   --red:#c0392b;
+  --orange:#e67e22;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --radius:22px;
+  --radius:20px;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;background:var(--bg);color:var(--text)}
-.app{max-width:1200px;margin:auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1200px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
 
-header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #eef1f6;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
-.brand{display:flex;align-items:center;gap:12px}
-.brand img{height:36px}
-.brand span{font-size:12px;color:var(--muted)}
-.topRight{display:flex;gap:10px;align-items:center}
+/* ===== HEADER ===== */
+header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:linear-gradient(90deg,#123c8a,#0b2c66);
+  color:#fff;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand img{height:38px}
+.brand span{font-size:12px;opacity:.85}
 
-.status{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #e6ebf5}
-.available{background:#eaf6f0;color:var(--green)}
-.busy{background:#eef4ff;color:#123c8a}
+.topRight{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.switch{
+  position:relative;
+  width:46px;
+  height:24px;
+}
+.switch input{display:none}
+.slider{
+  position:absolute;
+  inset:0;
+  background:#ccc;
+  border-radius:999px;
+  cursor:pointer;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:18px;height:18px;
+  left:3px;top:3px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s;
+}
+.switch input:checked + .slider{
+  background:#2ecc71;
+}
+.switch input:checked + .slider:before{
+  transform:translateX(22px);
+}
 
-.iconBtn{border:1px solid #e6ebf5;background:#fff;border-radius:12px;padding:8px 10px;cursor:pointer;font-weight:700}
-.badgeDot{background:#eef4ff;border:1px solid #d9e6ff;border-radius:999px;padding:2px 8px;font-size:12px}
+.logout{
+  border:none;
+  background:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
 
-.logout{border:none;background:none;color:var(--red);font-weight:700;cursor:pointer}
+.iconBtn{
+  background:#fff;
+  border:none;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.badge{
+  background:#e74c3c;
+  color:#fff;
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:12px;
+  margin-left:4px;
+}
 
-.content{padding:26px;display:grid;gap:26px}
+/* ===== CONTENT ===== */
+.content{padding:24px;display:grid;gap:24px}
 
-.card{background:#fff;border-radius:22px;padding:22px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
 .card h3{margin:0 0 8px}
+.small{font-size:12px;color:var(--muted)}
 
-.request{border:1px solid #eef1f6;border-radius:16px;padding:16px;margin-bottom:12px}
-.tag{font-size:12px;background:#f2f5fb;border:1px solid #e6ebf5;padding:4px 10px;border-radius:999px;color:var(--muted)}
+.request{
+  border:1px solid #eef1f6;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.request.pending{border-left:6px solid var(--orange)}
+.request.assigned{border-left:6px solid var(--green)}
 
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.actions button{padding:12px;border:none;border-radius:14px;font-weight:800;color:#fff;cursor:pointer}
-.accept{background:#1b6b3a}
-.refuse{background:#c0392b}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag{
+  font-size:12px;
+  background:#f2f5fb;
+  border:1px solid #e6ebf5;
+  padding:4px 10px;
+  border-radius:999px;
+  color:var(--muted);
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:12px;
+}
+.actions button{
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  font-weight:800;
+  color:#fff;
+  cursor:pointer;
+}
+.accept{background:var(--green)}
+.refuse{background:var(--red)}
 .chat{background:#123c8a}
 .call{background:#6c5ce7}
+.actions button:disabled{opacity:.6}
+
+.timer{
+  font-size:13px;
+  font-weight:700;
+  margin-top:6px;
+}
+.timer.warn{color:var(--red)}
 
 .empty{color:var(--muted);font-size:14px}
 
-footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:center;font-size:12px;color:#6b7a90}
+/* FOOTER */
+footer{
+  margin-top:auto;
+  padding:18px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#6b7a90;
+}
 </style>
 </head>
 
@@ -63,12 +191,18 @@ footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:cent
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div>
       <strong>CizaHealth+</strong><br>
-      <span>Dashboard professionnel</span>
+      <span>Dashboard Professionnel</span>
     </div>
   </div>
+
   <div class="topRight">
-    <button class="iconBtn" id="markAllReadBtn">🔔 <span id="unreadCount" class="badgeDot">0</span></button>
-    <span id="proStatus" class="status available">Disponible</span>
+    <button class="iconBtn" id="notifBtn">🔔 <span id="notifCount" class="badge">0</span></button>
+
+    <label class="switch">
+      <input type="checkbox" id="onlineToggle">
+      <span class="slider"></span>
+    </label>
+
     <button class="logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>
@@ -77,11 +211,12 @@ footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:cent
 
 <div class="card">
   <h3>🟡 Requêtes en attente</h3>
+  <div class="small">Première acceptation valide • expiration automatique</div>
   <div id="pendingList" class="empty">Chargement…</div>
 </div>
 
 <div class="card">
-  <h3>🔵 Requêtes acceptées</h3>
+  <h3>🟢 Requêtes acceptées</h3>
   <div id="assignedList" class="empty">Aucune demande</div>
 </div>
 
@@ -93,79 +228,142 @@ footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:cent
 </div>
 
 <footer>
-© 2026 <strong>CizaHealth+</strong> — Plateforme sécurisée
+© 2026 <strong>CizaHealth+</strong> — Plateforme de santé sécurisée
 </footer>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, query, where, onSnapshot, updateDoc, doc, addDoc, serverTimestamp } 
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, onSnapshot,
+  updateDoc, doc, addDoc, serverTimestamp
+}
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html";};
+logoutBtn.onclick=async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
 
-onAuthStateChanged(auth, user=>{
+function timeLeft(ts){
+  const diff = ts.toDate() - Date.now();
+  if(diff<=0) return "Expirée";
+  const m = Math.floor(diff/60000);
+  const s = Math.floor((diff%60000)/1000);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+onAuthStateChanged(auth,user=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  /* 🔵 PENDING */
-  onSnapshot(query(collection(db,"requests"),where("status","==","pending")), snap=>{
-    pendingList.innerHTML="";
-    if(snap.empty) return pendingList.innerHTML='<div class="empty">Aucune requête</div>';
-
-    snap.forEach(d=>{
-      const r=d.data();
-      const div=document.createElement("div");
-      div.className="request";
-      div.innerHTML=`
-<strong>${r.serviceType||"Service"}</strong><br>
-<span class="tag">${r.province||"—"}</span>
-<div class="actions">
-  <button class="accept">✅ Accepter</button>
-  <button class="refuse">❌ Refuser</button>
-  <button class="chat">💬 Chat</button>
-</div>`;
-      div.querySelector(".accept").onclick=()=>updateDoc(doc(db,"requests",d.id),{
-        status:"assigned",
-        assignedProUid:user.uid,
-        assignedAt:serverTimestamp()
-      });
-      div.querySelector(".refuse").onclick=()=>updateDoc(doc(db,"requests",d.id),{
-        status:"refused_by_pro",
-        refusedBy:user.uid,
-        refusedAt:serverTimestamp()
-      });
-      div.querySelector(".chat").onclick=()=>alert("Chat activé après acceptation");
-      pendingList.appendChild(div);
+  /* ONLINE / OFFLINE */
+  onlineToggle.onchange=()=>{
+    updateDoc(doc(db,"users",user.uid),{
+      online:onlineToggle.checked,
+      onlineUpdatedAt:serverTimestamp()
     });
-  });
+  };
 
-  /* 🔵 ASSIGNED */
-  onSnapshot(query(collection(db,"requests"),where("assignedProUid","==",user.uid)), snap=>{
-    assignedList.innerHTML="";
-    if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
+  /* 🔔 PENDING – MULTI PRO */
+  onSnapshot(
+    query(collection(db,"requests"),
+      where("status","==","pending")
+    ),
+    snap=>{
+      pendingList.innerHTML="";
+      if(snap.empty) return pendingList.innerHTML='<div class="empty">Aucune requête</div>';
 
-    snap.forEach(d=>{
-      const r=d.data();
-      const div=document.createElement("div");
-      div.className="request";
-      div.innerHTML=`
-<strong>${r.serviceType}</strong><br>
-<span class="tag">En cours</span>
+      snap.forEach(d=>{
+        const r=d.data();
+        const div=document.createElement("div");
+        div.className="request pending";
+
+        const expires = r.expiresAt ? timeLeft(r.expiresAt) : "—";
+        const warn = r.expiresAt && (r.expiresAt.toDate()-Date.now()<30000);
+
+        div.innerHTML=`
+<strong>${r.serviceType||"Service médical"}</strong><br>
+<span class="small">${r.symptoms||"—"}</span>
+
+<div class="tags">
+  <span class="tag">Province : ${r.province||"—"}</span>
+  <span class="tag">Âge : ${r.patientAge||"—"}</span>
+</div>
+
+<div class="timer ${warn?"warn":""}">⏱ Expire dans : ${expires}</div>
+
+<div class="actions">
+  <button class="accept">Accepter</button>
+  <button class="refuse">Refuser</button>
+  <button class="chat" disabled>Chat</button>
+</div>
+`;
+
+        div.querySelector(".accept").onclick=()=>{
+          updateDoc(doc(db,"requests",d.id),{
+            status:"assigned",
+            assignedProUid:user.uid,
+            assignedAt:serverTimestamp()
+          });
+        };
+
+        div.querySelector(".refuse").onclick=()=>{
+          updateDoc(doc(db,"requests",d.id),{
+            status:"refused",
+            refusedBy:user.uid,
+            refusedAt:serverTimestamp()
+          });
+        };
+
+        pendingList.appendChild(div);
+      });
+    }
+  );
+
+  /* 🟢 ASSIGNED */
+  onSnapshot(
+    query(collection(db,"requests"),
+      where("assignedProUid","==",user.uid)
+    ),
+    snap=>{
+      assignedList.innerHTML="";
+      if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
+
+      snap.forEach(d=>{
+        const r=d.data();
+        const div=document.createElement("div");
+        div.className="request assigned";
+        div.innerHTML=`
+<strong>${r.serviceType}</strong>
+<div class="tags">
+  <span class="tag">En consultation</span>
+</div>
+
 <div class="actions">
   <button class="call">☎️ Appeler</button>
   <button class="chat">💬 Chat</button>
-</div>`;
-      div.querySelector(".call").onclick=()=>addDoc(collection(db,"callSessions"),{
-        requestId:d.id,proUid:user.uid,status:"ringing",createdAt:serverTimestamp()
+</div>
+`;
+        div.querySelector(".call").onclick=()=>{
+          addDoc(collection(db,"callSessions"),{
+            requestId:d.id,
+            proUid:user.uid,
+            status:"ringing",
+            createdAt:serverTimestamp()
+          });
+        };
+        div.querySelector(".chat").onclick=()=>{
+          alert("Chat interne activé");
+        };
+        assignedList.appendChild(div);
       });
-      div.querySelector(".chat").onclick=()=>alert("Chat interne");
-      assignedList.appendChild(div);
-    });
-  });
-
+    }
+  );
 });
 </script>
+
 </body>
 </html>
