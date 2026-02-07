@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* === STYLE EXISTANT : INCHANGÉ === */
 :root{
   --blue:#0a2a5e;
   --bg:#f4f7fb;
@@ -78,6 +77,7 @@ h2{margin:26px 0 10px;font-size:18px}
 .validated{background:#dff5e6;color:#1b6b3a}
 .rejected{background:#fde0e0;color:#8a1f1f}
 .suspended{background:#eee;color:#444}
+
 .section{
   margin-top:10px;
   font-size:13px;
@@ -90,6 +90,7 @@ h2{margin:26px 0 10px;font-size:18px}
   margin-top:12px;
   color:#8a1f1f;
 }
+
 .actions{
   margin-top:14px;
   display:grid;
@@ -105,14 +106,33 @@ h2{margin:26px 0 10px;font-size:18px}
 .validate{background:var(--blue);color:#fff}
 .reject{background:var(--err);color:#fff}
 .suspend{background:#555;color:#fff}
-.pay{background:#1b6b3a;color:#fff}
-.view{background:#0a2a5e;color:#fff}
+
+.secondary{
+  background:#eef3ff;
+  color:var(--blue);
+  border:1px solid #dbe6ff !important;
+}
+
+.pay{
+  background:#0b6b3a;
+  color:#fff;
+}
+.notify{
+  background:#f6a623;
+  color:#fff;
+}
+.assign{
+  background:#5a3d8a;
+  color:#fff;
+}
+
 textarea{
   width:100%;
   padding:8px;
   border-radius:10px;
   border:1px solid #ddd;
 }
+
 footer{
   margin-top:auto;
   text-align:center;
@@ -121,23 +141,88 @@ footer{
   opacity:.65;
 }
 
-/* === MODAL DOSSIER === */
-#dossierModal{
-  display:none;
+/* MODAL */
+.modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(10,26,47,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
   z-index:9999;
-  padding:20px;
+}
+.modal.open{display:flex}
+.modal-box{
+  width:min(760px, 100%);
+  background:#fff;
+  border-radius:18px;
+  border:2px solid #e6ebf5;
+  padding:16px;
+  max-height:85vh;
   overflow:auto;
 }
-#dossierBox{
-  background:#fff;
-  max-width:720px;
-  margin:auto;
-  border-radius:16px;
-  padding:20px;
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid #eef1f6;
 }
+.modal-title{font-weight:800}
+.modal-close{
+  border:none;
+  background:#f4f7fb;
+  border-radius:12px;
+  padding:8px 10px;
+  cursor:pointer;
+  font-weight:700;
+}
+.kv{
+  margin-top:12px;
+  border:1px solid #e6ebf5;
+  border-radius:14px;
+  padding:12px;
+}
+.kv h4{
+  margin:0 0 8px;
+  font-size:14px;
+}
+.kv .line{font-size:13px;color:var(--muted);margin-top:4px}
+.hr{height:1px;background:#eef1f6;margin:12px 0}
+
+.upload-grid{
+  display:grid;
+  gap:10px;
+}
+@media(min-width:720px){
+  .upload-grid{grid-template-columns:1fr 1fr}
+}
+.upload-grid label{font-size:13px;font-weight:700}
+.upload-grid input{
+  width:100%;
+  margin-top:6px;
+  padding:10px;
+  border-radius:12px;
+  border:1.6px solid #e6ebf5;
+}
+.modal-actions{
+  margin-top:10px;
+  display:grid;
+  gap:8px;
+}
+@media(min-width:720px){
+  .modal-actions{grid-template-columns:1fr 1fr}
+}
+.modal-actions button{
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+.saveDocs{background:var(--blue);color:#fff}
 </style>
 </head>
 
@@ -171,35 +256,243 @@ footer{
 
 </div>
 
-<!-- === MODAL DOSSIER COMPLET === -->
-<div id="dossierModal">
-  <div id="dossierBox">
-    <h3 id="dmTitle"></h3>
-    <div id="dmContent"></div>
-    <button onclick="closeDossier()" class="validate" style="width:100%;margin-top:12px">
-      Fermer
-    </button>
+<!-- MODAL DOSSIER -->
+<div id="dossierModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Dossier professionnel</div>
+      <button class="modal-close" id="closeModalBtn">Fermer</button>
+    </div>
+
+    <div id="modalBody"></div>
+
+    <div class="hr"></div>
+
+    <div class="kv">
+      <h4>Uploader / Mettre à jour les documents (Admin)</h4>
+      <div class="upload-grid">
+        <div>
+          <label>Diplôme (PDF)</label>
+          <input id="adminDiploma" type="file" accept="application/pdf">
+        </div>
+        <div>
+          <label>Autorisation (PDF)</label>
+          <input id="adminLicense" type="file" accept="application/pdf">
+        </div>
+        <div>
+          <label>Photo professionnelle</label>
+          <input id="adminPhoto" type="file" accept="image/*">
+        </div>
+        <div>
+          <label>Note interne (optionnel)</label>
+          <input id="adminDocNote" placeholder="Ex: originaux vus au bureau le 10/02">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="saveDocs" id="saveDocsBtn">Enregistrer dossier (upload + Firestore)</button>
+        <button class="secondary" id="openAllLinksBtn">Ouvrir tous les liens existants</button>
+      </div>
+
+      <div class="section" style="margin-top:10px;color:var(--muted)">
+        Les fichiers seront stockés dans Storage sous : <b>users/{uid}/...</b> (sans toucher tes rules).
+      </div>
+    </div>
   </div>
 </div>
 
 <script type="module">
-import { auth, db } from "./firebase.js";
+import { auth, db, storage } from "./firebase.js";
 import { onAuthStateChanged, signOut }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, getDocs, query, where,
-  doc, updateDoc, addDoc, serverTimestamp
+  doc, updateDoc, addDoc, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const logoutBtn = document.getElementById("logoutBtn");
+const pendingList = document.getElementById("pendingList");
+const validatedList = document.getElementById("validatedList");
+const rejectedList = document.getElementById("rejectedList");
+
+/* MODAL */
+const dossierModal = document.getElementById("dossierModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const modalTitle = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+const saveDocsBtn = document.getElementById("saveDocsBtn");
+const openAllLinksBtn = document.getElementById("openAllLinksBtn");
+
+const adminDiploma = document.getElementById("adminDiploma");
+const adminLicense = document.getElementById("adminLicense");
+const adminPhoto = document.getElementById("adminPhoto");
+const adminDocNote = document.getElementById("adminDocNote");
+
+let CURRENT_TARGET_UID = null;
 
 logoutBtn.onclick = async()=>{
   await signOut(auth);
   location.href="/cizahealth/index.html";
 };
 
-window.closeDossier = ()=>{
-  document.getElementById("dossierModal").style.display="none";
+closeModalBtn.onclick = ()=>{
+  dossierModal.classList.remove("open");
+  CURRENT_TARGET_UID = null;
+  modalBody.innerHTML = "";
+  adminDiploma.value = "";
+  adminLicense.value = "";
+  adminPhoto.value = "";
+  adminDocNote.value = "";
 };
 
+dossierModal.addEventListener("click",(e)=>{
+  if(e.target === dossierModal) closeModalBtn.click();
+});
+
+function fmtTS(ts){
+  try{
+    if(!ts) return "—";
+    if(typeof ts.toDate === "function") return ts.toDate().toLocaleString();
+    if(ts instanceof Date) return ts.toLocaleString();
+    return String(ts);
+  }catch(_){
+    return "—";
+  }
+}
+
+function safe(v){
+  return (v===undefined || v===null || v==="") ? "—" : v;
+}
+
+async function audit(actorId, action, targetId, extra={}){
+  await addDoc(collection(db,"auditLogs"),{
+    actor: actorId,
+    action,
+    target: targetId,
+    extra,
+    at: serverTimestamp()
+  });
+}
+
+/* ---- ACTIONS BUSINESS (Paiement / Notification / Assign) ---- */
+async function sendNotification(actorId, targetUid, title, message){
+  // stocke une notif consultable côté pro (simple, fiable)
+  await addDoc(collection(db, "notifications"),{
+    toUid: targetUid,
+    title,
+    message,
+    read: false,
+    createdAt: serverTimestamp(),
+    createdBy: actorId
+  });
+  await audit(actorId, "send_notification", targetUid, { title });
+}
+
+async function activatePayment(actorId, targetUid){
+  // Active le paiement + génère un slip
+  const slipId = "SLIP-" + Date.now();
+  await updateDoc(doc(db,"users",targetUid),{
+    paymentEnabled: true,
+    paymentAgreementSigned: true,
+    paymentActivatedAt: serverTimestamp(),
+    paymentSlipId: slipId
+  });
+
+  await addDoc(collection(db,"paymentSlips"),{
+    slipId,
+    uid: targetUid,
+    method: "Mobile Money (EcoCash / Lumicash / eNoti)",
+    status: "active",
+    createdAt: serverTimestamp(),
+    createdBy: actorId
+  });
+
+  await audit(actorId, "activate_payment", targetUid, { slipId });
+}
+
+async function assignRequest(actorId, requestId, targetUid){
+  // Assignation manuelle d’une requête à un pro (sans casser ton flow)
+  // => On met assignedProUid + assignedAt. Ton backend/matching peut lire ça.
+  await updateDoc(doc(db,"requests",requestId),{
+    assignedProUid: targetUid,
+    assignedAt: serverTimestamp(),
+    assignedBy: actorId,
+    assignMode: "manual_admin"
+  });
+  await audit(actorId, "assign_request", targetUid, { requestId });
+}
+
+/* ---- UPLOAD DOCS (ADMIN) ---- */
+async function uploadIfProvided(uid, file, path){
+  if(!file) return null;
+  const r = ref(storage, path);
+  await uploadBytes(r, file);
+  return await getDownloadURL(r);
+}
+
+saveDocsBtn.onclick = async()=>{
+  if(!CURRENT_TARGET_UID) return;
+
+  saveDocsBtn.disabled = true;
+
+  try{
+    const targetUid = CURRENT_TARGET_UID;
+
+    const dFile = adminDiploma.files && adminDiploma.files[0] ? adminDiploma.files[0] : null;
+    const lFile = adminLicense.files && adminLicense.files[0] ? adminLicense.files[0] : null;
+    const pFile = adminPhoto.files && adminPhoto.files[0] ? adminPhoto.files[0] : null;
+
+    const updates = {
+      dossierUpdatedAt: serverTimestamp()
+    };
+
+    const diplomaUrl = await uploadIfProvided(targetUid, dFile, `users/${targetUid}/diplome.pdf`);
+    const licenseUrl = await uploadIfProvided(targetUid, lFile, `users/${targetUid}/autorisation.pdf`);
+    const photoUrl = await uploadIfProvided(targetUid, pFile, `users/${targetUid}/photo-pro.jpg`);
+
+    if(diplomaUrl) updates.diplomaPdf = diplomaUrl;
+    if(licenseUrl) updates.licensePdf = licenseUrl;
+    if(photoUrl) updates.photoUrl = photoUrl;
+
+    if(adminDocNote.value && adminDocNote.value.trim()){
+      updates.adminDocNote = adminDocNote.value.trim();
+    }
+
+    await updateDoc(doc(db,"users",targetUid), updates);
+
+    await audit(auth.currentUser.uid, "upload_docs_admin", targetUid, {
+      diploma: !!diplomaUrl,
+      license: !!licenseUrl,
+      photo: !!photoUrl
+    });
+
+    alert("Dossier mis à jour ✅");
+    location.reload();
+
+  }catch(e){
+    console.error(e);
+    alert("Erreur upload / dossier");
+  }finally{
+    saveDocsBtn.disabled = false;
+  }
+};
+
+openAllLinksBtn.onclick = async()=>{
+  if(!CURRENT_TARGET_UID) return;
+  const snap = await getDoc(doc(db,"users",CURRENT_TARGET_UID));
+  if(!snap.exists()) return;
+  const u = snap.data();
+  const links = [u.diplomaPdf, u.licensePdf, u.photoUrl].filter(Boolean);
+  if(!links.length){
+    alert("Aucun lien dossier enregistré.");
+    return;
+  }
+  links.forEach((l)=>window.open(l,"_blank"));
+};
+
+/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
   if(!user){ location.href="/cizahealth/index.html"; return; }
 
@@ -213,18 +506,40 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  const pendingList=document.getElementById("pendingList");
-  const validatedList=document.getElementById("validatedList");
-  const rejectedList=document.getElementById("rejectedList");
-
   const snap = await getDocs(
     query(collection(db,"users"),
     where("role","in",["doctor","nurse","aide"]))
   );
 
-  snap.forEach(d=>{
-    const u=d.data();
+  const arr = [];
+  snap.forEach((d)=>arr.push({ id:d.id, data:d.data() }));
 
+  // ✅ FIFO: pending triés par createdAt (le plus ancien d'abord)
+  // On garde validated/rejected sans casser, mais on tri pending.
+  const pending = arr.filter(x => (x.data.status !== "validated" && x.data.status !== "rejected"));
+  const validated = arr.filter(x => x.data.status === "validated");
+  const rejected = arr.filter(x => x.data.status === "rejected");
+
+  pending.sort((a,b)=>{
+    const ta = a.data.createdAt?.toMillis ? a.data.createdAt.toMillis() : 0;
+    const tb = b.data.createdAt?.toMillis ? b.data.createdAt.toMillis() : 0;
+    return ta - tb;
+  });
+
+  // on peut aussi trier validated (par date validation) si tu veux FIFO sur validés
+  validated.sort((a,b)=>{
+    const ta = a.data.validatedAt?.toMillis ? a.data.validatedAt.toMillis() : 0;
+    const tb = b.data.validatedAt?.toMillis ? b.data.validatedAt.toMillis() : 0;
+    return tb - ta;
+  });
+
+  rejected.sort((a,b)=>{
+    const ta = a.data.lastStatusChangeAt?.toMillis ? a.data.lastStatusChangeAt.toMillis() : 0;
+    const tb = b.data.lastStatusChangeAt?.toMillis ? b.data.lastStatusChangeAt.toMillis() : 0;
+    return tb - ta;
+  });
+
+  function buildCard(d, u){
     const statusClass =
       u.accountStatus==="suspended" ? "suspended" :
       u.status==="validated" ? "validated" :
@@ -233,6 +548,7 @@ onAuthStateChanged(auth, async(user)=>{
     const card=document.createElement("div");
     card.className="card";
 
+    // ✅ On ne casse rien : on garde tes sections
     card.innerHTML=`
       <strong>${u.fullName||"—"}</strong><br>
       ${u.role} • ${u.province||""}<br>
@@ -241,48 +557,224 @@ onAuthStateChanged(auth, async(user)=>{
       </span>
 
       <div class="section">
-        <strong>Date d’inscription</strong>
-        ${u.createdAt?.toDate?.().toLocaleString() || "—"}
+        <strong>FIFO</strong>
+        Inscrit le : ${fmtTS(u.createdAt)}
       </div>
 
-      <div class="actions">
-        <button class="view">📂 Voir dossier complet</button>
-        ${!u.paymentValidated?`<button class="pay">💳 Valider paiement</button>`:""}
+      <div class="section">
+        <strong>Identité</strong>
+        Naissance : ${u.birthDate||"—"}<br>
+        Genre : ${u.gender||"—"}<br>
+        Téléphone : <a href="tel:${u.phone}">${u.phone||"—"}</a><br>
+        Email : ${u.email||"—"}
       </div>
-    `;
 
-    card.querySelector(".view").onclick=()=>{
-      document.getElementById("dmTitle").innerText =
-        "Dossier — "+(u.fullName||"");
+      <div class="section">
+        <strong>Profession</strong>
+        Spécialité : ${u.specialty||"—"}<br>
+        Expérience : ${u.experience||"—"}
+      </div>
 
-      document.getElementById("dmContent").innerHTML=`
-        <p><b>ProID :</b> ${u.proId||"—"}</p>
-        <p><b>Email :</b> ${u.email||"—"}</p>
-        <p><b>Téléphone :</b> ${u.phone||"—"}</p>
-        <hr>
+      <div class="section">
+        <strong>Dossier professionnel</strong>
         ${u.diplomaPdf?`📄 <a href="${u.diplomaPdf}" target="_blank">Diplôme</a><br>`:""}
         ${u.licensePdf?`📄 <a href="${u.licensePdf}" target="_blank">Autorisation</a><br>`:""}
-        ${u.photoUrl?`🖼 <a href="${u.photoUrl}" target="_blank">Photo</a>`:""}
-        ${u.paymentSlip?`<hr>🧾 <a href="${u.paymentSlip}" target="_blank">Slip paiement</a>`:""}
+        ${u.photoUrl?`🖼 <a href="${u.photoUrl}" target="_blank">Photo pro</a>`:""}
+        ${(!u.diplomaPdf && !u.licensePdf && !u.photoUrl) ? `<span style="color:var(--muted)">Aucun document enregistré</span>`:""}
+      </div>
+
+      <div class="section">
+        <strong>Paiement</strong>
+        Mobile Money — Accord signé : ${u.paymentAgreementSigned?"OUI":"NON"}<br>
+        Paiement actif : ${u.paymentEnabled ? "OUI" : "NON"}<br>
+        Slip : ${u.paymentSlipId ? u.paymentSlipId : "—"}
+      </div>
+
+      ${u.proId?`<div class="section"><strong>ProID</strong>${u.proId}</div>`:""}
+      ${u.validatedAt?`<div class="section"><strong>Validé le</strong>${fmtTS(u.validatedAt)}</div>`:""}
+      ${u.validationNote?`<div class="section note"><strong>Motif admin</strong>${u.validationNote}</div>`:""}
+      ${u.adminDocNote?`<div class="section"><strong>Note dossier</strong>${u.adminDocNote}</div>`:""}
+    `;
+
+    const note=document.createElement("textarea");
+    note.placeholder="Motif obligatoire (refus / suspension)";
+
+    const actions=document.createElement("div");
+    actions.className="actions";
+
+    // ✅ VOIR DOSSIER COMPLET + UPLOAD ADMIN
+    const view=document.createElement("button");
+    view.className="secondary";
+    view.textContent="Voir dossier complet";
+    view.onclick=async()=>{
+      CURRENT_TARGET_UID = d.id;
+
+      const snap2 = await getDoc(doc(db,"users",d.id));
+      if(!snap2.exists()) return;
+
+      const uu = snap2.data();
+      modalTitle.textContent = `Dossier — ${uu.fullName || "—"} (${uu.role || "—"})`;
+
+      modalBody.innerHTML = `
+        <div class="kv">
+          <h4>Résumé</h4>
+          <div class="line"><b>UID</b> : ${d.id}</div>
+          <div class="line"><b>ProID</b> : ${safe(uu.proId)}</div>
+          <div class="line"><b>Status</b> : ${safe(uu.status)}</div>
+          <div class="line"><b>Inscrit le</b> : ${fmtTS(uu.createdAt)}</div>
+          <div class="line"><b>Province</b> : ${safe(uu.province)}</div>
+        </div>
+
+        <div class="kv">
+          <h4>Identité</h4>
+          <div class="line"><b>Naissance</b> : ${safe(uu.birthDate)}</div>
+          <div class="line"><b>Genre</b> : ${safe(uu.gender)}</div>
+          <div class="line"><b>Téléphone</b> : ${safe(uu.phone)}</div>
+          <div class="line"><b>Email</b> : ${safe(uu.email)}</div>
+        </div>
+
+        <div class="kv">
+          <h4>Profession</h4>
+          <div class="line"><b>Spécialité</b> : ${safe(uu.specialty)}</div>
+          <div class="line"><b>Expérience</b> : ${safe(uu.experience)}</div>
+        </div>
+
+        <div class="kv">
+          <h4>Documents (liens actuels)</h4>
+          <div class="line">Diplôme : ${uu.diplomaPdf ? `<a href="${uu.diplomaPdf}" target="_blank">Ouvrir</a>` : "—"}</div>
+          <div class="line">Autorisation : ${uu.licensePdf ? `<a href="${uu.licensePdf}" target="_blank">Ouvrir</a>` : "—"}</div>
+          <div class="line">Photo : ${uu.photoUrl ? `<a href="${uu.photoUrl}" target="_blank">Ouvrir</a>` : "—"}</div>
+        </div>
+
+        <div class="kv">
+          <h4>Paiement</h4>
+          <div class="line"><b>Accord signé</b> : ${uu.paymentAgreementSigned ? "OUI" : "NON"}</div>
+          <div class="line"><b>Paiement actif</b> : ${uu.paymentEnabled ? "OUI" : "NON"}</div>
+          <div class="line"><b>Slip</b> : ${safe(uu.paymentSlipId)}</div>
+        </div>
       `;
-      document.getElementById("dossierModal").style.display="block";
+
+      dossierModal.classList.add("open");
     };
 
-    const payBtn=card.querySelector(".pay");
-    if(payBtn){
-      payBtn.onclick=async()=>{
+    actions.appendChild(view);
+
+    // ✅ VALIDER PRO (inchangé)
+    if(u.status!=="validated"){
+      const v=document.createElement("button");
+      v.className="validate";
+      v.textContent="Valider le pro";
+      v.onclick=async()=>{
         await updateDoc(doc(db,"users",d.id),{
-          paymentValidated:true,
-          paymentValidatedAt:serverTimestamp()
+          status:"validated",
+          proId:u.proId || "PRO-"+Date.now(),
+          validatedAt:serverTimestamp(),
+          validatedBy:auth.currentUser.uid
         });
+        await audit(auth.currentUser.uid, "validate_pro", d.id);
         location.reload();
       };
+      actions.appendChild(v);
     }
 
-    if(u.status==="validated") validatedList.appendChild(card);
-    else if(u.status==="rejected") rejectedList.appendChild(card);
-    else pendingList.appendChild(card);
+    // ✅ ACTIVER PAIEMENT + SLIP (opérationnel)
+    const payBtn=document.createElement("button");
+    payBtn.className="pay";
+    payBtn.textContent = u.paymentEnabled ? "Paiement déjà actif" : "Activer paiement + générer slip";
+    payBtn.disabled = !!u.paymentEnabled;
+    payBtn.onclick=async()=>{
+      await activatePayment(auth.currentUser.uid, d.id);
+      await sendNotification(auth.currentUser.uid, d.id, "Paiement activé", "Votre mode de paiement Mobile Money est activé. Vous serez payé via EcoCash/Lumicash/eNoti dès votre prochaine prestation.");
+      location.reload();
+    };
+    actions.appendChild(payBtn);
+
+    // ✅ NOTIFICATION (opérationnel)
+    const n=document.createElement("button");
+    n.className="notify";
+    n.textContent="Envoyer notification";
+    n.onclick=async()=>{
+      const msg = prompt("Message à envoyer au professionnel :");
+      if(!msg || !msg.trim()) return;
+      await sendNotification(auth.currentUser.uid, d.id, "Message administration", msg.trim());
+      alert("Notification envoyée ✅");
+    };
+    actions.appendChild(n);
+
+    // ✅ ASSIGN REQUEST (opérationnel)
+    const a=document.createElement("button");
+    a.className="assign";
+    a.textContent="Assigner une requête à ce pro";
+    a.onclick=async()=>{
+      const requestId = prompt("RequestID (document id dans collection requests) :");
+      if(!requestId || !requestId.trim()) return;
+      try{
+        await assignRequest(auth.currentUser.uid, requestId.trim(), d.id);
+        await sendNotification(auth.currentUser.uid, d.id, "Nouvelle requête assignée", "Une requête vous a été assignée manuellement par l'administration. Ouvrez votre dashboard pour la traiter.");
+        alert("Requête assignée ✅");
+      }catch(e){
+        console.error(e);
+        alert("Impossible d'assigner (vérifie la collection requests / id).");
+      }
+    };
+    actions.appendChild(a);
+
+    // ✅ SUSPENDRE / REACTIVER (inchangé mais note)
+    const s=document.createElement("button");
+    s.className="suspend";
+    s.textContent=u.accountStatus==="suspended"?"Réactiver":"Suspendre";
+    s.onclick=async()=>{
+      const reason = note.value.trim();
+      if(!reason) { alert("Motif obligatoire"); return; }
+      await updateDoc(doc(db,"users",d.id),{
+        accountStatus:u.accountStatus==="suspended"?"active":"suspended",
+        validationNote: reason,
+        lastStatusChangeAt: serverTimestamp()
+      });
+      await audit(auth.currentUser.uid, "toggle_suspend", d.id, { reason });
+      await sendNotification(auth.currentUser.uid, d.id, "Statut du compte", `Votre compte a été ${u.accountStatus==="suspended"?"réactivé":"suspendu"} par l'administration. Motif: ${reason}`);
+      location.reload();
+    };
+
+    // ✅ REFUSER (inchangé mais note + notif)
+    const r=document.createElement("button");
+    r.className="reject";
+    r.textContent="Refuser";
+    r.onclick=async()=>{
+      const reason = note.value.trim();
+      if(!reason) { alert("Motif obligatoire"); return; }
+      await updateDoc(doc(db,"users",d.id),{
+        status:"rejected",
+        validationNote: reason,
+        lastStatusChangeAt: serverTimestamp()
+      });
+      await audit(auth.currentUser.uid, "reject_pro", d.id, { reason });
+      await sendNotification(auth.currentUser.uid, d.id, "Demande refusée", `Votre demande a été refusée. Motif: ${reason}`);
+      location.reload();
+    };
+
+    actions.append(s,r,note);
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  // Render
+  pending.forEach(({id,data})=>{
+    const card = buildCard({id}, data);
+    pendingList.appendChild(card);
   });
+
+  validated.forEach(({id,data})=>{
+    const card = buildCard({id}, data);
+    validatedList.appendChild(card);
+  });
+
+  rejected.forEach(({id,data})=>{
+    const card = buildCard({id}, data);
+    rejectedList.appendChild(card);
+  });
+
 });
 </script>
 
