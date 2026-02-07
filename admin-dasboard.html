@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Administration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --ok:#1b6b3a;
+  --warn:#c58a00;
+  --err:#8a1f1f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1500px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  border-bottom:1px solid #e6ebf5;
+}
+header .left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+header img{height:42px}
+header strong{font-size:16px}
+header button{
+  border:none;
+  background:none;
+  color:var(--err);
+  font-weight:600;
+  cursor:pointer;
+}
+.content{padding:20px}
+h2{margin:26px 0 10px;font-size:18px}
+.list{
+  display:grid;
+  gap:16px;
+}
+@media(min-width:900px){
+  .list{grid-template-columns:1fr 1fr}
+}
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:16px;
+  padding:16px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+  margin-top:6px;
+}
+.pending{background:#fff4cc;color:#8a6d00}
+.validated{background:#dff5e6;color:#1b6b3a}
+.rejected{background:#fde0e0;color:#8a1f1f}
+.suspended{background:#eee;color:#444}
+
+.section{margin-top:10px;font-size:13px}
+.section strong{display:block}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.actions{
+  margin-top:14px;
+  display:grid;
+  gap:8px;
+}
+.actions button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.validate{background:var(--blue);color:#fff}
+.reject{background:var(--err);color:#fff}
+.suspend{background:#555;color:#fff}
+.pay{background:#1b6b3a;color:#fff}
+.notify{background:#f6a623;color:#fff}
+.assign{background:#5a3d8a;color:#fff}
+
+textarea{
+  width:100%;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+footer{
+  margin-top:auto;
+  text-align:center;
+  font-size:12px;
+  padding:16px;
+  opacity:.65;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="left">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <strong>Administration CizaHealth+</strong>
+  </div>
+  <button id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="content">
+
+<h2>Professionnels — En attente</h2>
+<div id="pendingList" class="list"></div>
+
+<h2>Professionnels — Validés</h2>
+<div id="validatedList" class="list"></div>
+
+<h2>Professionnels — Refusés</h2>
+<div id="rejectedList" class="list"></div>
+
+<h2>📋 Requêtes</h2>
+<div id="requestsList" class="list"></div>
+
+<h2>💳 Transactions</h2>
+<div id="transactionsList" class="list"></div>
+
+<h2>🧾 Traçabilité (Audit)</h2>
+<div id="auditList" class="list"></div>
+
+</div>
+
+<footer>© 2026 CizaHealth+ — CIZA GROUP • Administration</footer>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, getDocs, query, where,
+  doc, updateDoc, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html";};
+
+const fmtTS=t=>t?.toDate?t.toDate().toLocaleString():"—";
+
+async function audit(a,act,t,e={}){await addDoc(collection(db,"auditLogs"),{actor:a,action:act,target:t,extra:e,at:serverTimestamp()});}
+async function notify(a,u,t,m){await addDoc(collection(db,"notifications"),{toUid:u,title:t,message:m,read:false,createdAt:serverTimestamp(),createdBy:a});}
+async function activatePayment(a,u){
+  const s="SLIP-"+Date.now();
+  await updateDoc(doc(db,"users",u),{paymentEnabled:true,paymentAgreementSigned:true,paymentSlipId:s,paymentActivatedAt:serverTimestamp()});
+  await audit(a,"activate_payment",u,{s});
+}
+
+onAuthStateChanged(auth,async(user)=>{
+  if(!user)return location.href="/cizahealth/index.html";
+
+  const usersSnap=await getDocs(query(collection(db,"users"),where("role","in",["doctor","nurse","aide"])));
+  const users=[];usersSnap.forEach(d=>users.push({id:d.id,u:d.data()}));
+
+  function render(list,el){
+    el.innerHTML="";
+    list.forEach(({id,u})=>{
+      const st=u.accountStatus==="suspended"?"suspended":u.status==="validated"?"validated":u.status==="rejected"?"rejected":"pending";
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`
+<strong>${u.fullName||"—"}</strong><br>
+${u.role} • ${u.province||"—"}<br>
+<span class="badge ${st}">${st.toUpperCase()}</span>
+
+<div class="section"><strong>Inscription</strong>${fmtTS(u.createdAt)}</div>
+
+<div class="section"><strong>Identité</strong>
+Naissance : ${u.birthDate||"—"}<br>
+Genre : ${u.gender||"—"}<br>
+Téléphone : ${u.phone||"—"}<br>
+Email : ${u.email||"—"}<br>
+Pièce : ${u.nationalIdType||"—"} — ${u.nationalIdNumber||"—"}
+</div>
+
+<div class="section"><strong>Profession</strong>
+Spécialité : ${u.specialty||"—"}<br>
+Expérience : ${u.experience||"—"}<br>
+N° diplôme : ${u.diplomaNumber||"—"}<br>
+N° certificat : ${u.certificateNumber||"—"}
+</div>
+
+<div class="section"><strong>Paiement</strong>
+Actif : ${u.paymentEnabled?"OUI":"NON"} • Slip : ${u.paymentSlipId||"—"}
+</div>
+
+${u.status==="validated"?`<div class="section"><strong>ProID</strong>${u.proId||"—"}</div>`:""}
+
+<div class="check">
+<input type="checkbox" ${u.documentsVerified?"checked":""} id="chk-${id}">
+<label>Dossier validé par admin</label>
+</div>
+`;
+
+      const chk=c.querySelector(`#chk-${id}`);
+      chk?.addEventListener("change",async()=>{
+        await updateDoc(doc(db,"users",id),{
+          documentsVerified:chk.checked,
+          documentsVerifiedAt:serverTimestamp(),
+          documentsVerifiedBy:user.uid
+        });
+        await audit(user.uid,"documents_verified",id,{checked:chk.checked});
+        if(chk.checked){
+          await notify(user.uid,id,"Dossier validé","Votre dossier professionnel a été validé par l’administration.");
+        }
+      });
+
+      const note=document.createElement("textarea");note.placeholder="Motif admin obligatoire";
+      const a=document.createElement("div");a.className="actions";
+
+      if(u.status!=="validated"){
+        const v=document.createElement("button");
+        v.className="validate";v.textContent="Valider";
+        v.onclick=async()=>{
+          await updateDoc(doc(db,"users",id),{status:"validated",proId:u.proId||"PRO-"+Date.now(),validatedAt:serverTimestamp()});
+          await audit(user.uid,"validate_pro",id);
+          await notify(user.uid,id,"Compte validé","Votre compte professionnel a été validé.");
+          location.reload();
+        };
+        a.appendChild(v);
+      }
+
+      const p=document.createElement("button");
+      p.className="pay";p.textContent=u.paymentEnabled?"Paiement actif":"Activer paiement";
+      p.disabled=!!u.paymentEnabled;
+      p.onclick=async()=>{await activatePayment(user.uid,id);await notify(user.uid,id,"Paiement activé","Votre paiement est actif.");location.reload();};
+
+      const n=document.createElement("button");
+      n.className="notify";n.textContent="Notifier";
+      n.onclick=async()=>{const m=prompt("Message");if(!m)return;await notify(user.uid,id,"Admin",m);};
+
+      const s=document.createElement("button");
+      s.className="suspend";s.textContent=u.accountStatus==="suspended"?"Réactiver":"Suspendre";
+      s.onclick=async()=>{if(!note.value.trim())return alert("Motif requis");
+        const susp=u.accountStatus!=="suspended";
+        await updateDoc(doc(db,"users",id),{accountStatus:susp?"suspended":"active",validationNote:note.value,lastStatusChangeAt:serverTimestamp()});
+        await audit(user.uid,"toggle_suspend",id,{note:note.value});
+        await notify(user.uid,id,susp?"Compte suspendu":"Compte réactivé",susp?`Motif : ${note.value}`:"Votre compte a été réactivé.");
+        location.reload();
+      };
+
+      const r=document.createElement("button");
+      r.className="reject";r.textContent="Refuser";
+      r.onclick=async()=>{if(!note.value.trim())return alert("Motif requis");
+        await updateDoc(doc(db,"users",id),{status:"rejected",validationNote:note.value,lastStatusChangeAt:serverTimestamp()});
+        await audit(user.uid,"reject_pro",id,{note:note.value});
+        await notify(user.uid,id,"Compte refusé",`Motif : ${note.value}`);
+        location.reload();
+      };
+
+      a.append(p,n,s,r,note);
+      c.appendChild(a);
+      el.appendChild(c);
+    });
+  }
+
+  render(users.filter(x=>x.u.status!=="validated"&&x.u.status!=="rejected"),pendingList);
+  render(users.filter(x=>x.u.status==="validated"),validatedList);
+  render(users.filter(x=>x.u.status==="rejected"),rejectedList);
+
+  // ===== AJOUTS ADMIN =====
+
+  const reqSnap = await getDocs(collection(db,"requests"));
+  reqSnap.forEach(d=>{
+    const r=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<strong>Requête</strong><br>Type : ${r.type||"—"}<br>Statut : ${r.status||"—"}<br>Créée : ${fmtTS(r.createdAt)}`;
+    requestsList.appendChild(c);
+  });
+
+  const txSnap = await getDocs(collection(db,"transactions"));
+  txSnap.forEach(d=>{
+    const t=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<strong>Transaction</strong><br>Montant : ${t.amount||"—"}<br>Statut : ${t.status||"—"}<br>Date : ${fmtTS(t.createdAt)}`;
+    transactionsList.appendChild(c);
+  });
+
+  const auditSnap = await getDocs(collection(db,"auditLogs"));
+  auditSnap.forEach(d=>{
+    const a=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<strong>${a.action||"Action"}</strong><br>Acteur : ${a.actor||"—"}<br>Date : ${fmtTS(a.at)}`;
+    auditList.appendChild(c);
+  });
+});
+</script>
+</body>
+</html>
