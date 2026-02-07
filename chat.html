@@ -2,107 +2,71 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Chat Consultation</title>
+<title>CizaHealth+ | Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root{
-  --blue:#123c8a;
-  --green:#1b6b3a;
-  --bg:#f4f7fb;
-  --text:#0a1a2f;
-  --muted:#6b7a90;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:var(--bg);
-  color:var(--text);
+  background:#f4f7fb;
 }
 .app{
-  max-width:900px;
+  max-width:700px;
   margin:auto;
   height:100vh;
-  background:#fff;
   display:flex;
   flex-direction:column;
+  background:#fff;
 }
-
-/* HEADER */
 header{
-  padding:16px 20px;
-  border-bottom:1px solid #eef1f6;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-header strong{font-size:15px}
-header span{font-size:12px;color:var(--muted)}
-.back{
-  border:none;
-  background:none;
+  padding:16px;
+  background:#123c8a;
+  color:#fff;
   font-weight:700;
-  color:var(--blue);
-  cursor:pointer;
 }
-
-/* MESSAGES */
 .messages{
   flex:1;
-  padding:18px;
+  padding:16px;
   overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
 }
 .msg{
   max-width:75%;
-  padding:12px 14px;
+  padding:10px 14px;
   border-radius:14px;
+  margin-bottom:10px;
   font-size:14px;
-  line-height:1.4;
 }
 .me{
-  align-self:flex-end;
-  background:#eaf1ff;
+  background:#123c8a;
+  color:#fff;
+  margin-left:auto;
 }
 .other{
-  align-self:flex-start;
-  background:#f2f5fb;
+  background:#eef1f6;
+  color:#0a1a2f;
 }
-.msg small{
-  display:block;
-  margin-top:6px;
-  font-size:11px;
-  color:var(--muted);
-}
-
-/* INPUT */
-.footer{
-  border-top:1px solid #eef1f6;
-  padding:12px;
+footer{
   display:flex;
   gap:10px;
+  padding:12px;
+  border-top:1px solid #eef1f6;
 }
-.footer textarea{
+footer input{
   flex:1;
-  resize:none;
-  border:1px solid #e6ebf5;
+  padding:12px;
   border-radius:12px;
-  padding:10px;
-  font-family:inherit;
+  border:1px solid #ddd;
 }
-.footer button{
+footer button{
+  padding:12px 18px;
   border:none;
   border-radius:12px;
-  padding:0 18px;
-  font-weight:700;
-  background:var(--green);
+  background:#123c8a;
   color:#fff;
+  font-weight:700;
   cursor:pointer;
 }
-.footer button:disabled{opacity:.6}
 </style>
 </head>
 
@@ -110,106 +74,76 @@ header span{font-size:12px;color:var(--muted)}
 <div class="app">
 
 <header>
-  <div>
-    <strong id="chatTitle">Consultation</strong><br>
-    <span id="chatSub">Chargement…</span>
-  </div>
-  <button class="back" onclick="history.back()">← Retour</button>
+  💬 Chat consultation
 </header>
 
-<div class="messages" id="messages"></div>
+<div id="messages" class="messages"></div>
 
-<div class="footer">
-  <textarea id="msgInput" rows="2" placeholder="Écrire un message…"></textarea>
+<footer>
+  <input id="msgInput" placeholder="Écrire un message…">
   <button id="sendBtn">Envoyer</button>
-</div>
+</footer>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, collection, addDoc, onSnapshot,
-  serverTimestamp, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  collection, addDoc, serverTimestamp,
+  query, orderBy, onSnapshot
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
-const chatId = params.get("chatId");
 const requestId = params.get("requestId");
 
-if(!chatId){
-  document.body.innerHTML="Chat invalide";
-  throw new Error("chatId manquant");
+if(!requestId){
+  alert("Chat invalide");
+  throw new Error("Missing requestId");
 }
 
-const messagesBox = document.getElementById("messages");
-const sendBtn = document.getElementById("sendBtn");
-const msgInput = document.getElementById("msgInput");
+const messagesDiv = document.getElementById("messages");
 
-let currentUser = null;
-
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth,user=>{
   if(!user) return location.href="/cizahealth/index.html";
-  currentUser = user;
 
-  const chatSnap = await getDoc(doc(db,"chats",chatId));
-  if(!chatSnap.exists()){
-    document.body.innerHTML="Chat introuvable";
-    return;
-  }
+  const role = location.search.includes("role=patient") ? "patient" : "pro";
 
-  const chat = chatSnap.data();
-
-  // Sécurité : seul pro ou patient du chat
-  if(user.uid !== chat.proUid && user.uid !== chat.patientUid){
-    document.body.innerHTML="Accès refusé";
-    return;
-  }
-
-  document.getElementById("chatSub").textContent =
-    requestId ? `Demande ${requestId}` : "Discussion sécurisée";
-
-  const msgsQ = query(
-    collection(db,"chats",chatId,"messages"),
-    orderBy("createdAt","asc")
+  /* 🔴 LISTEN MESSAGES */
+  onSnapshot(
+    query(
+      collection(db,"chats",requestId,"messages"),
+      orderBy("createdAt")
+    ),
+    snap=>{
+      messagesDiv.innerHTML="";
+      snap.forEach(d=>{
+        const m=d.data();
+        const div=document.createElement("div");
+        div.className="msg "+(m.senderId===user.uid?"me":"other");
+        div.textContent=m.text;
+        messagesDiv.appendChild(div);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
   );
 
-  onSnapshot(msgsQ, snap=>{
-    messagesBox.innerHTML="";
-    snap.forEach(d=>{
-      const m=d.data();
-      const div=document.createElement("div");
-      div.className="msg "+(m.senderUid===user.uid?"me":"other");
-      div.innerHTML=`
-${m.text}
-<small>${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleString() : ""}</small>
-`;
-      messagesBox.appendChild(div);
-    });
-    messagesBox.scrollTop = messagesBox.scrollHeight;
-  });
-});
+  /* 🟢 SEND MESSAGE */
+  sendBtn.onclick=async()=>{
+    const text=msgInput.value.trim();
+    if(!text) return;
 
-sendBtn.onclick = async ()=>{
-  const text = msgInput.value.trim();
-  if(!text || !currentUser) return;
-
-  sendBtn.disabled=true;
-
-  try{
-    await addDoc(collection(db,"chats",chatId,"messages"),{
-      text,
-      senderUid: currentUser.uid,
-      createdAt: serverTimestamp()
-    });
     msgInput.value="";
-  }catch(e){
-    alert("Erreur envoi message");
-  }finally{
-    sendBtn.disabled=false;
-  }
-};
+    await addDoc(collection(db,"chats",requestId,"messages"),{
+      senderId:user.uid,
+      senderRole:role,
+      text,
+      createdAt:serverTimestamp()
+    });
+  };
+});
 </script>
 
 </body>
