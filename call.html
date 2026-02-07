@@ -2,146 +2,158 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Appel Audio</title>
+<title>CizaHealth+ | Appel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  font-family:Inter,system-ui;
-  background:#0a1a2f;
-  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:#f4f7fb;
+}
+.app{
+  max-width:700px;
+  margin:auto;
+  height:100vh;
   display:flex;
+  flex-direction:column;
+  background:#fff;
+}
+header{
+  padding:16px;
+  background:#123c8a;
+  color:#fff;
+  font-weight:700;
+}
+.center{
+  flex:1;
+  display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  height:100vh;
-}
-.box{
-  background:#123c8a;
-  border-radius:20px;
-  padding:24px;
-  width:100%;
-  max-width:420px;
+  gap:16px;
   text-align:center;
 }
-h2{margin-top:0}
-.status{margin:12px 0;font-weight:700}
+.status{
+  font-size:18px;
+  font-weight:700;
+}
 .actions{
   display:flex;
   gap:12px;
-  margin-top:20px;
 }
 button{
-  flex:1;
-  padding:14px;
+  padding:14px 22px;
   border:none;
   border-radius:14px;
   font-weight:800;
   cursor:pointer;
 }
-.accept{background:#2ecc71;color:#fff}
-.hangup{background:#e74c3c;color:#fff}
+.accept{background:#1b6b3a;color:#fff}
+.end{background:#c0392b;color:#fff}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
-<div class="box">
-  <h2>📞 Appel audio</h2>
-  <div class="status" id="callStatus">Connexion…</div>
+<div class="app">
+
+<header>
+  📞 Appel en cours
+</header>
+
+<div class="center">
+  <div id="callStatus" class="status">Connexion…</div>
 
   <div class="actions">
-    <button class="accept" id="acceptBtn">Accepter</button>
-    <button class="hangup" id="hangupBtn">Raccrocher</button>
+    <button id="acceptBtn" class="accept hidden">Accepter</button>
+    <button id="endBtn" class="end hidden">Raccrocher</button>
   </div>
+</div>
 
-  <audio id="remoteAudio" autoplay></audio>
 </div>
 
 <script type="module">
-import { db } from "./firebase.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, collection, addDoc, onSnapshot, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
-const callId = params.get("callId");
-const role = params.get("role"); // "pro" or "patient"
+const requestId = params.get("requestId");
+const role = params.get("role"); // "pro" | "patient"
 
-const callRef = doc(db,"callSessions",callId);
-const signalsRef = collection(callRef,"signals");
+if(!requestId || !role){
+  alert("Appel invalide");
+  throw new Error("Missing params");
+}
 
-const pc = new RTCPeerConnection({
-  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
-});
+const callRef = doc(db,"callSessions",requestId);
 
-const remoteAudio = document.getElementById("remoteAudio");
+const callStatus = document.getElementById("callStatus");
+const acceptBtn = document.getElementById("acceptBtn");
+const endBtn = document.getElementById("endBtn");
 
-pc.ontrack = e => remoteAudio.srcObject = e.streams[0];
+onAuthStateChanged(auth,user=>{
+  if(!user) return location.href="/cizahealth/index.html";
 
-pc.onicecandidate = e=>{
-  if(e.candidate){
-    addDoc(signalsRef,{
-      type:"ice",
-      from:role,
-      data:e.candidate,
-      createdAt:serverTimestamp()
+  /* 🔴 INIT SESSION (merge = safe) */
+  setDoc(callRef,{
+    requestId,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    status: "ringing",
+    proUid: role==="pro" ? user.uid : null,
+    patientUid: role==="patient" ? user.uid : null
+  },{ merge:true });
+
+  /* 👂 LISTEN STATUS */
+  onSnapshot(callRef,snap=>{
+    if(!snap.exists()) return;
+    const c = snap.data();
+
+    if(c.status==="ringing"){
+      callStatus.textContent = role==="patient"
+        ? "📞 Appel entrant"
+        : "📞 Appel en cours…";
+      acceptBtn.classList.toggle("hidden", role!=="patient");
+      endBtn.classList.remove("hidden");
+    }
+
+    if(c.status==="accepted"){
+      callStatus.textContent = "🟢 Appel connecté";
+      acceptBtn.classList.add("hidden");
+      endBtn.classList.remove("hidden");
+    }
+
+    if(c.status==="ended"){
+      callStatus.textContent = "🔴 Appel terminé";
+      acceptBtn.classList.add("hidden");
+      endBtn.classList.add("hidden");
+    }
+  });
+
+  /* ✅ ACCEPT (patient) */
+  acceptBtn.onclick=async()=>{
+    await updateDoc(callRef,{
+      status:"accepted",
+      patientUid:user.uid,
+      updatedAt:serverTimestamp()
     });
-  }
-};
+  };
 
-navigator.mediaDevices.getUserMedia({audio:true})
-.then(stream=>{
-  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  /* ❌ END (both) */
+  endBtn.onclick=async()=>{
+    await updateDoc(callRef,{
+      status:"ended",
+      updatedAt:serverTimestamp()
+    });
+  };
 });
-
-onSnapshot(signalsRef,snap=>{
-  snap.docChanges().forEach(async c=>{
-    const s=c.doc.data();
-    if(s.from===role) return;
-
-    if(s.type==="offer"){
-      await pc.setRemoteDescription(s.data);
-      const answer=await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      addDoc(signalsRef,{
-        type:"answer",
-        from:role,
-        data:answer,
-        createdAt:serverTimestamp()
-      });
-      updateDoc(callRef,{status:"in_call",startedAt:serverTimestamp()});
-    }
-
-    if(s.type==="answer"){
-      await pc.setRemoteDescription(s.data);
-      updateDoc(callRef,{status:"in_call",startedAt:serverTimestamp()});
-    }
-
-    if(s.type==="ice"){
-      await pc.addIceCandidate(s.data);
-    }
-  });
-});
-
-acceptBtn.onclick = async ()=>{
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  addDoc(signalsRef,{
-    type:"offer",
-    from:role,
-    data:offer,
-    createdAt:serverTimestamp()
-  });
-};
-
-hangupBtn.onclick = async ()=>{
-  await updateDoc(callRef,{
-    status:"ended",
-    endedAt:serverTimestamp()
-  });
-  pc.close();
-  location.href="/";
-};
 </script>
+
 </body>
 </html>
