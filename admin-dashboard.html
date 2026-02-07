@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Administration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --ok:#1b6b3a;
+  --warn:#c58a00;
+  --err:#8a1f1f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1500px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  border-bottom:1px solid #e6ebf5;
+}
+header .left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+header img{height:42px}
+header strong{font-size:16px}
+header button{
+  border:none;
+  background:none;
+  color:var(--err);
+  font-weight:600;
+  cursor:pointer;
+}
+.content{padding:20px}
+h2{margin:26px 0 10px;font-size:18px}
+.list{
+  display:grid;
+  gap:16px;
+}
+@media(min-width:900px){
+  .list{grid-template-columns:1fr 1fr}
+}
+.card{
+  border:2px solid #e6ebf5;
+  border-radius:16px;
+  padding:16px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+  margin-top:6px;
+}
+.pending{background:#fff4cc;color:#8a6d00}
+.validated{background:#dff5e6;color:#1b6b3a}
+.rejected{background:#fde0e0;color:#8a1f1f}
+.suspended{background:#eee;color:#444}
+
+.section{margin-top:10px;font-size:13px}
+.section strong{display:block}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.actions{
+  margin-top:14px;
+  display:grid;
+  gap:8px;
+}
+.actions button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.validate{background:var(--blue);color:#fff}
+.reject{background:var(--err);color:#fff}
+.suspend{background:#555;color:#fff}
+.pay{background:#1b6b3a;color:#fff}
+.notify{background:#f6a623;color:#fff}
+.assign{background:#5a3d8a;color:#fff}
+
+textarea{
+  width:100%;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+footer{
+  margin-top:auto;
+  text-align:center;
+  font-size:12px;
+  padding:16px;
+  opacity:.65;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="left">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <strong>Administration CizaHealth+</strong>
+  </div>
+  <button id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="content">
+
+<h2>Professionnels — En attente</h2>
+<div id="pendingList" class="list"></div>
+
+<h2>Professionnels — Validés</h2>
+<div id="validatedList" class="list"></div>
+
+<h2>Professionnels — Refusés</h2>
+<div id="rejectedList" class="list"></div>
+
+<h2>📋 Requêtes</h2>
+<div id="requestsList" class="list"></div>
+
+<h2>💳 Transactions</h2>
+<div id="transactionsList" class="list"></div>
+
+<h2>🧾 Traçabilité (Audit)</h2>
+<div id="auditList" class="list"></div>
+
+<!-- ===== AJOUT : recherche rapide pro ===== -->
+<h2>🔎 Recherche rapide pro (Nom / ProID)</h2>
+<input id="searchPro" placeholder="Nom ou ProID…" style="padding:10px;width:100%;max-width:420px">
+<div id="searchResults" class="list" style="margin-top:12px"></div>
+<!-- ===== FIN AJOUT ===== -->
+
+<!-- ===== AJOUT : monitoring appels audio ===== -->
+<h2>📞 Appels audio en cours</h2>
+<div id="callsList" class="list"></div>
+<!-- ===== FIN AJOUT ===== -->
+
+</div>
+
+<footer>© 2026 CizaHealth+ — CIZA GROUP • Administration</footer>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, getDocs, query, where,
+  doc, updateDoc, addDoc, serverTimestamp, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html";};
+
+const fmtTS=t=>t?.toDate?t.toDate().toLocaleString():"—";
+
+async function audit(a,act,t,e={}){await addDoc(collection(db,"auditLogs"),{actor:a,action:act,target:t,extra:e,at:serverTimestamp()});}
+async function notify(a,u,t,m){await addDoc(collection(db,"notifications"),{toUid:u,title:t,message:m,read:false,createdAt:serverTimestamp(),createdBy:a});}
+
+onAuthStateChanged(auth,async(user)=>{
+  if(!user)return location.href="/cizahealth/index.html";
+
+  const usersSnap=await getDocs(query(collection(db,"users"),where("role","in",["doctor","nurse","aide"])));
+  const users=[];usersSnap.forEach(d=>users.push({id:d.id,u:d.data()}));
+
+  // ===== AJOUT : statut online/offline =====
+  users.forEach(({id,u})=>{
+    if(u.lastOnlineAt){
+      u.isOnline = (Date.now() - u.lastOnlineAt.toMillis()) < 120000;
+    }
+  });
+
+  // ===== AJOUT : matching automatique multipro =====
+  async function autoMatch(request){
+    const eligible = users.filter(p =>
+      p.u.status==="validated" &&
+      p.u.specialty===request.type &&
+      p.u.province===request.province &&
+      p.u.isOnline
+    );
+    if(!eligible.length) return;
+    const chosen = eligible[Math.floor(Math.random()*eligible.length)];
+    await updateDoc(doc(db,"requests",request.id),{
+      assignedProUid:chosen.id,
+      status:"assigned",
+      assignedAt:serverTimestamp(),
+      assignedBy:"auto"
+    });
+    await notify(user.uid,chosen.id,"Nouvelle demande assignée","Une demande vous a été attribuée automatiquement.");
+    await audit(user.uid,"auto_match",request.id,{pro:chosen.id});
+  }
+
+  // ===== AJOUT : requêtes pending visibles + assignation =====
+  onSnapshot(query(collection(db,"requests"),where("status","==","pending")), snap=>{
+    requestsList.innerHTML="";
+    snap.forEach(d=>{
+      const r=d.data();
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`
+<strong>${r.type||"Service"}</strong><br>
+Province : ${r.province||"—"}<br>
+Créée : ${fmtTS(r.createdAt)}
+<div class="actions">
+  <button class="assign">Assigner manuellement</button>
+</div>`;
+      c.querySelector(".assign").onclick=async()=>{
+        const proId=prompt("Entrer ProID");
+        const found=users.find(p=>p.u.proId===proId);
+        if(!found) return alert("Pro introuvable");
+        await updateDoc(doc(db,"requests",d.id),{
+          assignedProUid:found.id,
+          status:"assigned",
+          assignedBy:user.uid,
+          assignedAt:serverTimestamp()
+        });
+        await notify(user.uid,found.id,"Nouvelle demande","Une demande vous a été assignée.");
+        await audit(user.uid,"manual_assign",d.id,{pro:found.id});
+      };
+      requestsList.appendChild(c);
+      autoMatch({id:d.id,...r});
+    });
+  });
+
+  // ===== AJOUT : monitoring appels =====
+  onSnapshot(collection(db,"callSessions"),snap=>{
+    callsList.innerHTML="";
+    snap.forEach(d=>{
+      const c=document.createElement("div");
+      const r=d.data();
+      c.className="card";
+      c.innerHTML=`
+<strong>Appel</strong><br>
+Statut : ${r.status}<br>
+Requête : ${r.requestId}<br>
+Créé : ${fmtTS(r.createdAt)}
+`;
+      callsList.appendChild(c);
+    });
+  });
+
+  // ===== AJOUT : recherche pro =====
+  searchPro.oninput=()=>{
+    const q=searchPro.value.toLowerCase();
+    searchResults.innerHTML="";
+    users.filter(p=>
+      (p.u.fullName||"").toLowerCase().includes(q) ||
+      (p.u.proId||"").toLowerCase().includes(q)
+    ).forEach(p=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`<strong>${p.u.fullName}</strong><br>ProID : ${p.u.proId}<br>En ligne : ${p.u.isOnline?"OUI":"NON"}`;
+      searchResults.appendChild(c);
+    });
+  };
+
+});
+</script>
+</body>
+</html>
