@@ -48,26 +48,11 @@ header{
   gap:12px;
 }
 .brand img{height:38px}
-.brand span{font-size:12px;opacity:.85}
+.brand .meta span{font-size:12px;opacity:.85}
 .topRight{
   display:flex;
   align-items:center;
   gap:12px;
-}
-.logout{
-  border:none;
-  background:none;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-.iconBtn{
-  background:#fff;
-  border:none;
-  border-radius:12px;
-  padding:8px 10px;
-  font-weight:700;
-  cursor:pointer;
 }
 .badge{
   background:#e74c3c;
@@ -77,12 +62,34 @@ header{
   font-size:12px;
   margin-left:4px;
 }
+.status{
+  font-size:12px;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#ccc;
+}
+.status.online{background:#2ecc71;color:#fff}
+.status.offline{background:#bdc3c7;color:#2c3e50}
+.logout{
+  border:none;
+  background:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
 .content{padding:24px;display:grid;gap:24px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .card{
   background:#fff;
   border-radius:var(--radius);
   padding:20px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card h3{margin:0 0 8px}
+.big{
+  font-size:28px;
+  font-weight:800;
 }
 .request{
   border:1px solid #eef1f6;
@@ -128,27 +135,55 @@ footer{
 <header>
   <div class="brand">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div>
-      <strong>CizaHealth+</strong><br>
-      <span>Dashboard Professionnel</span>
+    <div class="meta">
+      <strong id="proName">—</strong><br>
+      <span id="proMeta">—</span>
     </div>
   </div>
+
   <div class="topRight">
-    <button class="iconBtn">🔔 <span class="badge">0</span></button>
+    <div id="onlineBadge" class="status offline">OFFLINE</div>
+    <button>🔔 <span id="notifCount" class="badge">0</span></button>
     <button class="logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>
 
 <div class="content">
+
+  <!-- STATS -->
+  <div class="grid3">
+    <div class="card">
+      <h3>🟢 Acceptées</h3>
+      <div id="countAccepted" class="big">0</div>
+    </div>
+    <div class="card">
+      <h3>🔴 Refusées</h3>
+      <div id="countRefused" class="big">0</div>
+    </div>
+    <div class="card">
+      <h3>🔵 Consultations</h3>
+      <div id="countConsultations" class="big">0</div>
+    </div>
+  </div>
+
+  <!-- PENDING -->
   <div class="card">
     <h3>🟡 Requêtes en attente</h3>
     <div id="pendingList" class="empty">Chargement…</div>
   </div>
 
+  <!-- ASSIGNED -->
   <div class="card">
     <h3>🟢 Requêtes acceptées</h3>
     <div id="assignedList" class="empty">Aucune demande</div>
   </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="card">
+    <h3>🔔 Notifications</h3>
+    <div id="notificationsList" class="empty">Aucune notification</div>
+  </div>
+
 </div>
 
 <footer>© 2026 <strong>CizaHealth+</strong></footer>
@@ -160,64 +195,153 @@ import { onAuthStateChanged, signOut }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, onSnapshot,
-  updateDoc, doc, addDoc, setDoc, serverTimestamp
+  updateDoc, doc, setDoc, serverTimestamp, getDoc, orderBy
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-logoutBtn.onclick=async()=>{
+let heartbeat = null;
+
+logoutBtn.onclick = async ()=>{
+  if(heartbeat) clearInterval(heartbeat);
   await signOut(auth);
   location.href="/cizahealth/index.html";
 };
 
-onAuthStateChanged(auth,user=>{
+onAuthStateChanged(auth, async user=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  /* ❤️ HEARTBEAT ONLINE */
-  setInterval(()=>{
+  /* ===== LOAD PRO INFO ===== */
+  const proSnap = await getDoc(doc(db,"users",user.uid));
+  if(proSnap.exists()){
+    const p = proSnap.data();
+    proName.textContent = p.fullName || "—";
+    proMeta.textContent = `${p.role||"—"} • ${p.speciality||"—"} • ${p.service||"—"} • ${p.province||"—"}`;
+  }
+
+  /* ===== HEARTBEAT ===== */
+  heartbeat = setInterval(()=>{
     updateDoc(doc(db,"users",user.uid),{
-      lastOnlineAt:serverTimestamp()
+      lastOnlineAt: serverTimestamp()
     });
   },15000);
 
-  /* 🟢 ASSIGNED REQUESTS */
+  /* ===== ONLINE BADGE ===== */
+  onSnapshot(doc(db,"users",user.uid),snap=>{
+    if(!snap.exists()) return;
+    const last = snap.data().lastOnlineAt?.toMillis?.();
+    if(last && Date.now()-last <= 30000){
+      onlineBadge.textContent="ONLINE";
+      onlineBadge.className="status online";
+    }else{
+      onlineBadge.textContent="OFFLINE";
+      onlineBadge.className="status offline";
+    }
+  });
+
+  /* ===== NOTIFICATIONS ===== */
   onSnapshot(
-    query(collection(db,"requests"),
-      where("assignedProUid","==",user.uid)
+    query(collection(db,"notifications"),
+      where("receiverId","==",user.uid),
+      orderBy("createdAt","desc")
     ),
     snap=>{
-      assignedList.innerHTML="";
-      if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
-
+      notifCount.textContent = snap.docs.filter(d=>!d.data().read).length;
+      notificationsList.innerHTML="";
+      if(snap.empty){
+        notificationsList.innerHTML='<div class="empty">Aucune notification</div>';
+        return;
+      }
       snap.forEach(d=>{
+        const n=d.data();
         const div=document.createElement("div");
-        div.className="request assigned";
-        div.innerHTML=`
-<strong>${d.data().serviceType}</strong>
-<div class="actions">
-  <button class="call">📞 Appeler</button>
-  <button class="chat">💬 Chat</button>
-</div>
-`;
-        div.querySelector(".call").onclick=async()=>{
-          await setDoc(doc(db,"callSessions",d.id),{
-            requestId:d.id,
-            proUid:user.uid,
-            status:"ringing",
-            createdAt:serverTimestamp()
-          },{merge:true});
-          location.href=\`/cizahealth/call.html?requestId=\${d.id}&role=pro\`;
-        };
-        div.querySelector(".chat").onclick=async()=>{
-          await setDoc(doc(db,"chats",d.id),{
-            requestId:d.id,
-            createdAt:serverTimestamp()
-          },{merge:true});
-          location.href=\`/cizahealth/chat.html?requestId=\${d.id}&role=pro\`;
-        };
-        assignedList.appendChild(div);
+        div.textContent = n.title || "Notification";
+        notificationsList.appendChild(div);
       });
     }
   );
+
+  /* ===== STATS ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid)
+  ),snap=>{
+    countAccepted.textContent = snap.docs.filter(d=>d.data().status==="assigned").length;
+    countConsultations.textContent = snap.docs.length;
+  });
+
+  onSnapshot(query(collection(db,"requests"),
+    where("refusedBy","==",user.uid)
+  ),snap=>{
+    countRefused.textContent = snap.size;
+  });
+
+  /* ===== PENDING ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("status","==","pending")
+  ),snap=>{
+    pendingList.innerHTML="";
+    if(snap.empty){
+      pendingList.innerHTML='<div class="empty">Aucune requête</div>';
+      return;
+    }
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request pending";
+      div.innerHTML=`
+<strong>${r.serviceType||"Service médical"}</strong>
+<div class="actions">
+  <button class="accept">Accepter</button>
+</div>`;
+      div.querySelector(".accept").onclick=async()=>{
+        await updateDoc(doc(db,"requests",d.id),{
+          status:"assigned",
+          assignedProUid:user.uid,
+          assignedAt:serverTimestamp()
+        });
+      };
+      pendingList.appendChild(div);
+    });
+  });
+
+  /* ===== ASSIGNED ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid)
+  ),snap=>{
+    assignedList.innerHTML="";
+    if(snap.empty){
+      assignedList.innerHTML='<div class="empty">Aucune demande</div>';
+      return;
+    }
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request assigned";
+      div.innerHTML=`
+<strong>${r.serviceType}</strong>
+<div class="actions">
+  <button class="call">📞 Appeler</button>
+  <button class="chat">💬 Chat</button>
+</div>`;
+      div.querySelector(".call").onclick=async()=>{
+        await setDoc(doc(db,"callSessions",d.id),{
+          requestId:d.id,
+          proUid:user.uid,
+          status:"ringing",
+          createdAt:serverTimestamp()
+        },{merge:true});
+        location.href=\`/cizahealth/call.html?requestId=\${d.id}&role=pro\`;
+      };
+      div.querySelector(".chat").onclick=async()=>{
+        await setDoc(doc(db,"chats",d.id),{
+          requestId:d.id,
+          createdAt:serverTimestamp()
+        },{merge:true});
+        location.href=\`/cizahealth/chat.html?requestId=\${d.id}&role=pro\`;
+      };
+      assignedList.appendChild(div);
+    });
+  });
+
 });
 </script>
 
