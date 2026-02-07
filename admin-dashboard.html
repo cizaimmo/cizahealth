@@ -121,10 +121,6 @@ footer{
   padding:16px;
   opacity:.65;
 }
-  /* ===== AJOUT : statut pro online/offline ===== */
-.online{background:#e6f6ee;color:#1b6b3a}
-.offline{background:#eee;color:#666}
-  
 </style>
 </head>
 
@@ -139,15 +135,6 @@ footer{
   <button id="logoutBtn">Déconnexion</button>
 </header>
 
-<!-- ===== AJOUT : Recherche rapide PRO (sans toucher aux cartes existantes) ===== -->
-<h2>🔎 Recherche rapide pro (Nom / ProID)</h2>
-<input id="searchPro" placeholder="Nom ou ProID…" style="padding:10px;width:100%;max-width:420px">
-<div id="searchResults" class="list" style="margin-top:12px"></div>
-
-<!-- ===== AJOUT : Monitoring appels audio ===== -->
-<h2>📞 Appels audio en cours</h2>
-<div id="callsList" class="list"></div>
-  
 <div class="content">
 
 <h2>Professionnels — En attente</h2>
@@ -200,7 +187,20 @@ onAuthStateChanged(auth,async(user)=>{
   const usersSnap=await getDocs(query(collection(db,"users"),where("role","in",["doctor","nurse","aide"])));
   const users=[];usersSnap.forEach(d=>users.push({id:d.id,u:d.data()}));
 
-  /* =====================================================
+  function render(list,el){
+    el.innerHTML="";
+    list.forEach(({id,u})=>{
+      const st=u.accountStatus==="suspended"?"suspended":u.status==="validated"?"validated":u.status==="rejected"?"rejected":"pending";
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`
+<strong>${u.fullName||"—"}</strong><br>
+${u.role} • ${u.province||"—"}<br>
+<span class="badge ${st}">${st.toUpperCase()}</span>
+
+<div class="section"><strong>Inscription</strong>${fmtTS(u.createdAt)}</div>
+
+/* =====================================================
    AJOUT : STATUT ONLINE / OFFLINE (LIVE)
    ===================================================== */
 users.forEach(p=>{
@@ -218,17 +218,16 @@ setTimeout(()=>{
     const pro = users.find(p=>p.u.fullName===name);
     if(!pro) return;
     const badge=document.createElement("span");
-    badge.className="badge "+(pro.u.__online?"validated":"rejected");
+    badge.className="badge "+(pro.u.__online?"validated":"suspended");
     badge.textContent=pro.u.__online?"EN LIGNE":"HORS LIGNE";
-    badge.style.marginLeft="8px";
     card.appendChild(badge);
   });
 },500);
 
 /* =====================================================
-   AJOUT : RECHERCHE RAPIDE PRO (nom / proId)
+   AJOUT : RECHERCHE RAPIDE PRO (SANS MODIFIER LE DESIGN)
    ===================================================== */
-if(typeof searchPro!=="undefined"){
+if(document.getElementById("searchPro")){
   searchPro.oninput=()=>{
     const q=searchPro.value.toLowerCase();
     searchResults.innerHTML="";
@@ -239,7 +238,7 @@ if(typeof searchPro!=="undefined"){
       const c=document.createElement("div");
       c.className="card";
       c.innerHTML=`
-<strong>${p.u.fullName}</strong><br>
+<strong>${p.u.fullName||"—"}</strong><br>
 ProID : ${p.u.proId||"—"}<br>
 Statut : ${p.u.__online?"EN LIGNE":"HORS LIGNE"}
 `;
@@ -251,62 +250,60 @@ Statut : ${p.u.__online?"EN LIGNE":"HORS LIGNE"}
 /* =====================================================
    AJOUT : REQUÊTES PENDING + ASSIGNATION + MATCHING AUTO
    ===================================================== */
-onSnapshot(
-  query(collection(db,"requests"),where("status","==","pending")),
-  snap=>{
-    requestsList.innerHTML="";
-    snap.forEach(d=>{
-      const r=d.data();
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerHTML=`
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onSnapshot(query(collection(db,"requests"),where("status","==","pending")),snap=>{
+  requestsList.innerHTML="";
+  snap.forEach(d=>{
+    const r=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
 <strong>${r.type||"Service"}</strong><br>
 Province : ${r.province||"—"}<br>
 Créée : ${fmtTS(r.createdAt)}
 <div class="actions">
-  <button class="assign">Assigner manuellement</button>
+<button class="assign">Assigner manuellement</button>
 </div>`;
-      
-      c.querySelector(".assign").onclick=async()=>{
-        const pid=prompt("Entrer ProID");
-        const pro=users.find(x=>x.u.proId===pid);
-        if(!pro) return alert("Pro introuvable");
-        await updateDoc(doc(db,"requests",d.id),{
-          assignedProUid:pro.id,
-          status:"assigned",
-          assignedBy:user.uid,
-          assignedAt:serverTimestamp()
-        });
-        await audit(user.uid,"manual_assign",d.id,{pro:pro.id});
-        await notify(user.uid,pro.id,"Nouvelle demande","Une demande vous a été assignée.");
-      };
+    c.querySelector(".assign").onclick=async()=>{
+      const pid=prompt("Entrer ProID");
+      const pro=users.find(x=>x.u.proId===pid);
+      if(!pro) return alert("Pro introuvable");
+      await updateDoc(doc(db,"requests",d.id),{
+        assignedProUid:pro.id,
+        status:"assigned",
+        assignedBy:user.uid,
+        assignedAt:serverTimestamp()
+      });
+      await audit(user.uid,"manual_assign",d.id,{pro:pro.id});
+      await notify(user.uid,pro.id,"Nouvelle demande","Une demande vous a été assignée.");
+    };
 
-      /* Matching automatique multipro */
-      const auto=users.filter(p=>
-        p.u.status==="validated" &&
-        p.u.specialty===r.type &&
-        p.u.province===r.province &&
-        p.u.__online
-      );
-      if(auto.length){
-        const chosen=auto[Math.floor(Math.random()*auto.length)];
-        updateDoc(doc(db,"requests",d.id),{
-          assignedProUid:chosen.id,
-          status:"assigned",
-          assignedBy:"auto",
-          assignedAt:serverTimestamp()
-        });
-        audit(user.uid,"auto_match",d.id,{pro:chosen.id});
-        notify(user.uid,chosen.id,"Nouvelle demande","Demande attribuée automatiquement.");
-      }
+    /* Matching automatique multipro */
+    const auto=users.filter(p=>
+      p.u.status==="validated" &&
+      p.u.specialty===r.type &&
+      p.u.province===r.province &&
+      p.u.__online
+    );
+    if(auto.length){
+      const chosen=auto[Math.floor(Math.random()*auto.length)];
+      updateDoc(doc(db,"requests",d.id),{
+        assignedProUid:chosen.id,
+        status:"assigned",
+        assignedBy:"auto",
+        assignedAt:serverTimestamp()
+      });
+      audit(user.uid,"auto_match",d.id,{pro:chosen.id});
+      notify(user.uid,chosen.id,"Nouvelle demande","Demande attribuée automatiquement.");
+    }
 
-      requestsList.appendChild(c);
-    });
-  }
-);
+    requestsList.appendChild(c);
+  });
+});
 
 /* =====================================================
-   AJOUT : MONITORING APPELS AUDIO
+   AJOUT : MONITORING APPELS AUDIO (ADMIN)
    ===================================================== */
 if(typeof callsList!=="undefined"){
   onSnapshot(collection(db,"callSessions"),snap=>{
@@ -325,19 +322,6 @@ Créé : ${fmtTS(r.createdAt)}
     });
   });
 }
-  function render(list,el){
-    el.innerHTML="";
-    list.forEach(({id,u})=>{
-      const st=u.accountStatus==="suspended"?"suspended":u.status==="validated"?"validated":u.status==="rejected"?"rejected":"pending";
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerHTML=`
-<strong>${u.fullName||"—"}</strong><br>
-${u.role} • ${u.province||"—"}<br>
-<span class="badge ${st}">${st.toUpperCase()}</span>
-
-<div class="section"><strong>Inscription</strong>${fmtTS(u.createdAt)}</div>
-
 <div class="section"><strong>Identité</strong>
 Naissance : ${u.birthDate||"—"}<br>
 Genre : ${u.gender||"—"}<br>
