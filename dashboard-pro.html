@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Dashboard Professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --green:#1b6b3a;
+  --red:#c0392b;
+  --orange:#e67e22;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:20px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:1200px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:linear-gradient(90deg,#123c8a,#0b2c66);
+  color:#fff;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand img{height:38px}
+.brand span{font-size:12px;opacity:.85}
+.topRight{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logout{
+  border:none;
+  background:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+.iconBtn{
+  background:#fff;
+  border:none;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.badge{
+  background:#e74c3c;
+  color:#fff;
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:12px;
+  margin-left:4px;
+}
+.content{padding:24px;display:grid;gap:24px}
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.request{
+  border:1px solid #eef1f6;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.request.pending{border-left:6px solid var(--orange)}
+.request.assigned{border-left:6px solid var(--green)}
+.actions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:12px;
+}
+.actions button{
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  font-weight:800;
+  color:#fff;
+  cursor:pointer;
+}
+.accept{background:var(--green)}
+.refuse{background:var(--red)}
+.chat{background:#123c8a}
+.call{background:#6c5ce7}
+.empty{color:var(--muted);font-size:14px}
+footer{
+  margin-top:auto;
+  padding:18px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#6b7a90;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      <strong>CizaHealth+</strong><br>
+      <span>Dashboard Professionnel</span>
+    </div>
+  </div>
+  <div class="topRight">
+    <button class="iconBtn">🔔 <span class="badge">0</span></button>
+    <button class="logout" id="logoutBtn">Déconnexion</button>
+  </div>
+</header>
+
+<div class="content">
+  <div class="card">
+    <h3>🟡 Requêtes en attente</h3>
+    <div id="pendingList" class="empty">Chargement…</div>
+  </div>
+
+  <div class="card">
+    <h3>🟢 Requêtes acceptées</h3>
+    <div id="assignedList" class="empty">Aucune demande</div>
+  </div>
+</div>
+
+<footer>© 2026 <strong>CizaHealth+</strong></footer>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, onSnapshot,
+  updateDoc, doc, addDoc, setDoc, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+logoutBtn.onclick=async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
+
+onAuthStateChanged(auth,user=>{
+  if(!user) return location.href="/cizahealth/index.html";
+
+  /* ❤️ HEARTBEAT ONLINE */
+  setInterval(()=>{
+    updateDoc(doc(db,"users",user.uid),{
+      lastOnlineAt:serverTimestamp()
+    });
+  },15000);
+
+  /* 🟢 ASSIGNED REQUESTS */
+  onSnapshot(
+    query(collection(db,"requests"),
+      where("assignedProUid","==",user.uid)
+    ),
+    snap=>{
+      assignedList.innerHTML="";
+      if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
+
+      snap.forEach(d=>{
+        const div=document.createElement("div");
+        div.className="request assigned";
+        div.innerHTML=`
+<strong>${d.data().serviceType}</strong>
+<div class="actions">
+  <button class="call">📞 Appeler</button>
+  <button class="chat">💬 Chat</button>
+</div>
+`;
+        div.querySelector(".call").onclick=async()=>{
+          await setDoc(doc(db,"callSessions",d.id),{
+            requestId:d.id,
+            proUid:user.uid,
+            status:"ringing",
+            createdAt:serverTimestamp()
+          },{merge:true});
+          location.href=\`/cizahealth/call.html?requestId=\${d.id}&role=pro\`;
+        };
+        div.querySelector(".chat").onclick=async()=>{
+          await setDoc(doc(db,"chats",d.id),{
+            requestId:d.id,
+            createdAt:serverTimestamp()
+          },{merge:true});
+          location.href=\`/cizahealth/chat.html?requestId=\${d.id}&role=pro\`;
+        };
+        assignedList.appendChild(div);
+      });
+    }
+  );
+});
+</script>
+
+</body>
+</html>
