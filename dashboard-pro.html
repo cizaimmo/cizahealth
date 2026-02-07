@@ -8,7 +8,7 @@
 <style>
 :root{
   --blue:#123c8a;
-  --green:#3b8f6b;
+  --green:#1b6b3a;
   --orange:#e67e22;
   --red:#c0392b;
   --bg:#f4f7fb;
@@ -16,104 +16,48 @@
   --muted:#6b7a90;
   --radius:22px;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:1200px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  display:flex;
-  flex-direction:column;
 }
-
-/* HEADER PRO */
 .header{
   padding:24px;
   border-bottom:1px solid #eef1f6;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:16px;
 }
-.pro-info{
-  display:flex;
-  flex-direction:column;
-}
-.pro-info strong{font-size:17px}
-.pro-info span{font-size:13px;color:var(--muted)}
-
 .status{
   padding:6px 14px;
   border-radius:999px;
   font-size:12px;
   font-weight:600;
-  background:#eaf6f0;
-  color:var(--green);
 }
-
-/* CONTENT */
-.content{
-  padding:26px;
-  display:grid;
-  gap:24px;
-}
-
-/* KPI */
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:18px;
-}
-.kpi{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-}
+.available{background:#eaf6f0;color:var(--green)}
+.suspended{background:#fdecea;color:var(--red)}
+.logout{border:none;background:none;color:var(--red);font-weight:600;cursor:pointer}
+.content{padding:26px;display:grid;gap:26px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.kpi{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
 .kpi strong{font-size:22px}
-
-/* CARDS */
-.card{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:22px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-}
-.card h3{margin:0 0 14px;font-size:16px}
-
-.request{
-  border:1px solid #eef1f6;
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:14px;
-}
-.actions{
-  display:flex;
-  gap:10px;
-  margin-top:12px;
-}
-.actions button{
-  flex:1;
-  padding:12px;
-  border:none;
-  border-radius:14px;
-  font-weight:600;
-  color:#fff;
-}
+.card{background:#fff;border-radius:var(--radius);padding:22px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
+.request{border:1px solid #eef1f6;border-radius:16px;padding:16px;margin-bottom:14px}
+.actions{display:flex;gap:10px;margin-top:12px}
+.actions button{flex:1;padding:12px;border:none;border-radius:14px;font-weight:600;color:#fff;cursor:pointer}
 .audio{background:#1b4fa3}
 .chat{background:#27ae60}
-.report{background:#e67e22}
 .close{background:#c0392b}
-
+.notif{font-size:13px;padding:10px;border-bottom:1px dashed #eee}
+.notif.unread{background:#eef4ff;font-weight:600}
 .empty{font-size:14px;color:var(--muted)}
 </style>
 </head>
@@ -121,83 +65,132 @@ body{
 <body>
 <div class="app">
 
-  <div class="header">
-    <div class="pro-info">
-      <strong id="proName">—</strong>
-      <span id="proMeta">—</span>
-      <span id="proProvince">—</span>
-    </div>
-    <div class="status" id="proStatus">—</div>
+<div class="header">
+  <div>
+    <strong id="proName">—</strong><br>
+    <span id="proMeta">—</span><br>
+    <span id="proProvince">—</span>
   </div>
-
-  <div class="content">
-
-    <div class="kpis">
-      <div class="kpi">Consultations aujourd’hui<br><strong id="kpiToday">0</strong></div>
-      <div class="kpi">En attente<br><strong id="kpiWaiting">0</strong></div>
-      <div class="kpi">Revenus estimés<br><strong id="kpiRevenue">0 BIF</strong></div>
-    </div>
-
-    <div class="card">
-      <h3>Demandes assignées / en cours</h3>
-      <div id="requestsList" class="empty">Chargement…</div>
-    </div>
-
+  <div>
+    <span class="status available" id="proStatus">Actif</span>
+    <button class="logout" id="logoutBtn">Déconnexion</button>
   </div>
+</div>
 
+<div class="content">
+
+<div class="kpis">
+  <div class="kpi">Consultations aujourd’hui<br><strong id="kpiToday">0</strong></div>
+  <div class="kpi">Demandes actives<br><strong id="kpiWaiting">0</strong></div>
+  <div class="kpi">Revenus estimés<br><strong id="kpiRevenue">0 BIF</strong></div>
+</div>
+
+<div class="card">
+  <h3>Demandes assignées</h3>
+  <div id="requestsList" class="empty">Chargement…</div>
+</div>
+
+<div class="card">
+  <h3>Notifications</h3>
+  <div id="notificationsList" class="empty">Aucune notification</div>
+</div>
+
+</div>
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, collection, query, where, onSnapshot
+  doc, getDoc, collection, query, where,
+  onSnapshot, updateDoc, addDoc, serverTimestamp, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html";};
+
 onAuthStateChanged(auth, async user=>{
-  if(!user){ location.href="login.html"; return; }
+  if(!user) return location.href="/cizahealth/index.html";
 
-  const proRef = doc(db,"professionals",user.uid);
-  const proSnap = await getDoc(proRef);
-  const pro = proSnap.data();
+  const uSnap = await getDoc(doc(db,"users",user.uid));
+  if(!uSnap.exists()) return document.body.innerHTML="Accès refusé";
 
-  proName.textContent = pro.fullName;
-  proMeta.textContent = `${pro.specialty} • ${pro.proId}`;
-  proProvince.textContent = `Province de service : ${pro.province}`;
-  proStatus.textContent = pro.status === "available" ? "Disponible" : "En consultation";
+  const pro = uSnap.data();
+  if(!["doctor","nurse","aide"].includes(pro.role) || pro.status!=="validated" || !pro.documentsVerified || pro.accountStatus==="suspended"){
+    document.body.innerHTML="<h2 style='padding:40px'>Compte non autorisé</h2>";
+    return;
+  }
 
-  const rq = query(
-    collection(db,"requests"),
-    where("assignedTo","==",user.uid),
-    where("status","in",["assigned","in_progress"])
-  );
+  proName.textContent=pro.fullName;
+  proMeta.textContent=`${pro.specialty} • ${pro.proId}`;
+  proProvince.textContent=`Province : ${pro.province}`;
 
-  onSnapshot(rq,snap=>{
+  /* REQUESTS */
+  const rq=query(collection(db,"requests"),where("assignedProUid","==",user.uid));
+  onSnapshot(rq,s=>{
     requestsList.innerHTML="";
-    if(snap.empty){
-      requestsList.innerHTML='<div class="empty">Aucune demande active</div>';
-      return;
-    }
+    let today=0,active=0;
 
-    snap.forEach(d=>{
+    s.forEach(d=>{
       const r=d.data();
+      if(r.status==="closed") today++;
+      if(["assigned","in_progress"].includes(r.status)) active++;
+
+      if(["assigned","in_progress"].includes(r.status)){
+        const div=document.createElement("div");
+        div.className="request";
+        div.innerHTML=`
+<strong>Patient</strong> — ${r.patientAge||"—"} ans<br>
+<strong>Service</strong> — ${r.serviceType||"—"}
+<div class="actions">
+  <button class="audio">Démarrer</button>
+  <button class="chat">Chat</button>
+  <button class="close">Clôturer</button>
+</div>`;
+
+        div.querySelector(".audio").onclick=async()=>{
+          await updateDoc(doc(db,"requests",d.id),{status:"in_progress",startedAt:serverTimestamp()});
+        };
+
+        div.querySelector(".chat").onclick=async()=>{
+          await addDoc(collection(db,"chats"),{requestId:d.id,proUid:user.uid,createdAt:serverTimestamp()});
+          alert("Chat prêt");
+        };
+
+        div.querySelector(".close").onclick=async()=>{
+          await updateDoc(doc(db,"requests",d.id),{status:"closed",closedAt:serverTimestamp()});
+          await addDoc(collection(db,"transactions"),{proUid:user.uid,amount:5000,status:"success",createdAt:serverTimestamp()});
+          await addDoc(collection(db,"auditLogs"),{actor:user.uid,action:"close_request",target:d.id,at:serverTimestamp()});
+        };
+
+        requestsList.appendChild(div);
+      }
+    });
+
+    kpiToday.textContent=today;
+    kpiWaiting.textContent=active;
+    if(!requestsList.innerHTML) requestsList.innerHTML='<div class="empty">Aucune demande</div>';
+  });
+
+  /* REVENUS */
+  onSnapshot(query(collection(db,"transactions"),where("proUid","==",user.uid)),s=>{
+    let total=0;s.forEach(d=>total+=Number(d.data().amount||0));
+    kpiRevenue.textContent=total+" BIF";
+  });
+
+  /* NOTIFS */
+  onSnapshot(query(collection(db,"notifications"),where("toUid","==",user.uid),orderBy("createdAt","desc")),s=>{
+    notificationsList.innerHTML="";
+    s.forEach(d=>{
+      const n=d.data();
       const div=document.createElement("div");
-      div.className="request";
-      div.innerHTML=`
-        <strong>Patient</strong> — ${r.patientAge} ans • ${r.province}<br>
-        <strong>Service</strong> — ${r.serviceType}<br>
-        <div class="actions">
-          <button class="audio">Audio</button>
-          <button class="chat">Chat</button>
-          <button class="report">Rapport</button>
-          <button class="close">Clôturer</button>
-        </div>
-      `;
-      requestsList.appendChild(div);
+      div.className="notif"+(n.read?"":" unread");
+      div.innerHTML=`<strong>${n.title}</strong><br>${n.message}`;
+      div.onclick=()=>updateDoc(doc(db,"notifications",d.id),{read:true});
+      notificationsList.appendChild(div);
     });
   });
 });
 </script>
-
 </body>
 </html>
