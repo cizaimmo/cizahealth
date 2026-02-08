@@ -47,164 +47,166 @@ html,body{
 }
 
 /* =========================
-   🟦 HEADER — FIX FINAL RESPONSIVE
+   🟦 HEADER
    ========================= */
-
 header{
-  max-width:1280px;
-  margin:auto;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  gap:14px;
 }
-
 .brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:1;
   min-width:0;
 }
+.brand img{height:36px}
 .brand .meta{
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
+.brand strong{font-size:16px;display:block}
+.brand span{font-size:13px;opacity:.9}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  font-weight:600;
+}
+.dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--danger);
+}
+.dot.online{background:#2ECC71}
 
 .header-actions{
-  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.icon-btn{
+  background:#fff;
+  color:var(--primary);
+  border:none;
+  border-radius:12px;
+  padding:9px 12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.badge{
+  background:var(--danger);
+  color:#fff;
+  border-radius:999px;
+  font-size:11px;
+  padding:2px 7px;
+  margin-left:4px;
+}
+.logout{
+  background:none;
+  border:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
 }
 
-@media (max-width: 599px){
-  header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
-  }
-
-  .status{
-    order:2;
-  }
-
-  .header-actions{
-    order:3;
-    width:100%;
-    justify-content:space-between;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 1023px){
-  header{
-    flex-direction:row;
-    align-items:center;
-  }
-
-  .brand{
-    flex:1;
-  }
-
-  .status{
-    margin-left:auto;
-    margin-right:12px;
-  }
-}
-
-@media (min-width: 1024px){
-  header{
-    padding:18px 26px;
-  }
-
-  .brand strong{
-    font-size:16px;
-  }
-
-  .brand span{
-    font-size:13px;
-  }
-
-  .status{
-    font-size:14px;
-  }
-
-  .icon-btn{
-    padding:10px 12px;
-  }
-}
 /* =========================
    📦 CONTENT
    ========================= */
 .content{
-  padding:20px;
+  padding:22px;
   display:grid;
-  gap:22px;
+  gap:26px;
 }
 
 /* =========================
-   📊 KPI GRID — FIX FINAL
+   📊 KPI PREMIUM
    ========================= */
 .kpis{
   display:grid;
-  gap:14px;
+  gap:16px;
 }
+@media(max-width:599px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:600px) and (max-width:1023px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.kpis{grid-template-columns:repeat(6,1fr)}}
 
-/* Mobile portrait */
-@media (max-width: 599px){
-  .kpis{
-    grid-template-columns:repeat(2,1fr);
-  }
+.kpi{
+  background:linear-gradient(180deg,#fff,#fafbfd);
+  border-radius:24px;
+  padding:20px 18px;
+  box-shadow:
+    0 12px 28px rgba(10,42,94,.08),
+    inset 0 1px 0 rgba(255,255,255,.6);
 }
-
-/* Mobile paysage + tablette */
-@media (min-width: 600px) and (max-width: 1023px){
-  .kpis{
-    grid-template-columns:repeat(3,1fr);
-  }
+.kpi h4{
+  margin:0;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
 }
-
-/* Desktop / paysage large */
-@media (min-width: 1024px){
-  .kpis{
-    grid-template-columns:repeat(6,1fr);
-  }
+.kpi .value{
+  margin-top:10px;
+  font-size:30px;
+  font-weight:800;
+  color:var(--primary);
 }
 
 /* =========================
-   🗂️ CARDS
+   🗂️ CARDS PREMIUM
    ========================= */
 .card{
   background:#fff;
-  border-radius:var(--radius);
-  padding:20px;
-  box-shadow:0 10px 26px rgba(10,42,94,.08);
+  border-radius:24px;
+  padding:22px;
+  box-shadow:
+    0 14px 34px rgba(10,42,94,.08),
+    inset 0 1px 0 rgba(255,255,255,.5);
 }
 .card h3{
-  margin:0 0 12px;
-  font-size:16px;
+  margin:0 0 14px;
+  font-size:17px;
+  font-weight:700;
 }
 
 /* =========================
    🟡 REQUESTS
    ========================= */
 .request{
-  border:1px solid #EEF1F6;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:14px;
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:16px;
+  background:var(--primary-soft);
+  border-left:6px solid transparent;
 }
-.request.pending{border-left:6px solid var(--warning)}
-.request.assigned{border-left:6px solid var(--success)}
+.request.pending{border-left-color:var(--warning)}
+.request.assigned{border-left-color:var(--success)}
 
 .request .title{
   font-weight:700;
+  font-size:15px;
 }
 .request .meta{
   font-size:13px;
   color:var(--muted);
-  margin-top:4px;
+  margin-top:6px;
 }
+
 .actions{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:14px;
+  gap:12px;
+  margin-top:16px;
 }
 .actions button{
-  min-height:44px;
+  min-height:46px;
   border:none;
-  border-radius:14px;
+  border-radius:16px;
   font-weight:700;
   color:#fff;
   cursor:pointer;
@@ -212,34 +214,26 @@ header{
 .accept{background:var(--success)}
 .refuse{background:var(--danger)}
 .chat{background:var(--primary)}
-.call{background:#6C5CE7}
+.call{background:#5A6CFF}
 
 /* =========================
    🔔 NOTIFICATIONS
    ========================= */
 .notification{
-  border-bottom:1px solid #EEF1F6;
-  padding:12px 0;
+  padding:14px 0;
+  border-bottom:1px solid #EDF1F6;
 }
 .notification:last-child{border-bottom:none}
-.notification strong{
-  display:block;
-  font-size:14px;
-}
-.notification span{
-  font-size:13px;
-  color:var(--muted);
-}
+.notification strong{font-size:14px}
+.notification span{font-size:13px;color:var(--muted)}
 
 /* =========================
-   📱 RESPONSIVE
+   📱 RESPONSIVE HEADER
    ========================= */
 @media(max-width:600px){
   header{
-    flex-wrap:wrap;
-  }
-  .brand{
-    width:100%;
+    flex-direction:column;
+    align-items:flex-start;
   }
   .header-actions{
     width:100%;
@@ -263,8 +257,7 @@ header{
   </div>
 
   <div class="status">
-    <span class="dot online"></span>
-    En ligne
+    <span class="dot online"></span> En ligne
   </div>
 
   <div class="header-actions">
@@ -275,62 +268,53 @@ header{
 
 <main class="content">
 
-  <!-- KPIs -->
-  <section class="kpis">
-    <div class="kpi"><h4>Consultations en cours</h4><div class="value">0</div></div>
-    <div class="kpi"><h4>Aujourd’hui</h4><div class="value">0</div></div>
-    <div class="kpi"><h4>Terminées</h4><div class="value">0</div></div>
-    <div class="kpi"><h4>Payées</h4><div class="value">0</div></div>
-    <div class="kpi"><h4>Gains cumulés</h4><div class="value">0</div></div>
-    <div class="kpi"><h4>En attente</h4><div class="value">0</div></div>
-  </section>
+<section class="kpis">
+  <div class="kpi"><h4>Consultations en cours</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Aujourd’hui</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Terminées</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Payées</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Gains cumulés</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>En attente</h4><div class="value">0</div></div>
+</section>
 
-  <!-- Pending -->
-  <section class="card">
-    <h3>🟡 Requêtes en attente</h3>
-
-    <div class="request pending">
-      <div class="title">Patient — 34 ans • Femme</div>
-      <div class="meta">Province : Bujumbura • Symptômes : Fièvre, fatigue</div>
-
-      <div class="actions">
-        <button class="accept">Accepter</button>
-        <button class="refuse">Refuser</button>
-        <button class="chat" disabled>Chat</button>
-      </div>
+<section class="card">
+  <h3>🟡 Requêtes en attente</h3>
+  <div class="request pending">
+    <div class="title">Patient — 34 ans • Femme</div>
+    <div class="meta">Province : Bujumbura • Symptômes : Fièvre, fatigue</div>
+    <div class="actions">
+      <button class="accept">Accepter</button>
+      <button class="refuse">Refuser</button>
+      <button class="chat" disabled>Chat</button>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Assigned -->
-  <section class="card">
-    <h3>🟢 Consultation active</h3>
-
-    <div class="request assigned">
-      <div class="title">Patient — 42 ans • Homme</div>
-      <div class="meta">En consultation depuis 12 min</div>
-
-      <div class="actions">
-        <button class="call">📞 Appeler</button>
-        <button class="chat">💬 Chat</button>
-        <button class="accept">📝 Rapport</button>
-      </div>
+<section class="card">
+  <h3>🟢 Consultation active</h3>
+  <div class="request assigned">
+    <div class="title">Patient — 42 ans • Homme</div>
+    <div class="meta">En consultation depuis 12 min</div>
+    <div class="actions">
+      <button class="call">📞 Appeler</button>
+      <button class="chat">💬 Chat</button>
+      <button class="accept">📝 Rapport</button>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Notifications -->
-  <section class="card">
-    <h3>🔔 Notifications</h3>
-
-    <div class="notification">
-      <strong>Nouvelle requête</strong>
-      <span>Un patient attend une consultation</span>
-    </div>
-  </section>
+<section class="card">
+  <h3>🔔 Notifications</h3>
+  <div class="notification">
+    <strong>Nouvelle requête</strong>
+    <span>Un patient attend une consultation</span>
+  </div>
+</section>
 
 </main>
 
-<footer style="text-align:center;font-size:12px;color:var(--muted);padding:18px">
-© 2026 CizaHealth+
+<footer style="text-align:center;font-size:12px;color:var(--muted);padding:20px">
+© 2026 CizaHealth+ | Power Group 
 </footer>
 
 </div>
