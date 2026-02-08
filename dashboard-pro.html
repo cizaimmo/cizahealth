@@ -19,7 +19,7 @@
   --bg:#F4F7FB;
   --text:#0A1A2F;
   --muted:#6B7A90;
-  --radius:22px;
+  --radius:24px;
 }
 
 /* =========================
@@ -32,13 +32,18 @@ html,body{
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
-  overflow-x:hidden;
+  min-height:100dvh;
+}
+
+body{
+  display:flex;
+  justify-content:center;
 }
 
 .app{
-  max-width:1280px;
-  margin:auto;
-  min-height:100vh;
+  width:100%;
+  max-width:1400px;
+  min-height:100dvh;
   display:flex;
   flex-direction:column;
 }
@@ -62,10 +67,10 @@ header{
   display:flex;
   align-items:center;
   gap:12px;
-  min-width:0;
   flex:1;
+  min-width:0;
 }
-.brand img{height:36px}
+.brand img{height:38px}
 .brand .meta{
   overflow:hidden;
   white-space:nowrap;
@@ -79,7 +84,7 @@ header{
   align-items:center;
   gap:6px;
   font-size:13px;
-  font-weight:600;
+  font-weight:700;
 }
 .dot{
   width:10px;height:10px;border-radius:50%;
@@ -97,7 +102,7 @@ header{
   border:none;
   border-radius:12px;
   padding:8px 12px;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
 }
 .badge{
@@ -112,17 +117,18 @@ header{
   background:none;
   border:none;
   color:#fff;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
 }
 
 /* =========================
    📦 CONTENT
    ========================= */
-.content{
-  padding:22px;
+main.content{
+  flex:1;
+  padding:24px;
   display:grid;
-  gap:24px;
+  gap:26px;
 }
 
 /* =========================
@@ -133,13 +139,12 @@ header{
   gap:16px;
 }
 .kpi{
-  background:linear-gradient(180deg,#ffffff,#f7f9fe);
-  border-radius:26px;
+  background:linear-gradient(180deg,#fff,#f7f9fe);
+  border-radius:28px;
   padding:22px;
   box-shadow:
-    0 20px 40px rgba(18,60,138,.10),
-    inset 0 1px 0 rgba(255,255,255,.8);
-  position:relative;
+    0 18px 40px rgba(18,60,138,.12),
+    inset 0 1px 0 rgba(255,255,255,.9);
 }
 .kpi h4{
   margin:0;
@@ -148,7 +153,7 @@ header{
 }
 .kpi .value{
   margin-top:8px;
-  font-size:32px;
+  font-size:34px;
   font-weight:900;
   color:var(--primary);
 }
@@ -169,12 +174,12 @@ header{
    ========================= */
 .card{
   background:#fff;
-  border-radius:26px;
-  padding:22px;
-  box-shadow:0 18px 40px rgba(10,42,94,.10);
+  border-radius:28px;
+  padding:24px;
+  box-shadow:0 20px 44px rgba(10,42,94,.12);
 }
 .card h3{
-  margin:0 0 14px;
+  margin:0 0 16px;
   font-size:17px;
 }
 
@@ -183,9 +188,9 @@ header{
    ========================= */
 .request{
   border:1px solid #eef1f6;
-  border-radius:20px;
+  border-radius:22px;
   padding:18px;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 .request.pending{border-left:6px solid var(--warning)}
 .request.assigned{border-left:6px solid var(--success)}
@@ -204,7 +209,7 @@ header{
   margin-top:16px;
 }
 .actions button{
-  min-height:46px;
+  min-height:48px;
   border:none;
   border-radius:16px;
   font-weight:800;
@@ -232,7 +237,7 @@ header{
 }
 
 /* =========================
-   📱 HEADER RESPONSIVE
+   📱 RESPONSIVE HEADER
    ========================= */
 @media(max-width:700px){
   header{
@@ -255,8 +260,8 @@ header{
   <div class="brand">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div class="meta">
-      <strong>Nom du professionnel</strong>
-      <span>Médecin • Cardiologie • Bujumbura</span>
+      <strong id="proName">Dr Nom Prénom</strong>
+      <span id="proMeta">Médecin • Cardiologie • Bujumbura</span>
     </div>
   </div>
 
@@ -265,8 +270,8 @@ header{
   </div>
 
   <div class="header-actions">
-    <button class="icon-btn">🔔 <span class="badge">0</span></button>
-    <button class="logout">Déconnexion</button>
+    <button class="icon-btn" onclick="openNotifications()">🔔 <span class="badge" id="notifCount">0</span></button>
+    <button class="logout" onclick="logout()">Déconnexion</button>
   </div>
 </header>
 
@@ -283,12 +288,13 @@ header{
 
 <section class="card">
   <h3>🟡 Requêtes en attente</h3>
+
   <div class="request pending">
     <div class="title">Patient — 34 ans • Femme</div>
     <div class="meta">Bujumbura • Fièvre, fatigue</div>
     <div class="actions">
-      <button class="accept">Accepter</button>
-      <button class="refuse">Refuser</button>
+      <button class="accept" onclick="acceptRequest()">Accepter</button>
+      <button class="refuse" onclick="refuseRequest()">Refuser</button>
       <button class="chat" disabled>Chat</button>
     </div>
   </div>
@@ -296,13 +302,14 @@ header{
 
 <section class="card">
   <h3>🟢 Consultation active</h3>
+
   <div class="request assigned">
     <div class="title">Patient — 42 ans • Homme</div>
     <div class="meta">En consultation</div>
     <div class="actions">
-      <button class="call">📞 Appeler</button>
-      <button class="chat">💬 Chat</button>
-      <button class="accept">📝 Rapport</button>
+      <button class="call" onclick="goCall()">📞 Appeler</button>
+      <button class="chat" onclick="goChat()">💬 Chat</button>
+      <button class="accept" onclick="goReport()">📝 Rapport</button>
     </div>
   </div>
 </section>
@@ -322,6 +329,33 @@ header{
 </footer>
 
 </div>
+
+<script>
+/* =========================
+   🔗 ACTIONS (opérationnelles)
+   ========================= */
+function logout(){
+  window.location.href = "index.html";
+}
+function openNotifications(){
+  document.querySelector('.card:last-of-type')?.scrollIntoView({behavior:"smooth"});
+}
+function acceptRequest(){
+  console.log("Request accepted");
+}
+function refuseRequest(){
+  console.log("Request refused");
+}
+function goChat(){
+  window.location.href = "chat.html";
+}
+function goCall(){
+  window.location.href = "call.html";
+}
+function goReport(){
+  window.location.href = "report.html";
+}
+</script>
 
 </body>
 </html>
