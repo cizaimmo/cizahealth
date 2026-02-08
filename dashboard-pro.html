@@ -6,12 +6,8 @@
 <title>CizaHealth+ | Dashboard Professionnel</title>
 
 <style>
-/* =========================
-   🎨 CIZAHEALTH DESIGN TOKENS
-   ========================= */
 :root{
   --primary:#123C8A;
-  --primary-dark:#0B2C66;
   --primary-soft:#EEF3FB;
   --success:#1B6B3A;
   --warning:#E67E22;
@@ -19,48 +15,39 @@
   --bg:#F4F7FB;
   --text:#0A1A2F;
   --muted:#6B7A90;
-  --radius:24px;
+  --radius:22px;
 }
 
-/* =========================
-   🔧 GLOBAL
-   ========================= */
 *{box-sizing:border-box}
 html,body{
   margin:0;
   padding:0;
+  width:100%;
+  height:100%;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
-  min-height:100dvh;
+  overflow-x:hidden;
 }
 
-body{
-  display:flex;
-  justify-content:center;
-}
-
+/* ===== LAYOUT GLOBAL ===== */
 .app{
   width:100%;
-  max-width:1400px;
-  min-height:100dvh;
+  min-height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-/* =========================
-   🟦 HEADER
-   ========================= */
+/* ===== HEADER CLAIR PREMIUM ===== */
 header{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
-  color:#fff;
-  padding:16px 20px;
+  width:100%;
+  background:#fff;
   display:flex;
   align-items:center;
   gap:16px;
+  padding:16px 20px;
+  border-bottom:1px solid #e9edf5;
+  box-shadow:0 6px 20px rgba(10,42,94,.06);
 }
 
 .brand{
@@ -73,21 +60,34 @@ header{
 .brand img{height:38px}
 .brand .meta{
   overflow:hidden;
+}
+.brand strong{
+  display:block;
+  font-size:16px;
+  color:var(--primary);
   white-space:nowrap;
+  overflow:hidden;
   text-overflow:ellipsis;
 }
-.brand strong{display:block;font-size:16px}
-.brand span{font-size:13px;opacity:.9}
+.brand span{
+  font-size:13px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
 .status{
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:13px;
   font-weight:700;
+  font-size:13px;
 }
 .dot{
-  width:10px;height:10px;border-radius:50%;
+  width:10px;
+  height:10px;
+  border-radius:50%;
   background:#2ecc71;
 }
 
@@ -97,7 +97,7 @@ header{
   gap:10px;
 }
 .icon-btn{
-  background:#fff;
+  background:var(--primary-soft);
   color:var(--primary);
   border:none;
   border-radius:12px;
@@ -116,35 +116,39 @@ header{
 .logout{
   background:none;
   border:none;
-  color:#fff;
+  color:var(--primary);
   font-weight:800;
   cursor:pointer;
 }
 
-/* =========================
-   📦 CONTENT
-   ========================= */
-main.content{
-  flex:1;
-  padding:24px;
+/* ===== CONTENT ===== */
+.content{
+  width:100%;
+  padding:20px;
   display:grid;
-  gap:26px;
+  gap:22px;
 }
 
-/* =========================
-   📊 KPI PREMIUM
-   ========================= */
+/* ===== KPI GRID (RESPONSIVE FINAL) ===== */
 .kpis{
   display:grid;
   gap:16px;
 }
+@media(max-width:599px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:600px) and (max-width:1023px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+}
+@media(min-width:1024px){
+  .kpis{grid-template-columns:repeat(6,1fr)}
+}
+
 .kpi{
-  background:linear-gradient(180deg,#fff,#f7f9fe);
-  border-radius:28px;
-  padding:22px;
-  box-shadow:
-    0 18px 40px rgba(18,60,138,.12),
-    inset 0 1px 0 rgba(255,255,255,.9);
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 12px 28px rgba(10,42,94,.08);
 }
 .kpi h4{
   margin:0;
@@ -152,66 +156,44 @@ main.content{
   color:var(--muted);
 }
 .kpi .value{
-  margin-top:8px;
-  font-size:34px;
+  margin-top:6px;
+  font-size:30px;
   font-weight:900;
   color:var(--primary);
 }
 
-/* KPI GRID */
-@media(max-width:599px){
-  .kpis{grid-template-columns:repeat(2,1fr)}
-}
-@media(min-width:600px) and (max-width:1023px){
-  .kpis{grid-template-columns:repeat(4,1fr)}
-}
-@media(min-width:1024px){
-  .kpis{grid-template-columns:repeat(6,1fr)}
-}
-
-/* =========================
-   🗂️ CARDS
-   ========================= */
+/* ===== CARDS ===== */
 .card{
   background:#fff;
-  border-radius:28px;
-  padding:24px;
-  box-shadow:0 20px 44px rgba(10,42,94,.12);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 12px 28px rgba(10,42,94,.08);
 }
 .card h3{
-  margin:0 0 16px;
-  font-size:17px;
+  margin:0 0 14px;
+  font-size:16px;
 }
 
-/* =========================
-   🟡 REQUESTS
-   ========================= */
+/* ===== REQUESTS ===== */
 .request{
   border:1px solid #eef1f6;
-  border-radius:22px;
-  padding:18px;
-  margin-bottom:16px;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
 }
 .request.pending{border-left:6px solid var(--warning)}
 .request.assigned{border-left:6px solid var(--success)}
 
-.request .title{font-weight:800}
-.request .meta{
-  font-size:13px;
-  color:var(--muted);
-  margin-top:6px;
-}
-
 .actions{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  margin-top:16px;
+  gap:10px;
+  margin-top:14px;
 }
 .actions button{
-  min-height:48px;
+  min-height:44px;
   border:none;
-  border-radius:16px;
+  border-radius:14px;
   font-weight:800;
   color:#fff;
   cursor:pointer;
@@ -221,33 +203,13 @@ main.content{
 .chat{background:var(--primary)}
 .call{background:#6C5CE7}
 
-/* =========================
-   🔔 NOTIFICATIONS
-   ========================= */
-.notification{
-  padding:14px 0;
-  border-bottom:1px solid #eef1f6;
-}
-.notification:last-child{border-bottom:none}
-.notification strong{font-size:14px}
-.notification span{
-  display:block;
-  font-size:13px;
+/* ===== FOOTER ===== */
+footer{
+  margin-top:auto;
+  text-align:center;
+  font-size:12px;
   color:var(--muted);
-}
-
-/* =========================
-   📱 RESPONSIVE HEADER
-   ========================= */
-@media(max-width:700px){
-  header{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .header-actions{
-    width:100%;
-    justify-content:space-between;
-  }
+  padding:18px;
 }
 </style>
 </head>
@@ -260,8 +222,8 @@ main.content{
   <div class="brand">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
     <div class="meta">
-      <strong id="proName">Dr Nom Prénom</strong>
-      <span id="proMeta">Médecin • Cardiologie • Bujumbura</span>
+      <strong>Nom du professionnel</strong>
+      <span>Médecin • Cardiologie • Bujumbura</span>
     </div>
   </div>
 
@@ -270,8 +232,8 @@ main.content{
   </div>
 
   <div class="header-actions">
-    <button class="icon-btn" onclick="openNotifications()">🔔 <span class="badge" id="notifCount">0</span></button>
-    <button class="logout" onclick="logout()">Déconnexion</button>
+    <button class="icon-btn">🔔 <span class="badge">0</span></button>
+    <button class="logout">Déconnexion</button>
   </div>
 </header>
 
@@ -288,74 +250,20 @@ main.content{
 
 <section class="card">
   <h3>🟡 Requêtes en attente</h3>
-
   <div class="request pending">
-    <div class="title">Patient — 34 ans • Femme</div>
-    <div class="meta">Bujumbura • Fièvre, fatigue</div>
+    <strong>Patient — 34 ans • Femme</strong>
     <div class="actions">
-      <button class="accept" onclick="acceptRequest()">Accepter</button>
-      <button class="refuse" onclick="refuseRequest()">Refuser</button>
-      <button class="chat" disabled>Chat</button>
+      <button class="accept">Accepter</button>
+      <button class="refuse">Refuser</button>
+      <button class="chat">Chat</button>
     </div>
-  </div>
-</section>
-
-<section class="card">
-  <h3>🟢 Consultation active</h3>
-
-  <div class="request assigned">
-    <div class="title">Patient — 42 ans • Homme</div>
-    <div class="meta">En consultation</div>
-    <div class="actions">
-      <button class="call" onclick="goCall()">📞 Appeler</button>
-      <button class="chat" onclick="goChat()">💬 Chat</button>
-      <button class="accept" onclick="goReport()">📝 Rapport</button>
-    </div>
-  </div>
-</section>
-
-<section class="card">
-  <h3>🔔 Notifications</h3>
-  <div class="notification">
-    <strong>Nouvelle requête</strong>
-    <span>Un patient attend une consultation</span>
   </div>
 </section>
 
 </main>
 
-<footer style="text-align:center;font-size:12px;color:var(--muted);padding:18px">
-© 2026 CizaHealth+
-</footer>
+<footer>© 2026 CizaHealth+ |Ciza Group</footer>
 
 </div>
-
-<script>
-/* =========================
-   🔗 ACTIONS (opérationnelles)
-   ========================= */
-function logout(){
-  window.location.href = "index.html";
-}
-function openNotifications(){
-  document.querySelector('.card:last-of-type')?.scrollIntoView({behavior:"smooth"});
-}
-function acceptRequest(){
-  console.log("Request accepted");
-}
-function refuseRequest(){
-  console.log("Request refused");
-}
-function goChat(){
-  window.location.href = "chat.html";
-}
-function goCall(){
-  window.location.href = "call.html";
-}
-function goReport(){
-  window.location.href = "report.html";
-}
-</script>
-
 </body>
 </html>
