@@ -6,37 +6,27 @@
 <title>CizaHealth+ | Chat Consultation</title>
 
 <style>
-/* =========================
-🎨 CIZAHEALTH DESIGN TOKENS
-========================= */
 :root{
   --primary:#123C8A;
-  --primary-dark:#0B2C66;
   --primary-soft:#EEF3FB;
-  --success:#1B6B3A;
-  --danger:#C0392B;
   --bg:#F4F7FB;
   --text:#0A1A2F;
   --muted:#6B7A90;
   --radius:18px;
 }
 
-/* =========================
-🔧 RESET
-========================= */
+/* RESET */
 *{box-sizing:border-box}
 html,body{
   margin:0;
   padding:0;
+  height:100%;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
-  height:100%;
 }
 
-/* =========================
-🧱 LAYOUT
-========================= */
+/* LAYOUT */
 .app{
   max-width:900px;
   margin:auto;
@@ -45,90 +35,76 @@ html,body{
   flex-direction:column;
 }
 
-/* =========================
-🟦 HEADER CHAT
-========================= */
+/* HEADER */
 header{
   position:sticky;
   top:0;
-  z-index:20;
+  z-index:10;
   background:#fff;
   border-bottom:1px solid #E6EBF5;
-  padding:14px 18px;
+  padding:14px 16px;
   display:flex;
   align-items:center;
   gap:12px;
 }
-
-header .back{
+.back{
   font-size:20px;
   cursor:pointer;
 }
-
-header .meta{
+.meta{
   flex:1;
   min-width:0;
 }
-
-header .meta strong{
+.meta strong{
   display:block;
   font-size:14px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
-header .meta span{
+.meta span{
   font-size:12px;
   color:var(--muted);
 }
 
-/* =========================
-💬 CHAT ZONE
-========================= */
+/* CHAT */
 .chat{
   flex:1;
-  padding:18px;
+  padding:16px;
   overflow-y:auto;
   display:flex;
   flex-direction:column;
   gap:12px;
 }
 
-/* Message */
+/* MESSAGE */
 .msg{
-  max-width:75%;
+  max-width:78%;
   padding:12px 14px;
   border-radius:16px;
   font-size:14px;
   line-height:1.4;
 }
-
 .msg.pro{
   align-self:flex-end;
   background:var(--primary);
   color:#fff;
   border-bottom-right-radius:4px;
 }
-
 .msg.patient{
   align-self:flex-start;
   background:#fff;
   border:1px solid #E6EBF5;
-  color:var(--text);
   border-bottom-left-radius:4px;
 }
-
-.msg .time{
+.time{
   display:block;
   margin-top:6px;
   font-size:11px;
   opacity:.7;
 }
 
-/* =========================
-⌨️ INPUT BAR
-========================= */
+/* INPUT */
 .inputBar{
   border-top:1px solid #E6EBF5;
   background:#fff;
@@ -136,8 +112,7 @@ header .meta span{
   display:flex;
   gap:10px;
 }
-
-.inputBar textarea{
+textarea{
   flex:1;
   resize:none;
   min-height:44px;
@@ -146,11 +121,9 @@ header .meta span{
   border:1px solid #E6EBF5;
   padding:10px 12px;
   font-family:inherit;
-  font-size:14px;
 }
-
-.inputBar button{
-  min-width:56px;
+button{
+  min-width:72px;
   border:none;
   border-radius:14px;
   background:var(--primary);
@@ -159,12 +132,10 @@ header .meta span{
   cursor:pointer;
 }
 
-/* =========================
-📱 RESPONSIVE
-========================= */
-@media (max-width:600px){
+/* MOBILE */
+@media(max-width:600px){
   .app{max-width:100%}
-  .msg{max-width:85%}
+  .msg{max-width:88%}
 }
 </style>
 </head>
@@ -177,61 +148,46 @@ header .meta span{
   <div class="back" id="backBtn">←</div>
   <div class="meta">
     <strong id="chatTitle">Consultation</strong>
-    <span id="chatSub">Patient • Pro</span>
+    <span id="chatSub">Chargement…</span>
   </div>
 </header>
 
-<div class="chat" id="chatBox">
-  <!-- Messages injectés dynamiquement -->
-</div>
+<div class="chat" id="chatBox"></div>
 
 <div class="inputBar">
   <textarea id="messageInput" placeholder="Écrire un message…"></textarea>
   <button id="sendBtn">Envoyer</button>
 </div>
 
-<!-- =========================
-FIN BLOC 1 — STRUCTURE CHAT
-========================= --><script type="module">
-/* =========================
-BLOC 2 — LOGIQUE CHAT
-========================= */
+</div>
 
+<script type="module">
 import { auth, db } from "./firebase.js";
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, orderBy, onSnapshot,
   addDoc, serverTimestamp, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =========================
-UTILS
-========================= */
+/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
+/* DOM */
 const chatBox = document.getElementById("chatBox");
-const messageInput = document.getElementById("messageInput");
+const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
-const chatTitle = document.getElementById("chatTitle");
 const chatSub = document.getElementById("chatSub");
-const backBtn = document.getElementById("backBtn");
+document.getElementById("backBtn").onclick = ()=>history.back();
 
-backBtn.onclick = () => history.back();
-
-/* =========================
-AUTH
-========================= */
-onAuthStateChanged(auth, async (user)=>{
+/* AUTH */
+onAuthStateChanged(auth, async(user)=>{
   if(!user || !requestId){
     alert("Accès refusé");
     return location.href="/cizahealth/index.html";
   }
 
-  /* ===== Charger la request ===== */
   const reqSnap = await getDoc(doc(db,"requests",requestId));
   if(!reqSnap.exists()){
     alert("Consultation introuvable");
@@ -248,508 +204,45 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  chatTitle.textContent = "Consultation";
-  chatSub.textContent = role === "pro"
-    ? "Discussion avec le patient"
-    : "Discussion avec le professionnel";
+  chatSub.textContent =
+    role === "pro"
+      ? "Discussion avec le patient"
+      : "Discussion avec le professionnel";
 
-  /* =========================
-  LISTEN MESSAGES
-  ========================= */
   const messagesRef = collection(db,"chats",requestId,"messages");
   const q = query(messagesRef, orderBy("createdAt"));
 
-  onSnapshot(q, (snap)=>{
-    chatBox.innerHTML = "";
+  onSnapshot(q,(snap)=>{
+    chatBox.innerHTML="";
     snap.forEach(d=>{
-      const m = d.data();
-      const div = document.createElement("div");
-      div.className = "msg " + (m.sender === "pro" ? "pro" : "patient");
-      div.innerHTML = `
+      const m=d.data();
+      const div=document.createElement("div");
+      div.className="msg "+(m.sender==="pro"?"pro":"patient");
+      div.innerHTML=`
         ${m.text}
         <span class="time">
-          ${m.createdAt?.toDate?.().toLocaleTimeString() || ""}
-        </span>
-      `;
+          ${m.createdAt?.toDate?.().toLocaleTimeString()||""}
+        </span>`;
       chatBox.appendChild(div);
     });
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatBox.scrollTop=chatBox.scrollHeight;
   });
 
-  /* =========================
-  SEND MESSAGE
-  ========================= */
-  sendBtn.onclick = async ()=>{
-    const text = messageInput.value.trim();
+  sendBtn.onclick = async()=>{
+    const text=input.value.trim();
     if(!text) return;
-
     await addDoc(messagesRef,{
       text,
-      sender: role,
-      patientId: req.patientUid,
-      proId: req.assignedTo,
+      sender:role,
+      patientId:req.patientUid,
+      proId:req.assignedTo,
       requestId,
-      createdAt: serverTimestamp()
+      createdAt:serverTimestamp()
     });
-
-    messageInput.value = "";
+    input.value="";
   };
-
 });
-
-/* =========================
-FIN BLOC 2 — LOGIQUE CHAT
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 3 — NOTIFICATIONS
-========================= */
-
-import { db } from "./firebase.js";
-import {
-  collection, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-SEND NOTIFICATION (UTIL)
-========================= */
-async function sendNotification({
-  title,
-  body,
-  receiverId,
-  target = null,
-  requestId = null
-}){
-  try{
-    await addDoc(collection(db,"notifications"),{
-      title,
-      body,
-      receiverId: receiverId || null,
-      target: target || null, // "pro" | "patient" | "admin"
-      requestId,
-      read:false,
-      createdAt: serverTimestamp()
-    });
-  }catch(e){
-    console.error("Notification error", e);
-  }
-}
-
-/* =========================
-HOOKS METIER
-========================= */
-
-/* Appelé quand PRO envoie un message */
-window.notifyPatientMessage = async (req)=>{
-  await sendNotification({
-    title:"Nouveau message",
-    body:"Le professionnel vous a écrit",
-    receiverId:req.patientUid,
-    requestId:req.id
-  });
-};
-
-/* Appelé quand PATIENT envoie un message */
-window.notifyProMessage = async (req)=>{
-  await sendNotification({
-    title:"Message patient",
-    body:"Le patient a répondu dans la consultation",
-    receiverId:req.assignedTo,
-    requestId:req.id
-  });
-};
-
-/* Appelé quand PRO accepte une requête */
-window.notifyAccept = async (req)=>{
-  await sendNotification({
-    title:"Consultation acceptée",
-    body:"Un professionnel a accepté la demande",
-    receiverId:req.patientUid,
-    requestId:req.id
-  });
-
-  await sendNotification({
-    title:"Nouvelle consultation",
-    body:"Une consultation a été prise en charge",
-    target:"admin",
-    requestId:req.id
-  });
-};
-
-/* Appelé quand PRO refuse */
-window.notifyRefuse = async (req)=>{
-  await sendNotification({
-    title:"Demande refusée",
-    body:"La demande a été refusée",
-    receiverId:req.patientUid,
-    requestId:req.id
-  });
-};
-
-/* =========================
-FIN BLOC 3 — NOTIFICATIONS
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 4 — APPEL WEBRTC
-========================= */
-
-import { auth, db } from "./firebase.js";
-import {
-  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-PARAMS & ELEMENTS
-========================= */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
-
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const startCallBtn = document.getElementById("startCallBtn");
-const hangupBtn = document.getElementById("hangupBtn");
-
-/* =========================
-WEBRTC CONFIG
-========================= */
-const rtcConfig = {
-  iceServers:[
-    { urls:"stun:stun.l.google.com:19302" }
-  ]
-};
-
-let pc = null;
-let localStream = null;
-let userRole = null;
-
-/* =========================
-AUTH & ROLE
-========================= */
-auth.onAuthStateChanged(async (user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return;
-  }
-
-  const callRef = doc(db,"callSessions",requestId);
-
-  /* Initialiser la session si absente */
-  await setDoc(callRef,{
-    requestId,
-    status:"idle",
-    createdAt: serverTimestamp()
-  },{merge:true});
-
-  /* =========================
-  START CALL
-  ========================= */
-  startCallBtn.onclick = async ()=>{
-    pc = new RTCPeerConnection(rtcConfig);
-
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video:true,
-      audio:true
-    });
-
-    localVideo.srcObject = localStream;
-    localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
-
-    pc.ontrack = e=>{
-      remoteVideo.srcObject = e.streams[0];
-    };
-
-    pc.onicecandidate = e=>{
-      if(e.candidate){
-        updateDoc(callRef,{
-          iceCandidate: JSON.stringify(e.candidate)
-        });
-      }
-    };
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await updateDoc(callRef,{
-      offer: JSON.stringify(offer),
-      status:"calling"
-    });
-  };
-
-  /* =========================
-  HANGUP
-  ========================= */
-  hangupBtn.onclick = async ()=>{
-    if(pc){
-      pc.close();
-      pc = null;
-    }
-    if(localStream){
-      localStream.getTracks().forEach(t=>t.stop());
-    }
-
-    await updateDoc(callRef,{
-      status:"ended",
-      endedAt: serverTimestamp()
-    });
-
-    history.back();
-  };
-
-  /* =========================
-  LISTEN SIGNALING
-  ========================= */
-  onSnapshot(callRef, async (snap)=>{
-    if(!snap.exists()) return;
-    const data = snap.data();
-
-    if(data.offer && !pc){
-      pc = new RTCPeerConnection(rtcConfig);
-
-      localStream = await navigator.mediaDevices.getUserMedia({
-        video:true,
-        audio:true
-      });
-
-      localVideo.srcObject = localStream;
-      localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
-
-      pc.ontrack = e=>{
-        remoteVideo.srcObject = e.streams[0];
-      };
-
-      await pc.setRemoteDescription(JSON.parse(data.offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      await updateDoc(callRef,{
-        answer: JSON.stringify(answer),
-        status:"connected"
-      });
-    }
-
-    if(data.answer && pc && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.answer));
-    }
-
-    if(data.iceCandidate && pc){
-      try{
-        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-      }catch(e){}
-    }
-  });
-
-});
-
-/* =========================
-FIN BLOC 4 — APPEL WEBRTC
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 5 — RAPPORT MÉDICAL
-========================= */
-
-import { auth, db } from "./firebase.js";
-import {
-  doc, setDoc, getDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-PARAMS & ELEMENTS
-========================= */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
-
-const reportForm = document.getElementById("reportForm");
-const diagnosisInput = document.getElementById("diagnosis");
-const notesInput = document.getElementById("notes");
-const prescriptionInput = document.getElementById("prescription");
-const submitReportBtn = document.getElementById("submitReportBtn");
-const reportStatus = document.getElementById("reportStatus");
-
-/* =========================
-AUTH
-========================= */
-auth.onAuthStateChanged(async (user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="/cizahealth/index.html";
-  }
-
-  /* Charger la request */
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Consultation introuvable");
-    return;
-  }
-
-  const req = reqSnap.data();
-
-  if(user.uid !== req.assignedTo){
-    alert("Non autorisé");
-    return;
-  }
-
-  /* =========================
-  LOAD EXISTING REPORT
-  ========================= */
-  const reportRef = doc(db,"reports",requestId);
-  const reportSnap = await getDoc(reportRef);
-
-  if(reportSnap.exists()){
-    const r = reportSnap.data();
-    diagnosisInput.value = r.diagnosis || "";
-    notesInput.value = r.notes || "";
-    prescriptionInput.value = r.prescription || "";
-    reportStatus.textContent = "Rapport existant (modifiable)";
-  }
-
-  /* =========================
-  SAVE REPORT
-  ========================= */
-  submitReportBtn.onclick = async (e)=>{
-    e.preventDefault();
-
-    if(!diagnosisInput.value.trim()){
-      alert("Diagnostic requis");
-      return;
-    }
-
-    await setDoc(reportRef,{
-      requestId,
-      patientId: req.patientUid,
-      proId: user.uid,
-      diagnosis: diagnosisInput.value.trim(),
-      notes: notesInput.value.trim(),
-      prescription: prescriptionInput.value.trim(),
-      status: "submitted", // admin → validated → eligible_for_payout
-      updatedAt: serverTimestamp(),
-      createdAt: reportSnap.exists()
-        ? reportSnap.data().createdAt
-        : serverTimestamp()
-    },{merge:true});
-
-    reportStatus.textContent = "Rapport enregistré ✔";
-    alert("Rapport médical sauvegardé");
-  };
-
-});
-
-/* =========================
-FIN BLOC 5 — RAPPORT MÉDICAL
-========================= */
-</script><!-- =========================
-BLOC 6 — DASHBOARD ADMIN
-========================= -->
-
-<section id="adminDashboard" class="admin-section">
-
-  <h2>🛡️ Administration — Supervision</h2>
-
-  <!-- KPIs -->
-  <div class="admin-kpis">
-    <div class="kpi"><strong id="admRequests">0</strong><span>Requêtes</span></div>
-    <div class="kpi"><strong id="admReports">0</strong><span>Rapports</span></div>
-    <div class="kpi"><strong id="admPendingPay">0</strong><span>À payer</span></div>
-  </div>
-
-  <!-- RAPPORTS -->
-  <div class="card">
-    <h3>📄 Rapports médicaux</h3>
-    <div id="reportsList" class="empty">Chargement…</div>
-  </div>
-
-</section>
-
-<script type="module">
-/* =========================
-BLOC 6 — LOGIQUE ADMIN
-========================= */
-
-import { auth, db } from "./firebase.js";
-import {
-  collection, query, onSnapshot,
-  updateDoc, doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const reportsList = document.getElementById("reportsList");
-const admReports = document.getElementById("admReports");
-const admPendingPay = document.getElementById("admPendingPay");
-const admRequests = document.getElementById("admRequests");
-
-/* =========================
-CHECK ADMIN
-========================= */
-auth.onAuthStateChanged(async(user)=>{
-  if(!user) return;
-
-  const u = await getDoc(doc(db,"users",user.uid));
-  if(!u.exists() || u.data().role !== "admin"){
-    document.getElementById("adminDashboard").style.display="none";
-    return;
-  }
-
-  /* =========================
-  LIST REPORTS
-  ========================= */
-  onSnapshot(collection(db,"reports"), async (snap)=>{
-    reportsList.innerHTML = "";
-    admReports.textContent = snap.size;
-
-    let pendingPay = 0;
-
-    snap.forEach(async d=>{
-      const r = d.data();
-      if(r.status === "submitted") pendingPay++;
-
-      const proSnap = await getDoc(doc(db,"users",r.proId));
-      const proName = proSnap.exists() ? proSnap.data().fullName : "—";
-
-      const div = document.createElement("div");
-      div.className="request";
-      div.innerHTML = `
-        <strong>Rapport — ${proName}</strong><br>
-        <span class="empty">Request: ${r.requestId}</span><br>
-        <span class="empty">Statut: ${r.status}</span>
-        <div class="actions">
-          <button class="accept">Valider</button>
-        </div>
-      `;
-
-      div.querySelector(".accept").onclick = async ()=>{
-        await updateDoc(doc(db,"reports",d.id),{
-          status:"validated"
-        });
-        alert("Rapport validé");
-      };
-
-      reportsList.appendChild(div);
-    });
-
-    admPendingPay.textContent = pendingPay;
-  });
-
-  /* =========================
-  REQUEST COUNT
-  ========================= */
-  onSnapshot(collection(db,"requests"), snap=>{
-    admRequests.textContent = snap.size;
-  });
-
-});
-
-/* =========================
-FIN BLOC 6 — ADMIN
-========================= */
-</script><!-- =========================
-BLOC 7 — FERMETURE FINALE
-========================= -->
+</script>
 
 </body>
 </html>
-
-<!-- =========================
-FIN — CIZAHEALTH+
-CHAT · APPEL · RAPPORT · ADMIN
-PRODUCTION READY
-========================= -->
