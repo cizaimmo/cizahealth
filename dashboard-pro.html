@@ -23,7 +23,7 @@
 }
 
 /* =========================
-   🔧 GLOBAL RESET
+   🔧 GLOBAL
    ========================= */
 *{box-sizing:border-box}
 html,body{
@@ -35,9 +35,6 @@ html,body{
   overflow-x:hidden;
 }
 
-/* =========================
-   🧱 LAYOUT
-   ========================= */
 .app{
   max-width:1280px;
   margin:auto;
@@ -50,41 +47,44 @@ html,body{
    🟦 HEADER
    ========================= */
 header{
+  position:sticky;
+  top:0;
+  z-index:50;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
-  padding:16px 22px;
+  padding:16px 20px;
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 }
+
 .brand{
   display:flex;
   align-items:center;
   gap:12px;
-  flex:1;
   min-width:0;
+  flex:1;
 }
 .brand img{height:36px}
 .brand .meta{
-  white-space:nowrap;
   overflow:hidden;
+  white-space:nowrap;
   text-overflow:ellipsis;
 }
-.brand strong{font-size:16px;display:block}
+.brand strong{display:block;font-size:16px}
 .brand span{font-size:13px;opacity:.9}
 
 .status{
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:14px;
+  font-size:13px;
   font-weight:600;
 }
 .dot{
   width:10px;height:10px;border-radius:50%;
-  background:var(--danger);
+  background:#2ecc71;
 }
-.dot.online{background:#2ECC71}
 
 .header-actions{
   display:flex;
@@ -96,7 +96,7 @@ header{
   color:var(--primary);
   border:none;
   border-radius:12px;
-  padding:9px 12px;
+  padding:8px 12px;
   font-weight:700;
   cursor:pointer;
 }
@@ -122,7 +122,7 @@ header{
 .content{
   padding:22px;
   display:grid;
-  gap:26px;
+  gap:24px;
 }
 
 /* =========================
@@ -132,65 +132,65 @@ header{
   display:grid;
   gap:16px;
 }
-@media(max-width:599px){.kpis{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:600px) and (max-width:1023px){.kpis{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1024px){.kpis{grid-template-columns:repeat(6,1fr)}}
-
 .kpi{
-  background:linear-gradient(180deg,#fff,#fafbfd);
-  border-radius:24px;
-  padding:20px 18px;
+  background:linear-gradient(180deg,#ffffff,#f7f9fe);
+  border-radius:26px;
+  padding:22px;
   box-shadow:
-    0 12px 28px rgba(10,42,94,.08),
-    inset 0 1px 0 rgba(255,255,255,.6);
+    0 20px 40px rgba(18,60,138,.10),
+    inset 0 1px 0 rgba(255,255,255,.8);
+  position:relative;
 }
 .kpi h4{
   margin:0;
   font-size:13px;
-  font-weight:600;
   color:var(--muted);
 }
 .kpi .value{
-  margin-top:10px;
-  font-size:30px;
-  font-weight:800;
+  margin-top:8px;
+  font-size:32px;
+  font-weight:900;
   color:var(--primary);
 }
 
+/* KPI GRID */
+@media(max-width:599px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:600px) and (max-width:1023px){
+  .kpis{grid-template-columns:repeat(4,1fr)}
+}
+@media(min-width:1024px){
+  .kpis{grid-template-columns:repeat(6,1fr)}
+}
+
 /* =========================
-   🗂️ CARDS PREMIUM
+   🗂️ CARDS
    ========================= */
 .card{
   background:#fff;
-  border-radius:24px;
+  border-radius:26px;
   padding:22px;
-  box-shadow:
-    0 14px 34px rgba(10,42,94,.08),
-    inset 0 1px 0 rgba(255,255,255,.5);
+  box-shadow:0 18px 40px rgba(10,42,94,.10);
 }
 .card h3{
   margin:0 0 14px;
   font-size:17px;
-  font-weight:700;
 }
 
 /* =========================
    🟡 REQUESTS
    ========================= */
 .request{
+  border:1px solid #eef1f6;
   border-radius:20px;
   padding:18px;
-  margin-bottom:16px;
-  background:var(--primary-soft);
-  border-left:6px solid transparent;
+  margin-bottom:14px;
 }
-.request.pending{border-left-color:var(--warning)}
-.request.assigned{border-left-color:var(--success)}
+.request.pending{border-left:6px solid var(--warning)}
+.request.assigned{border-left:6px solid var(--success)}
 
-.request .title{
-  font-weight:700;
-  font-size:15px;
-}
+.request .title{font-weight:800}
 .request .meta{
   font-size:13px;
   color:var(--muted);
@@ -207,30 +207,34 @@ header{
   min-height:46px;
   border:none;
   border-radius:16px;
-  font-weight:700;
+  font-weight:800;
   color:#fff;
   cursor:pointer;
 }
 .accept{background:var(--success)}
 .refuse{background:var(--danger)}
 .chat{background:var(--primary)}
-.call{background:#5A6CFF}
+.call{background:#6C5CE7}
 
 /* =========================
    🔔 NOTIFICATIONS
    ========================= */
 .notification{
   padding:14px 0;
-  border-bottom:1px solid #EDF1F6;
+  border-bottom:1px solid #eef1f6;
 }
 .notification:last-child{border-bottom:none}
 .notification strong{font-size:14px}
-.notification span{font-size:13px;color:var(--muted)}
+.notification span{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+}
 
 /* =========================
-   📱 RESPONSIVE HEADER
+   📱 HEADER RESPONSIVE
    ========================= */
-@media(max-width:600px){
+@media(max-width:700px){
   header{
     flex-direction:column;
     align-items:flex-start;
@@ -257,7 +261,7 @@ header{
   </div>
 
   <div class="status">
-    <span class="dot online"></span> En ligne
+    <span class="dot"></span> En ligne
   </div>
 
   <div class="header-actions">
@@ -281,7 +285,7 @@ header{
   <h3>🟡 Requêtes en attente</h3>
   <div class="request pending">
     <div class="title">Patient — 34 ans • Femme</div>
-    <div class="meta">Province : Bujumbura • Symptômes : Fièvre, fatigue</div>
+    <div class="meta">Bujumbura • Fièvre, fatigue</div>
     <div class="actions">
       <button class="accept">Accepter</button>
       <button class="refuse">Refuser</button>
@@ -294,7 +298,7 @@ header{
   <h3>🟢 Consultation active</h3>
   <div class="request assigned">
     <div class="title">Patient — 42 ans • Homme</div>
-    <div class="meta">En consultation depuis 12 min</div>
+    <div class="meta">En consultation</div>
     <div class="actions">
       <button class="call">📞 Appeler</button>
       <button class="chat">💬 Chat</button>
@@ -313,8 +317,8 @@ header{
 
 </main>
 
-<footer style="text-align:center;font-size:12px;color:var(--muted);padding:20px">
-© 2026 CizaHealth+ | Power Group 
+<footer style="text-align:center;font-size:12px;color:var(--muted);padding:18px">
+© 2026 CizaHealth+
 </footer>
 
 </div>
