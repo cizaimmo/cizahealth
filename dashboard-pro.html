@@ -47,88 +47,82 @@ html,body{
 }
 
 /* =========================
-   🟦 HEADER FIXE
+   🟦 HEADER — FIX FINAL RESPONSIVE
    ========================= */
+
 header{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
-  color:#fff;
-  padding:14px 18px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
+  max-width:1280px;
+  margin:auto;
 }
 
 .brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.brand img{
-  height:36px;
+  min-width:0;
 }
 .brand .meta{
-  line-height:1.2;
-}
-.brand .meta strong{
-  font-size:15px;
-  display:block;
-}
-.brand .meta span{
-  font-size:12px;
-  opacity:.9;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-/* Status */
-.status{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:13px;
-  font-weight:600;
-}
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:var(--danger);
-}
-.dot.online{background:#2ECC71}
-
-/* Right actions */
 .header-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.icon-btn{
-  background:#fff;
-  color:var(--primary);
-  border:none;
-  border-radius:12px;
-  padding:8px 10px;
-  font-weight:700;
-  cursor:pointer;
-}
-.badge{
-  background:var(--danger);
-  color:#fff;
-  border-radius:999px;
-  font-size:11px;
-  padding:2px 7px;
-  margin-left:4px;
-}
-.logout{
-  background:none;
-  border:none;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
+  flex-shrink:0;
 }
 
+@media (max-width: 599px){
+  header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .status{
+    order:2;
+  }
+
+  .header-actions{
+    order:3;
+    width:100%;
+    justify-content:space-between;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1023px){
+  header{
+    flex-direction:row;
+    align-items:center;
+  }
+
+  .brand{
+    flex:1;
+  }
+
+  .status{
+    margin-left:auto;
+    margin-right:12px;
+  }
+}
+
+@media (min-width: 1024px){
+  header{
+    padding:18px 26px;
+  }
+
+  .brand strong{
+    font-size:16px;
+  }
+
+  .brand span{
+    font-size:13px;
+  }
+
+  .status{
+    font-size:14px;
+  }
+
+  .icon-btn{
+    padding:10px 12px;
+  }
+}
 /* =========================
    📦 CONTENT
    ========================= */
@@ -139,28 +133,32 @@ header{
 }
 
 /* =========================
-   📊 KPI GRID
+   📊 KPI GRID — FIX FINAL
    ========================= */
 .kpis{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:14px;
 }
-.kpi{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:0 10px 26px rgba(10,42,94,.08);
+
+/* Mobile portrait */
+@media (max-width: 599px){
+  .kpis{
+    grid-template-columns:repeat(2,1fr);
+  }
 }
-.kpi h4{
-  margin:0;
-  font-size:13px;
-  color:var(--muted);
+
+/* Mobile paysage + tablette */
+@media (min-width: 600px) and (max-width: 1023px){
+  .kpis{
+    grid-template-columns:repeat(3,1fr);
+  }
 }
-.kpi .value{
-  margin-top:6px;
-  font-size:28px;
-  font-weight:800;
+
+/* Desktop / paysage large */
+@media (min-width: 1024px){
+  .kpis{
+    grid-template-columns:repeat(6,1fr);
+  }
 }
 
 /* =========================
