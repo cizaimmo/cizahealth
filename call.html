@@ -2,27 +2,24 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<title>CizaHealth+ | État de la demande</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Appel sécurisé</title>
 
 <style>
 :root{
   --primary:#123c8a;
   --primary-dark:#0b2c66;
   --bg:#f4f7fb;
-  --card:#ffffff;
   --text:#0a1a2f;
   --muted:#6b7a90;
-  --success:#1b6b3a;
-  --danger:#c0392b;
-  --radius:22px;
+  --radius:24px;
 }
-
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
 
@@ -30,169 +27,176 @@ body{
   max-width:900px;
   margin:auto;
   min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
 
-/* HEADER */
-header{
-  padding:16px 20px;
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+}
+.header img{height:46px}
+
+.hero{
+  padding:34px 26px;
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
   color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  text-align:center;
 }
-header strong{font-size:15px}
+.hero h1{margin:0 0 10px;font-size:24px}
+.hero p{font-size:15px;opacity:.95}
 
-/* VIDEO */
-.videos{
-  flex:1;
-  padding:18px;
-  display:grid;
-  grid-template-columns:1fr;
-  gap:16px;
-}
-video{
-  width:100%;
-  border-radius:18px;
-  background:#000;
+.content{
+  padding:32px 26px;
+  text-align:center;
 }
 
-/* CONTROLS */
-.controls{
-  padding:18px;
-  display:flex;
-  justify-content:center;
-  gap:14px;
+.card{
+  border-radius:var(--radius);
+  padding:30px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.btn{
-  padding:14px 22px;
-  border:none;
-  border-radius:16px;
+
+.status{
+  font-size:19px;
   font-weight:800;
-  cursor:pointer;
+  margin-bottom:10px;
 }
-.end{background:var(--danger);color:#fff}
+.sub{
+  font-size:14.5px;
+  color:var(--muted);
+  line-height:1.7;
+}
 
-/* AUDIO UNLOCK */
-#audioBtn{
-  position:fixed;
-  bottom:22px;
-  left:50%;
-  transform:translateX(-50%);
-  padding:14px 24px;
-  border:none;
-  border-radius:18px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:900;
-  z-index:999;
+.loader{
+  margin:24px auto 0;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:4px solid #e3e8f2;
+  border-top-color:var(--primary);
+  animation:spin 1s linear infinite;
 }
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{height:42px;margin-bottom:8px}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-<header>
-  <strong>Consultation sécurisée</strong>
-  <span>🔒 Chiffrée</span>
-</header>
-
-<div class="videos">
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
+<div class="header">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
 </div>
 
-<div class="controls">
-  <button class="btn end" id="hangupBtn">Terminer l’appel</button>
+<div class="hero">
+  <h1 id="heroTitle">Demande en cours</h1>
+  <p id="heroDesc">Nous recherchons un professionnel de santé disponible.</p>
 </div>
 
-<button id="audioBtn">🔊 Activer le son</button>
+<div class="content">
+  <div class="card">
+    <div class="status" id="statusLabel">Recherche en cours…</div>
+    <div class="sub" id="statusDesc">
+      Veuillez rester sur cet écran.  
+      Vous serez informé dès qu’un professionnel est prêt.
+    </div>
+    <div class="loader" id="loader"></div>
+  </div>
+</div>
+
+<div class="footer">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div>© 2026 CizaHealth+ — CIZA GROUP</div>
+</div>
 
 </div>
 
+<!-- 🔐 LOGIQUE FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  collection, query, where,
+  orderBy, limit, onSnapshot, doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
+const heroTitle=document.getElementById("heroTitle");
+const heroDesc=document.getElementById("heroDesc");
+const statusLabel=document.getElementById("statusLabel");
+const statusDesc=document.getElementById("statusDesc");
+const loader=document.getElementById("loader");
 
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const audioBtn = document.getElementById("audioBtn");
-const hangupBtn = document.getElementById("hangupBtn");
+let activeRequestId=null;
+let callListenerUnsub=null;
 
-const rtcConfig = {
-  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
-};
+onAuthStateChanged(auth,(user)=>{
+  if(!user) return location.href="login.html";
 
-let pc, localStream;
+  const q=query(
+    collection(db,"requests"),
+    where("patientUid","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
 
-auth.onAuthStateChanged(async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="index.html";
-  }
+  onSnapshot(q,(snap)=>{
+    if(snap.empty) return;
 
-  const callRef = doc(db,"callSessions",requestId);
-  await setDoc(callRef,{status:"init",createdAt:serverTimestamp()},{merge:true});
+    const docSnap=snap.docs[0];
+    const r=docSnap.data();
+    activeRequestId=docSnap.id;
 
-  pc = new RTCPeerConnection(rtcConfig);
-
-  localStream = await navigator.mediaDevices.getUserMedia({
-    video:true,
-    audio:{
-      echoCancellation:true,
-      noiseSuppression:true,
-      autoGainControl:true
+    if(r.status==="pending"){
+      heroTitle.textContent="Demande en cours";
+      heroDesc.textContent="Nous recherchons un professionnel.";
+      statusLabel.textContent="Recherche en cours…";
+      statusDesc.textContent="Merci de patienter.";
+      loader.style.display="block";
     }
-  });
 
-  localVideo.srcObject = localStream;
-  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    if(r.status==="assigned"){
+      heroTitle.textContent="Consultation acceptée";
+      heroDesc.textContent="Un professionnel est prêt.";
+      statusLabel.textContent="Veuillez attendre l’appel";
+      statusDesc.textContent=
+        r.assignedProName
+        ? `Dr ${r.assignedProName} va vous appeler.`
+        : "Le professionnel va vous appeler.";
+      loader.style.display="none";
 
-  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
-
-  pc.onicecandidate = e=>{
-    if(e.candidate){
-      updateDoc(callRef,{ice:e.candidate.toJSON()});
-    }
-  };
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await updateDoc(callRef,{offer});
-
-  onSnapshot(callRef, async snap=>{
-    const d=snap.data();
-    if(d.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(d.answer);
-    }
-    if(d.ice){
-      try{await pc.addIceCandidate(d.ice)}catch{}
+      listenCall(activeRequestId);
     }
   });
 });
 
-/* 🔊 AUDIO UNLOCK */
-audioBtn.onclick = async ()=>{
-  remoteVideo.muted=false;
-  await remoteVideo.play();
-  audioBtn.style.display="none";
-};
+function listenCall(requestId){
+  if(callListenerUnsub) return;
 
-/* END */
-hangupBtn.onclick = async ()=>{
-  localStream.getTracks().forEach(t=>t.stop());
-  pc.close();
-  location.href="index.html";
-};
+  const callRef=doc(db,"callSessions",requestId);
+
+  callListenerUnsub=onSnapshot(callRef,(snap)=>{
+    if(!snap.exists()) return;
+    const c=snap.data();
+
+    if(c.status==="calling"){
+      location.href=`call.html?requestId=${requestId}`;
+    }
+  });
+}
 </script>
 
 </body>
