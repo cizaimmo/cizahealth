@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CizaHealth+ | Consultation en cours</title>
 
 <style>
@@ -13,15 +13,14 @@
   --bg:#0A1A2F;
   --text:#ffffff;
 }
-
 *{box-sizing:border-box}
 html,body{
   margin:0;
   padding:0;
-  height:100%;
   background:var(--bg);
   color:var(--text);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  height:100%;
 }
 
 .app{
@@ -35,8 +34,8 @@ header{
   padding:14px 18px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  justify-content:center;
 }
 header strong{font-size:15px}
 
@@ -44,22 +43,21 @@ header strong{font-size:15px}
 .videos{
   flex:1;
   position:relative;
-  background:#000;
 }
 video{
   width:100%;
   height:100%;
   object-fit:cover;
+  background:#000;
 }
 #localVideo{
   position:absolute;
   width:120px;
   height:160px;
-  bottom:18px;
-  right:18px;
+  bottom:20px;
+  right:20px;
   border-radius:14px;
   border:2px solid #fff;
-  background:#000;
 }
 
 /* CONTROLS */
@@ -71,16 +69,11 @@ video{
 .controls button{
   border:none;
   border-radius:999px;
-  padding:14px 24px;
-  font-weight:900;
+  padding:14px 20px;
+  font-weight:800;
   cursor:pointer;
 }
 .end{background:var(--danger);color:#fff}
-
-/* RESPONSIVE */
-@media(min-width:768px){
-  #localVideo{width:160px;height:220px}
-}
 </style>
 </head>
 
@@ -88,7 +81,7 @@ video{
 <div class="app">
 
 <header>
-  <strong>Consultation sécurisée</strong>
+  <strong id="callTitle">Consultation médicale</strong>
 </header>
 
 <div class="videos">
@@ -105,155 +98,149 @@ video{
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, setDoc, updateDoc,
   onSnapshot, serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded",()=>{
+/* PARAMS */
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
-  const params = new URLSearchParams(location.search);
-  const requestId = params.get("requestId");
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const hangupBtn = document.getElementById("hangupBtn");
 
-  const localVideo = document.getElementById("localVideo");
-  const remoteVideo = document.getElementById("remoteVideo");
-  const hangupBtn  = document.getElementById("hangupBtn");
+const rtcConfig = {
+  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
+};
 
-  if(!requestId){
-    alert("requestId manquant");
+let pc = null;
+let localStream = null;
+let role = null;
+let callRef = null;
+
+/* CLEANUP */
+function cleanup(){
+  if(pc){ pc.close(); pc=null; }
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+    localStream=null;
+  }
+}
+
+/* AUTH */
+onAuthStateChanged(auth, async(user)=>{
+  if(!user || !requestId){
+    alert("Accès refusé");
+    return location.href="/cizahealth/index.html";
+  }
+
+  /* LOAD REQUEST */
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()){
+    alert("Demande introuvable");
     return;
   }
 
-  const rtcConfig = {
-    iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
-  };
+  const req = reqSnap.data();
 
-  let pc = null;
-  let localStream = null;
-  let role = null;
-  let callRef = null;
+  if(user.uid === req.patientUid) role="patient";
+  if(user.uid === req.assignedProUid) role="pro";
 
-  function cleanup(){
-    if(pc){ pc.close(); pc=null; }
-    if(localStream){
-      localStream.getTracks().forEach(t=>t.stop());
-      localStream=null;
-    }
+  if(!role){
+    alert("Non autorisé à participer à l’appel");
+    return;
   }
 
-  onAuthStateChanged(auth, async(user)=>{
-    if(!user){
-      location.href="/cizahealth/index.html";
-      return;
+  callRef = doc(db,"callSessions",requestId);
+
+  /* INIT WEBRTC */
+  pc = new RTCPeerConnection(rtcConfig);
+
+  localStream = await navigator.mediaDevices.getUserMedia({
+    audio:true,
+    video:true
+  });
+
+  localVideo.srcObject = localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+  pc.ontrack = e=>{
+    remoteVideo.srcObject = e.streams[0];
+  };
+
+  pc.onicecandidate = e=>{
+    if(e.candidate){
+      updateDoc(callRef,{
+        iceCandidate: JSON.stringify(e.candidate)
+      });
     }
+  };
 
-    /* LOAD REQUEST */
-    const reqRef = doc(db,"requests",requestId);
-    const reqSnap = await getDoc(reqRef);
-    if(!reqSnap.exists()){
-      alert("Consultation introuvable");
-      return;
-    }
+  /* 🔑 SEUL LE PRO DÉMARRE L’APPEL */
+  if(role === "pro"){
+    await setDoc(callRef,{
+      requestId,
+      patientUid: req.patientUid,
+      assignedProUid: req.assignedProUid,
+      status: "calling",
+      startedAt: serverTimestamp()
+    },{merge:true});
 
-    const req = reqSnap.data();
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
 
-    if(user.uid === req.patientUid) role="patient";
-    if(user.uid === req.assignedProUid) role="pro";
-
-    if(!role){
-      alert("Accès refusé");
-      return;
-    }
-
-    callRef = doc(db,"callSessions",requestId);
-
-    /* WEBRTC INIT */
-    pc = new RTCPeerConnection(rtcConfig);
-
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:true
+    await updateDoc(callRef,{
+      offer: JSON.stringify(offer)
     });
+  }
 
-    localVideo.srcObject = localStream;
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+  /* SIGNALING */
+  onSnapshot(callRef, async(snap)=>{
+    if(!snap.exists()) return;
+    const data = snap.data();
 
-    pc.ontrack = e=>{
-      remoteVideo.srcObject = e.streams[0];
-      remoteVideo.muted = false;
-      remoteVideo.play().catch(()=>{});
-    };
-
-    pc.onicecandidate = e=>{
-      if(e.candidate){
-        updateDoc(callRef,{
-          iceCandidate: JSON.stringify(e.candidate)
-        }).catch(()=>{});
-      }
-    };
-
-    /* 👉 SEUL LE PRO DÉMARRE L’APPEL */
-    if(role==="pro"){
-      await setDoc(callRef,{
-        requestId,
-        patientUid:req.patientUid,
-        assignedProUid:req.assignedProUid,
-        status:"calling",
-        startedAt:serverTimestamp()
-      },{merge:true});
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+    /* PATIENT RÉPOND À L’APPEL */
+    if(role==="patient" && data.offer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
 
       await updateDoc(callRef,{
-        offer: JSON.stringify(offer)
+        answer: JSON.stringify(answer),
+        status: "connected"
       });
     }
 
-    /* SIGNALING */
-    onSnapshot(callRef, async(snap)=>{
-      if(!snap.exists()) return;
-      const data = snap.data();
+    /* PRO REÇOIT LA RÉPONSE */
+    if(role==="pro" && data.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.answer));
+    }
 
-      if(role==="patient" && data.offer && !pc.currentRemoteDescription){
-        await pc.setRemoteDescription(JSON.parse(data.offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
+    if(data.iceCandidate){
+      try{
+        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
+      }catch(e){}
+    }
 
-        await updateDoc(callRef,{
-          answer: JSON.stringify(answer),
-          status:"connected"
-        });
-      }
-
-      if(role==="pro" && data.answer && !pc.currentRemoteDescription){
-        await pc.setRemoteDescription(JSON.parse(data.answer));
-      }
-
-      if(data.iceCandidate){
-        try{
-          await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-        }catch(e){}
-      }
-
-      if(data.status==="ended"){
-        cleanup();
-        history.back();
-      }
-    });
-
-    hangupBtn.onclick = async()=>{
-      await updateDoc(callRef,{
-        status:"ended",
-        endedAt:serverTimestamp()
-      }).catch(()=>{});
+    if(data.status==="ended"){
       cleanup();
       history.back();
-    };
+    }
   });
 
+  /* HANGUP */
+  hangupBtn.onclick = async()=>{
+    await updateDoc(callRef,{
+      status:"ended",
+      endedAt:serverTimestamp()
+    });
+    cleanup();
+    history.back();
+  };
 });
 </script>
 
