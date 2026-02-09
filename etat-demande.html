@@ -130,22 +130,24 @@ import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where,
-  orderBy, limit, onSnapshot
+  orderBy, limit, onSnapshot, doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const heroTitle=document.getElementById("heroTitle");
-const heroDesc=document.getElementById("heroDesc");
-const statusLabel=document.getElementById("statusLabel");
-const statusDesc=document.getElementById("statusDesc");
-const loader=document.getElementById("loader");
+const heroTitle = document.getElementById("heroTitle");
+const heroDesc = document.getElementById("heroDesc");
+const statusLabel = document.getElementById("statusLabel");
+const statusDesc = document.getElementById("statusDesc");
+const loader = document.getElementById("loader");
 
-let requestId = null;
 let callListenerUnsub = null;
 
 onAuthStateChanged(auth,(user)=>{
-  if(!user) return location.href="login.html";
+  if(!user){
+    location.href="login.html";
+    return;
+  }
 
-  // 1️⃣ Écoute la dernière demande du patient
+  // 🔑 Dernière demande du patient
   const reqQuery = query(
     collection(db,"requests"),
     where("patientUid","==",user.uid),
@@ -156,54 +158,53 @@ onAuthStateChanged(auth,(user)=>{
   onSnapshot(reqQuery,(snap)=>{
     if(snap.empty) return;
 
-    const docSnap = snap.docs[0];
-    const r = docSnap.data();
-    requestId = docSnap.id;
+    const reqDoc = snap.docs[0];
+    const r = reqDoc.data();
+    const requestId = reqDoc.id;
 
+    /* ⏳ EN ATTENTE */
     if(r.status === "pending"){
-      heroTitle.textContent="Demande en cours";
-      heroDesc.textContent="Recherche d’un professionnel disponible.";
-      statusLabel.textContent="Recherche en cours…";
-      statusDesc.textContent="Merci de patienter quelques instants.";
-      loader.style.display="block";
+      heroTitle.textContent = "Demande en cours";
+      heroDesc.textContent = "Recherche d’un professionnel disponible.";
+      statusLabel.textContent = "Recherche en cours…";
+      statusDesc.textContent = "Merci de patienter quelques instants.";
+      loader.style.display = "block";
     }
 
+    /* ✅ ASSIGNÉ */
     if(r.status === "assigned"){
-      heroTitle.textContent="Consultation acceptée";
-      heroDesc.textContent="Votre professionnel est prêt.";
-      statusLabel.textContent="En attente de l’appel";
+      heroTitle.textContent = "Consultation acceptée";
+      heroDesc.textContent = "Votre professionnel est prêt.";
+      statusLabel.textContent = "Veuillez attendre l’appel";
       statusDesc.textContent =
         r.assignedProName
           ? `Dr ${r.assignedProName} va vous appeler.`
           : "Le professionnel va vous appeler.";
-      loader.style.display="none";
+      loader.style.display = "none";
 
-      // 🔥 ON DÉMARRE L'ÉCOUTE DE L’APPEL (UNE SEULE FOIS)
-      listenForCall();
+      listenCallDoc(requestId);
     }
   });
 });
 
-function listenForCall(){
-  if(callListenerUnsub || !requestId) return;
+/* 🔔 ÉCOUTE DIRECTE DU DOCUMENT D’APPEL */
+function listenCallDoc(requestId){
+  if(callListenerUnsub) return;
 
-  const callQuery = query(
-    collection(db,"callSessions"),
-    where("requestId","==",requestId)
-  );
+  const callRef = doc(db,"callSessions",requestId);
 
-  callListenerUnsub = onSnapshot(callQuery,(snap)=>{
-    if(snap.empty) return;
+  callListenerUnsub = onSnapshot(callRef,(snap)=>{
+    if(!snap.exists()) return;
 
-    const callDoc = snap.docs[0];
-    const call = callDoc.data();
+    const call = snap.data();
 
-    // ✅ LE PRO A DÉMARRÉ L’APPEL
-    if(call.status === "calling" || call.offer){
+    // ✅ LE PRO A CLIQUÉ SUR “DÉMARRER”
+    if(call.status === "calling" && call.offer){
       location.href = `call.html?requestId=${requestId}`;
     }
   });
 }
 </script>
+  
 </body>
 </html>
