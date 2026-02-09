@@ -5,14 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CizaHealth+ | Dashboard Professionnel</title>
 
-<!-- =========================
-🎨 CIZAHEALTH DESIGN SYSTEM
-========================= -->
 <style>
 :root{
   --primary:#0E3A8A;
   --primary-dark:#0A2F6A;
-  --primary-soft:#EEF3FB;
   --success:#1B6B3A;
   --warning:#E67E22;
   --danger:#C0392B;
@@ -32,18 +28,9 @@ html,body{
   color:var(--text);
 }
 
-/* =========================
-🧱 APP LAYOUT
-========================= */
-.app{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{min-height:100vh;display:flex;flex-direction:column}
 
-/* =========================
-🟦 HEADER (MÉTIER – FINAL)
-========================= */
+/* ===== HEADER ===== */
 header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
@@ -56,40 +43,16 @@ header{
   align-items:center;
   gap:16px;
 }
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex:1;
-  min-width:0;
-}
+.brand{display:flex;align-items:center;gap:12px;flex:1}
 .brand img{height:38px}
-.brand .meta{
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.brand strong{display:block;font-size:16px}
+.brand strong{font-size:16px}
 .brand span{font-size:13px;opacity:.9}
 
-.status{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-weight:700;
-  font-size:13px;
-}
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--danger);
-}
+.status{display:flex;align-items:center;gap:6px;font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--danger)}
 .dot.online{background:#2ecc71}
 
-.header-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+.header-actions{display:flex;gap:10px}
 .icon-btn{
   background:#fff;
   color:var(--primary);
@@ -97,7 +60,6 @@ header{
   border-radius:12px;
   padding:8px 12px;
   font-weight:800;
-  cursor:pointer;
 }
 .badge{
   background:var(--danger);
@@ -105,49 +67,74 @@ header{
   border-radius:999px;
   padding:2px 7px;
   font-size:11px;
-  margin-left:4px;
 }
-.logout{
-  background:none;
+.logout{background:none;border:none;color:#fff;font-weight:800;cursor:pointer}
+
+main{max-width:1440px;margin:auto;width:100%;padding:22px}
+
+/* ===== KPI ===== */
+.kpis{display:grid;gap:16px}
+@media(max-width:599px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:600px) and (max-width:1023px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.kpis{grid-template-columns:repeat(6,1fr)}}
+.kpi{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 30px rgba(10,42,94,.08);
+}
+.kpi h4{margin:0;font-size:13px;color:var(--muted)}
+.kpi .value{margin-top:8px;font-size:30px;font-weight:900}
+
+/* ===== CARDS ===== */
+.card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 10px 26px rgba(10,42,94,.08);
+  margin-top:24px;
+}
+
+.request{
+  border:1px solid #EEF1F6;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.request.pending{border-left:6px solid var(--warning)}
+.request.assigned{border-left:6px solid var(--success)}
+
+.title{font-weight:900}
+.meta{margin-top:6px;font-size:13px;color:var(--muted)}
+.actions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+.actions button{
+  min-height:46px;
   border:none;
-  color:#fff;
+  border-radius:14px;
   font-weight:800;
+  color:#fff;
   cursor:pointer;
 }
-
-/* =========================
-📦 CONTENT (VIDE POUR L’INSTANT)
-========================= */
-main{
-  max-width:1440px;
-  margin:auto;
-  width:100%;
-  padding:22px;
-}
-
-/* =========================
-📱 RESPONSIVE
-========================= */
-@media(max-width:600px){
-  .header-inner{flex-wrap:wrap}
-  .status{order:2}
-  .header-actions{width:100%;justify-content:space-between}
-}
+.accept{background:var(--success)}
+.refuse{background:var(--danger)}
+.chat{background:var(--primary)}
+.call{background:#6C5CE7}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-<!-- =========================
-HEADER PRO
-========================= -->
 <header>
   <div class="header-inner">
     <div class="brand">
       <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-      <div class="meta">
+      <div>
         <strong id="proName">—</strong>
         <span id="proMeta">—</span>
       </div>
@@ -159,7 +146,7 @@ HEADER PRO
     </div>
 
     <div class="header-actions">
-      <button class="icon-btn" id="notifBtn">🔔 <span class="badge" id="notifCount">0</span></button>
+      <button class="icon-btn">🔔 <span class="badge" id="notifCount">0</span></button>
       <button class="logout" id="logoutBtn">Déconnexion</button>
     </div>
   </div>
@@ -167,306 +154,26 @@ HEADER PRO
 
 <main>
 
- <!-- =========================
-BLOC 2 — KPI MÉTIER
-========================= -->
-
 <section class="kpis">
-  <div class="kpi">
-    <h4>Consultations en cours</h4>
-    <div class="value" id="kpiActive">0</div>
-  </div>
-
-  <div class="kpi">
-    <h4>Aujourd’hui</h4>
-    <div class="value" id="kpiToday">0</div>
-  </div>
-
-  <div class="kpi">
-    <h4>Terminées</h4>
-    <div class="value" id="kpiCompleted">0</div>
-  </div>
-
-  <div class="kpi">
-    <h4>Payées</h4>
-    <div class="value" id="kpiPaid">0</div>
-  </div>
-
-  <div class="kpi">
-    <h4>Gains cumulés</h4>
-    <div class="value" id="kpiEarnings">0</div>
-  </div>
-
-  <div class="kpi">
-    <h4>En attente</h4>
-    <div class="value" id="kpiPending">0</div>
-  </div>
+  <div class="kpi"><h4>Actives</h4><div class="value" id="kpiActive">0</div></div>
+  <div class="kpi"><h4>En attente</h4><div class="value" id="kpiPending">0</div></div>
+  <div class="kpi"><h4>Terminées</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Payées</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Gains</h4><div class="value">0</div></div>
+  <div class="kpi"><h4>Aujourd’hui</h4><div class="value">0</div></div>
 </section>
-
-<style>
-/* =========================
-KPI GRID — RESPONSIVE FINAL
-========================= */
-.kpis{
-  display:grid;
-  gap:16px;
-}
-
-/* Mobile portrait */
-@media(max-width:599px){
-  .kpis{grid-template-columns:repeat(2,1fr)}
-}
-
-/* Mobile paysage / tablette */
-@media(min-width:600px) and (max-width:1023px){
-  .kpis{grid-template-columns:repeat(3,1fr)}
-}
-
-/* Desktop / large paysage */
-@media(min-width:1024px){
-  .kpis{grid-template-columns:repeat(6,1fr)}
-}
-
-.kpi{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:22px;
-  box-shadow:0 10px 30px rgba(10,42,94,.08);
-}
-
-.kpi h4{
-  margin:0;
-  font-size:13px;
-  color:var(--muted);
-  font-weight:700;
-}
-
-.kpi .value{
-  margin-top:8px;
-  font-size:30px;
-  font-weight:900;
-}
-</style>
-
-<!-- =========================
-FIN BLOC 2 — KPI
-========================= --> <!-- =========================
-BLOC 3 — REQUÊTES PATIENTS (EN ATTENTE)
-========================= -->
 
 <section class="card">
   <h3>🟡 Requêtes en attente</h3>
-
-  <!-- Liste dynamique (remplie plus tard par Firestore) -->
-  <div id="pendingList">
-
-    <!-- Item type (structure) -->
-    <div class="request pending">
-      <div class="title">
-        Patient <span class="pill">ID</span>
-      </div>
-
-      <div class="meta">
-        Âge • Sexe • Province
-      </div>
-
-      <div class="meta">
-        Symptômes : description courte
-      </div>
-
-      <div class="meta small">
-        Créée le ——
-      </div>
-
-      <div class="actions">
-        <button class="accept" type="button">Accepter</button>
-        <button class="refuse" type="button">Refuser</button>
-        <button class="chat" type="button" disabled>Chat</button>
-      </div>
-    </div>
-    <!-- /Item type -->
-
-  </div>
+  <div id="pendingList"></div>
 </section>
-
-<style>
-/* =========================
-REQUÊTES — STYLE MÉTIER
-========================= */
-.request{
-  border:1px solid #EEF1F6;
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
-  background:#fff;
-}
-
-.request.pending{
-  border-left:6px solid var(--warning);
-}
-
-.request .title{
-  font-weight:900;
-  font-size:15px;
-}
-
-.request .meta{
-  margin-top:6px;
-  font-size:13px;
-  color:var(--muted);
-}
-
-.request .meta.small{
-  font-size:12px;
-  opacity:.85;
-}
-
-.pill{
-  background:var(--primary-soft);
-  color:var(--primary);
-  border-radius:999px;
-  padding:2px 8px;
-  font-size:11px;
-  font-weight:800;
-  margin-left:6px;
-}
-
-.actions{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:14px;
-}
-
-.actions button{
-  min-height:46px;
-  border:none;
-  border-radius:14px;
-  font-weight:800;
-  color:#fff;
-  cursor:pointer;
-}
-
-.actions button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
-
-.accept{background:var(--success)}
-.refuse{background:var(--danger)}
-.chat{background:var(--primary)}
-</style>
-
-<!-- =========================
-FIN BLOC 3 — REQUÊTES
-========================= --><!-- =========================
-BLOC 4 — CONSULTATION ACTIVE
-========================= -->
 
 <section class="card">
-  <h3>🟢 Consultation active</h3>
-
-  <!-- Liste dynamique des consultations actives -->
-  <div id="activeConsultationList">
-
-    <!-- Item type (structure) -->
-    <div class="request assigned">
-      <div class="title">
-        Patient <span class="pill">ID</span>
-      </div>
-
-      <div class="meta">
-        Âge • Sexe • Province
-      </div>
-
-      <div class="meta">
-        En consultation depuis ——
-      </div>
-
-      <div class="actions">
-        <button class="call" type="button">📞 Appeler</button>
-        <button class="chat" type="button">💬 Chat</button>
-        <button class="accept" type="button">📝 Rapport</button>
-      </div>
-    </div>
-    <!-- /Item type -->
-
-  </div>
+  <h3>🟢 Consultations actives</h3>
+  <div id="activeList"></div>
 </section>
 
-<style>
-/* =========================
-CONSULTATION ACTIVE — STYLE
-========================= */
-.request.assigned{
-  border-left:6px solid var(--success);
-}
-
-.call{background:#6C5CE7}
-</style>
-
-<!-- =========================
-FIN BLOC 4 — CONSULTATION ACTIVE
-========================= --><!-- =========================
-BLOC 5 — NOTIFICATIONS
-========================= -->
-
-<section class="card">
-  <h3>🔔 Notifications</h3>
-
-  <!-- Liste dynamique des notifications -->
-  <div id="notificationList">
-
-    <!-- Item type (structure) -->
-    <div class="notification">
-      <strong>Titre de la notification</strong>
-      <span>Message de notification (admin → pro)</span>
-      <div class="notif-meta">Reçue le ——</div>
-    </div>
-    <!-- /Item type -->
-
-  </div>
-</section>
-
-<style>
-/* =========================
-NOTIFICATIONS — STYLE MÉTIER
-========================= */
-.notification{
-  padding:14px 0;
-  border-bottom:1px solid #EEF1F6;
-}
-
-.notification:last-child{
-  border-bottom:none;
-}
-
-.notification strong{
-  display:block;
-  font-size:14px;
-  font-weight:800;
-}
-
-.notification span{
-  display:block;
-  margin-top:4px;
-  font-size:13px;
-  color:var(--muted);
-}
-
-.notif-meta{
-  margin-top:6px;
-  font-size:12px;
-  color:var(--muted);
-  opacity:.8;
-}
-</style>
-
-<!-- =========================
-FIN BLOC 5 — NOTIFICATIONS
-========================= --><!-- =========================
-BLOC 6 — LOGIQUE FIREBASE COMPLÈTE
-========================= -->
+</main>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
@@ -478,203 +185,97 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =========================
-DOM
-========================= */
-const proName = document.getElementById("proName");
-const proMeta = document.getElementById("proMeta");
-const statusDot = document.getElementById("statusDot");
-const statusText = document.getElementById("statusText");
-const logoutBtn = document.getElementById("logoutBtn");
+const proName=document.getElementById("proName");
+const proMeta=document.getElementById("proMeta");
+const statusDot=document.getElementById("statusDot");
+const statusText=document.getElementById("statusText");
+const logoutBtn=document.getElementById("logoutBtn");
 
-const notifCount = document.getElementById("notifCount");
-const notificationList = document.getElementById("notificationList");
+const pendingList=document.getElementById("pendingList");
+const activeList=document.getElementById("activeList");
+const kpiPending=document.getElementById("kpiPending");
+const kpiActive=document.getElementById("kpiActive");
 
-const kpiActive = document.getElementById("kpiActive");
-const kpiToday = document.getElementById("kpiToday");
-const kpiCompleted = document.getElementById("kpiCompleted");
-const kpiPaid = document.getElementById("kpiPaid");
-const kpiEarnings = document.getElementById("kpiEarnings");
-const kpiPending = document.getElementById("kpiPending");
+logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html"};
 
-const pendingList = document.getElementById("pendingList");
-const activeConsultationList = document.getElementById("activeConsultationList");
+onAuthStateChanged(auth, async(user)=>{
+  if(!user) return location.href="/cizahealth/index.html";
 
-let heartbeat = null;
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
+  const p=snap.data();
 
-/* =========================
-LOGOUT
-========================= */
-logoutBtn.addEventListener("click", async ()=>{
-  if(heartbeat) clearInterval(heartbeat);
-  await signOut(auth);
-  location.href="/cizahealth/index.html";
-});
+  proName.textContent=p.fullName;
+  proMeta.textContent=`${p.role} • ${p.speciality} • ${p.province}`;
 
-/* =========================
-AUTH
-========================= */
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    location.href="/cizahealth/index.html";
-    return;
-  }
+  setInterval(()=>updateDoc(userRef,{lastOnlineAt:serverTimestamp()}),15000);
 
-  const userRef = doc(db,"users",user.uid);
-
-  /* ===== PROFIL PRO ===== */
-  const snap = await getDoc(userRef);
-  if(snap.exists()){
-    const p = snap.data();
-    proName.textContent = p.fullName || "—";
-    proMeta.textContent = `${p.role||"—"} • ${p.speciality||"—"} • ${p.province||"—"}`;
-  }
-
-  /* ===== HEARTBEAT ONLINE ===== */
-  heartbeat = setInterval(()=>{
-    updateDoc(userRef,{ lastOnlineAt: serverTimestamp() });
-  },15000);
-
-  /* ===== ONLINE / OFFLINE ===== */
-  onSnapshot(userRef,(s)=>{
-    const last = s.data()?.lastOnlineAt?.toMillis?.();
-    const online = last && (Date.now()-last < 30000);
-    if(online){
-      statusDot.classList.add("online");
-      statusText.textContent = "En ligne";
-    }else{
-      statusDot.classList.remove("online");
-      statusText.textContent = "Hors ligne";
-    }
+  onSnapshot(userRef,s=>{
+    const last=s.data()?.lastOnlineAt?.toMillis?.();
+    const online=last && Date.now()-last<30000;
+    statusDot.classList.toggle("online",online);
+    statusText.textContent=online?"En ligne":"Hors ligne";
   });
 
-  /* =========================
-  KPI + REQUESTS
-  ========================= */
-
-  /* ===== REQUÊTES EN ATTENTE ===== */
   onSnapshot(
-    query(collection(db,"requests"), where("status","==","pending")),
+    query(collection(db,"requests"),where("status","==","pending")),
     snap=>{
       pendingList.innerHTML="";
-      kpiPending.textContent = snap.size;
-
-      if(snap.empty){
-        pendingList.innerHTML="<div class='meta'>Aucune requête</div>";
-        return;
-      }
-
+      kpiPending.textContent=snap.size;
       snap.forEach(d=>{
-        const r = d.data();
-        const div = document.createElement("div");
+        const r=d.data();
+        const div=document.createElement("div");
         div.className="request pending";
         div.innerHTML=`
-          <div class="title">Patient <span class="pill">${r.patientId||""}</span></div>
-          <div class="meta">${r.age||"—"} • ${r.gender||"—"} • ${r.province||"—"}</div>
-          <div class="meta">Symptômes : ${r.symptoms||"—"}</div>
-          <div class="meta small">Créée le ${r.createdAt?.toDate?.().toLocaleString()||""}</div>
+          <div class="title">Patient ${r.patientUid}</div>
+          <div class="meta">${r.province||""}</div>
           <div class="actions">
             <button class="accept">Accepter</button>
             <button class="refuse">Refuser</button>
             <button class="chat" disabled>Chat</button>
           </div>
         `;
-
-        div.querySelector(".accept").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
-            status:"assigned",
-            assignedTo:user.uid,
-            assignedAt:serverTimestamp(),
-            assignedToName:proName.textContent
-          });
-        };
-
-        div.querySelector(".refuse").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
-            status:"refused",
-            refusedBy:user.uid,
-            refusedAt:serverTimestamp()
-          });
-        };
-
+        div.querySelector(".accept").onclick=()=>updateDoc(doc(db,"requests",d.id),{
+          status:"assigned",
+          assignedProUid:user.uid,
+          assignedProName:p.fullName,
+          assignedAt:serverTimestamp()
+        });
+        div.querySelector(".refuse").onclick=()=>updateDoc(doc(db,"requests",d.id),{
+          status:"refused",
+          refusedBy:user.uid,
+          refusedAt:serverTimestamp()
+        });
         pendingList.appendChild(div);
       });
     }
   );
 
-  /* ===== CONSULTATIONS ACTIVES ===== */
   onSnapshot(
     query(collection(db,"requests"),
-      where("assignedTo","==",user.uid),
-      where("status","==","assigned")
-    ),
+      where("assignedProUid","==",user.uid),
+      where("status","==","assigned")),
     snap=>{
-      activeConsultationList.innerHTML="";
-      kpiActive.textContent = snap.size;
-
-      if(snap.empty){
-        activeConsultationList.innerHTML="<div class='meta'>Aucune consultation active</div>";
-        return;
-      }
-
+      activeList.innerHTML="";
+      kpiActive.textContent=snap.size;
       snap.forEach(d=>{
-        const r=d.data();
         const div=document.createElement("div");
         div.className="request assigned";
         div.innerHTML=`
-          <div class="title">Patient <span class="pill">${r.patientId||""}</span></div>
-          <div class="meta">${r.age||"—"} • ${r.gender||"—"} • ${r.province||"—"}</div>
-          <div class="meta">En consultation</div>
+          <div class="title">Consultation</div>
           <div class="actions">
-            <button class="call">📞 Appeler</button>
-            <button class="chat">💬 Chat</button>
-            <button class="accept">📝 Rapport</button>
+            <button class="call" onclick="location.href='/cizahealth/call.html?requestId=${d.id}'">📞 Appel</button>
+            <button class="chat" onclick="location.href='/cizahealth/chat.html?requestId=${d.id}'">💬 Chat</button>
+            <button class="accept" onclick="location.href='/cizahealth/report.html?requestId=${d.id}'">📝 Rapport</button>
           </div>
         `;
-
-        div.querySelector(".call").onclick=()=>{
-          location.href=`/cizahealth/call.html?requestId=${d.id}`;
-        };
-        div.querySelector(".chat").onclick=()=>{
-          location.href=`/cizahealth/chat.html?requestId=${d.id}`;
-        };
-        div.querySelector(".accept").onclick=()=>{
-          location.href=`/cizahealth/report.html?requestId=${d.id}`;
-        };
-
-        activeConsultationList.appendChild(div);
+        activeList.appendChild(div);
       });
     }
   );
-
-  /* ===== NOTIFICATIONS ===== */
-  onSnapshot(
-    query(collection(db,"notifications"), where("receiverId","==",user.uid)),
-    snap=>{
-      notifCount.textContent = snap.docs.filter(d=>!d.data().read).length;
-      notificationList.innerHTML="";
-
-      if(snap.empty){
-        notificationList.innerHTML="<div class='meta'>Aucune notification</div>";
-        return;
-      }
-
-      snap.forEach(d=>{
-        const n=d.data();
-        notificationList.innerHTML+=`
-          <div class="notification">
-            <strong>${n.title||"Notification"}</strong>
-            <span>${n.body||""}</span>
-            <div class="notif-meta">${n.createdAt?.toDate?.().toLocaleString()||""}</div>
-          </div>
-        `;
-      });
-    }
-  );
-
 });
 </script>
 
-  </body>
+</div>
+</body>
 </html>
-  
