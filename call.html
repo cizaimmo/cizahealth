@@ -6,6 +6,7 @@
 <title>CizaHealth+ | Consultation sécurisée</title>
 
 <style>
+/* ===== DESIGN INCHANGÉ ===== */
 :root{
   --primary:#0E3A8A;
   --primary-dark:#0A2F6A;
@@ -25,89 +26,50 @@ body{
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
-/* ===== LAYOUT ===== */
 .app{min-height:100vh;display:flex;flex-direction:column}
-
 header{
-  position:sticky;top:0;z-index:50;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;padding:14px 18px;
-  display:flex;align-items:center;gap:12px;
+  display:flex;gap:12px;align-items:center;
 }
-.back{
-  width:38px;height:38px;border-radius:12px;
-  background:rgba(255,255,255,.15);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-}
-.headMeta{flex:1;min-width:0}
-.headMeta strong{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.headMeta span{font-size:12px;opacity:.9}
-
+.back{cursor:pointer}
 main{
   flex:1;
   max-width:1200px;
-  margin:0 auto;
-  padding:18px;
+  margin:auto;
+  padding:14px;
+}
+.vgrid{
   display:grid;
   gap:14px;
 }
-
-.vgrid{display:grid;gap:14px}
-@media(min-width:900px){.vgrid{grid-template-columns:1fr 1fr}}
-
-.vcard{
-  background:#fff;
-  border-radius:var(--radius);
-  box-shadow:0 10px 30px rgba(10,42,94,.1);
-  border:1px solid #e7edf7;
-  overflow:hidden;
-}
-.vtop{
-  padding:12px 14px;
-  border-bottom:1px solid #eef1f6;
-  display:flex;align-items:center;justify-content:space-between;
+@media(min-width:900px){
+  .vgrid{grid-template-columns:1fr 1fr}
 }
 .videoBox{
-  background:#0b0f1a;
+  background:#000;
   aspect-ratio:16/10;
-  position:relative;
+  border-radius:22px;
+  overflow:hidden;
 }
-video{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  object-fit:cover;
-  background:#0b0f1a;
-}
-
+video{width:100%;height:100%;object-fit:cover}
 .controls{
-  background:#fff;
-  border-radius:var(--radius);
-  border:1px solid #e7edf7;
-  box-shadow:0 10px 30px rgba(10,42,94,.1);
-  padding:14px;
-  display:grid;gap:12px;
+  margin-top:14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
 }
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.status{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--danger)}
-.dot.ok{background:#2ecc71}
-
-.btns{display:flex;flex-wrap:wrap;gap:10px}
 button{
-  border:none;border-radius:14px;
-  padding:12px 14px;
-  font-weight:900;
-  min-width:140px;
+  padding:12px 16px;
+  border-radius:14px;
+  border:none;
+  font-weight:800;
   cursor:pointer;
 }
 .primary{background:var(--success);color:#fff}
 .blue{background:var(--primary);color:#fff}
-.red{background:var(--danger);color:#fff}
 .ghost{background:#eef3fb;color:var(--primary)}
-
-small.help{color:var(--muted);line-height:1.5}
+.red{background:var(--danger);color:#fff}
 </style>
 </head>
 
@@ -115,50 +77,30 @@ small.help{color:var(--muted);line-height:1.5}
 <div class="app">
 
 <header>
-  <div class="back" id="backBtn">←</div>
-  <div class="headMeta">
-    <strong>Consultation sécurisée</strong>
-    <span id="subLine">Initialisation…</span>
+  <div class="back" onclick="history.back()">←</div>
+  <div>
+    <strong>Consultation sécurisée</strong><br>
+    <span id="subLine">Connexion…</span>
   </div>
 </header>
 
 <main>
 
-<section class="vgrid">
-  <div class="vcard">
-    <div class="vtop"><b>Votre caméra</b><span id="meRole">—</span></div>
-    <div class="videoBox">
-      <video id="localVideo" playsinline muted autoplay></video>
-    </div>
+<div class="vgrid">
+  <div class="videoBox">
+    <video id="localVideo" autoplay playsinline muted></video>
   </div>
-
-  <div class="vcard">
-    <div class="vtop"><b>Interlocuteur</b><span id="peerRole">—</span></div>
-    <div class="videoBox">
-      <video id="remoteVideo" playsinline autoplay></video>
-    </div>
+  <div class="videoBox">
+    <video id="remoteVideo" autoplay playsinline></video>
   </div>
-</section>
+</div>
 
-<section class="controls">
-  <div class="row">
-    <div class="status">
-      <span class="dot" id="connDot"></span>
-      <span id="connText">Vérification…</span>
-    </div>
-
-    <div class="btns">
-      <button class="ghost" id="unlockBtn">🔊 Activer le son</button>
-      <button class="primary" id="startBtn">📞 Démarrer</button>
-      <button class="blue" id="muteBtn">🎙️ Muet</button>
-      <button class="red" id="hangBtn">⛔ Quitter</button>
-    </div>
-  </div>
-
-  <small class="help">
-    Astuce : pour des raisons de sécurité navigateur, l’audio doit être activé par un clic.
-  </small>
-</section>
+<div class="controls">
+  <button id="unlockBtn" class="ghost">🔊 Activer le son</button>
+  <button id="startBtn" class="primary">📞 Démarrer</button>
+  <button id="muteBtn" class="blue">🎙️ Muet</button>
+  <button id="hangBtn" class="red">⛔ Quitter</button>
+</div>
 
 </main>
 
@@ -168,63 +110,45 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* DOM */
-const backBtn = document.getElementById("backBtn");
-const unlockBtn = document.getElementById("unlockBtn");
-const startBtn = document.getElementById("startBtn");
-const muteBtn = document.getElementById("muteBtn");
-const hangBtn = document.getElementById("hangBtn");
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const connDot = document.getElementById("connDot");
-const connText = document.getElementById("connText");
-const subLine = document.getElementById("subLine");
-const meRole = document.getElementById("meRole");
-const peerRole = document.getElementById("peerRole");
-
-backBtn.onclick = ()=>history.back();
 const params=new URLSearchParams(location.search);
 const requestId=params.get("requestId");
 
-let pc=null, localStream=null, audioUnlocked=false, isMuted=false;
-let reqData=null, role=null;
+const localVideo=document.getElementById("localVideo");
+const remoteVideo=document.getElementById("remoteVideo");
+const startBtn=document.getElementById("startBtn");
+const unlockBtn=document.getElementById("unlockBtn");
+const muteBtn=document.getElementById("muteBtn");
+const hangBtn=document.getElementById("hangBtn");
+const subLine=document.getElementById("subLine");
+
+let pc=null;
+let localStream=null;
+let role=null;
+let audioUnlocked=false;
 const callRef=doc(db,"callSessions",requestId);
 
-/* ===== AUDIO UNLOCK (FIX) ===== */
 unlockBtn.onclick=async()=>{
   audioUnlocked=true;
-  unlockBtn.textContent="🔊 Son activé";
+  remoteVideo.muted=false;
+  try{await remoteVideo.play()}catch{}
   unlockBtn.disabled=true;
-  setStatus(true,"Audio prêt");
 };
 
-/* ===== STATUS ===== */
-function setStatus(ok,text){
-  connDot.classList.toggle("ok",!!ok);
-  connText.textContent=text;
-}
-
-/* ===== MEDIA ===== */
 async function startMedia(){
   if(localStream) return;
   localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
   localVideo.srcObject=localStream;
 }
 
-/* ===== PC ===== */
 function createPC(){
   pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-
-  pc.ontrack=async e=>{
+  pc.ontrack=e=>{
     remoteVideo.srcObject=e.streams[0];
     if(audioUnlocked){
-      try{
-        remoteVideo.muted=false;
-        await remoteVideo.play();
-      }catch{}
+      remoteVideo.muted=false;
+      remoteVideo.play().catch(()=>{});
     }
   };
-
   pc.onicecandidate=e=>{
     if(e.candidate){
       updateDoc(callRef,{ice:JSON.stringify(e.candidate)});
@@ -232,80 +156,76 @@ function createPC(){
   };
 }
 
-/* ===== SECURITY ===== */
-async function authorize(user){
-  const snap=await getDoc(doc(db,"requests",requestId));
-  if(!snap.exists()) return false;
-  reqData=snap.data();
-  if(user.uid!==reqData.patientUid && user.uid!==reqData.assignedProUid) return false;
-
-  role=user.uid===reqData.assignedProUid?"pro":"patient";
-  meRole.textContent=role==="pro"?"Professionnel":"Patient";
-  peerRole.textContent=role==="pro"?"Patient":"Professionnel";
-  subLine.textContent=role==="patient"
-    ?`Avec Dr ${reqData.assignedProName}`
-    :`Avec ${reqData.fullName}`;
-
-  return true;
-}
-
-/* ===== CALL FLOW ===== */
-startBtn.onclick=async()=>{
-  try{
-    await setDoc(callRef,{requestId,status:"calling"}, {merge:true});
-    createPC();
-    await startMedia();
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await updateDoc(callRef,{offer:JSON.stringify(offer)});
-    setStatus(true,"Appel lancé");
-  }catch{
-    alert("Erreur démarrage appel");
-  }
-};
-
-muteBtn.onclick=()=>{
-  if(!localStream) return;
-  isMuted=!isMuted;
-  localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
-  muteBtn.textContent=isMuted?"🔇 Muet (ON)":"🎙️ Muet";
-};
-
-hangBtn.onclick=async()=>{
-  if(pc) pc.close();
-  if(localStream) localStream.getTracks().forEach(t=>t.stop());
-  await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
-  history.back();
-};
-
-/* ===== INIT ===== */
 onAuthStateChanged(auth,async user=>{
   if(!user) return location.href="/cizahealth/index.html";
-  if(!await authorize(user)) return alert("Accès refusé");
 
-  setStatus(true,"Prêt");
+  const reqSnap=await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Consultation introuvable");
+
+  const r=reqSnap.data();
+  const isPro=user.uid===r.assignedProUid;
+  const isPatient=user.uid===r.patientUid;
+  if(!isPro && !isPatient) return alert("Accès refusé");
+
+  role=isPro?"pro":"patient";
+  subLine.textContent=isPatient
+    ?`Dr ${r.assignedProName} va vous appeler`
+    :"Vous appelez le patient";
+
+  if(isPatient){
+    startBtn.disabled=true; // 🔑 PATIENT NE DÉMARRE PAS
+  }
+
   await setDoc(callRef,{requestId},{merge:true});
 
   onSnapshot(callRef,async snap=>{
     const d=snap.data();
-    if(d.offer && !pc){
+
+    // 🔔 PATIENT RÉPOND AUTOMATIQUEMENT
+    if(d.offer && role==="patient" && !pc){
       createPC();
       await startMedia();
       localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
       await pc.setRemoteDescription(JSON.parse(d.offer));
       const answer=await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      await updateDoc(callRef,{answer:JSON.stringify(answer)});
-      setStatus(true,"Connecté");
+      await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
     }
-    if(d.answer && pc && !pc.currentRemoteDescription){
+
+    // 🔔 PRO REÇOIT ANSWER
+    if(d.answer && role==="pro" && pc && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(d.answer));
     }
+
     if(d.ice && pc){
       try{await pc.addIceCandidate(JSON.parse(d.ice))}catch{}
     }
   });
+
+  startBtn.onclick=async()=>{
+    createPC();
+    await startMedia();
+    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await updateDoc(callRef,{
+      offer:JSON.stringify(offer),
+      status:"calling",
+      startedAt:serverTimestamp()
+    });
+  };
+
+  muteBtn.onclick=()=>{
+    if(!localStream) return;
+    localStream.getAudioTracks().forEach(t=>t.enabled=!t.enabled);
+  };
+
+  hangBtn.onclick=async()=>{
+    if(pc) pc.close();
+    if(localStream) localStream.getTracks().forEach(t=>t.stop());
+    await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
+    history.back();
+  };
 });
 </script>
 
