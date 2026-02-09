@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CizaHealth+ | Appel sécurisé</title>
+
+<style>
+:root{
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --success:#1b6b3a;
+  --danger:#c0392b;
+  --radius:22px;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+header{
+  padding:16px 20px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+header strong{font-size:15px}
+
+/* VIDEO */
+.videos{
+  flex:1;
+  padding:18px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+video{
+  width:100%;
+  border-radius:18px;
+  background:#000;
+}
+
+/* CONTROLS */
+.controls{
+  padding:18px;
+  display:flex;
+  justify-content:center;
+  gap:14px;
+}
+.btn{
+  padding:14px 22px;
+  border:none;
+  border-radius:16px;
+  font-weight:800;
+  cursor:pointer;
+}
+.end{background:var(--danger);color:#fff}
+
+/* AUDIO UNLOCK */
+#audioBtn{
+  position:fixed;
+  bottom:22px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:14px 24px;
+  border:none;
+  border-radius:18px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+  z-index:999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <strong>Consultation sécurisée</strong>
+  <span>🔒 Chiffrée</span>
+</header>
+
+<div class="videos">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+</div>
+
+<div class="controls">
+  <button class="btn end" id="hangupBtn">Terminer l’appel</button>
+</div>
+
+<button id="audioBtn">🔊 Activer le son</button>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
+
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const audioBtn = document.getElementById("audioBtn");
+const hangupBtn = document.getElementById("hangupBtn");
+
+const rtcConfig = {
+  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+};
+
+let pc, localStream;
+
+auth.onAuthStateChanged(async(user)=>{
+  if(!user || !requestId){
+    alert("Accès refusé");
+    return location.href="index.html";
+  }
+
+  const callRef = doc(db,"callSessions",requestId);
+  await setDoc(callRef,{status:"init",createdAt:serverTimestamp()},{merge:true});
+
+  pc = new RTCPeerConnection(rtcConfig);
+
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video:true,
+    audio:{
+      echoCancellation:true,
+      noiseSuppression:true,
+      autoGainControl:true
+    }
+  });
+
+  localVideo.srcObject = localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+
+  pc.onicecandidate = e=>{
+    if(e.candidate){
+      updateDoc(callRef,{ice:e.candidate.toJSON()});
+    }
+  };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await updateDoc(callRef,{offer});
+
+  onSnapshot(callRef, async snap=>{
+    const d=snap.data();
+    if(d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(d.answer);
+    }
+    if(d.ice){
+      try{await pc.addIceCandidate(d.ice)}catch{}
+    }
+  });
+});
+
+/* 🔊 AUDIO UNLOCK */
+audioBtn.onclick = async ()=>{
+  remoteVideo.muted=false;
+  await remoteVideo.play();
+  audioBtn.style.display="none";
+};
+
+/* END */
+hangupBtn.onclick = async ()=>{
+  localStream.getTracks().forEach(t=>t.stop());
+  pc.close();
+  location.href="index.html";
+};
+</script>
+
+</body>
+</html>
