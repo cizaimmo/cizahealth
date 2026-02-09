@@ -2,233 +2,198 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CizaHealth+ | Consultation sécurisée</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CizaHealth+ | Appel sécurisé</title>
 
 <style>
-/* ===== DESIGN INCHANGÉ ===== */
 :root{
-  --primary:#0E3A8A;
-  --primary-dark:#0A2F6A;
-  --bg:#F4F7FB;
-  --card:#FFFFFF;
-  --text:#0A1A2F;
-  --muted:#6B7A90;
-  --success:#1B6B3A;
-  --danger:#C0392B;
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --success:#1b6b3a;
+  --danger:#c0392b;
   --radius:22px;
 }
+
 *{box-sizing:border-box}
-html,body{height:100%}
 body{
   margin:0;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  background:var(--bg);
   color:var(--text);
 }
-.app{min-height:100vh;display:flex;flex-direction:column}
-header{
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
-  color:#fff;padding:14px 18px;
-  display:flex;gap:12px;align-items:center;
-}
-.back{cursor:pointer}
-main{
-  flex:1;
-  max-width:1200px;
+
+.app{
+  max-width:900px;
   margin:auto;
-  padding:14px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
-.vgrid{
+
+/* HEADER */
+header{
+  padding:16px 20px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+header strong{font-size:15px}
+
+/* VIDEO */
+.videos{
+  flex:1;
+  padding:18px;
   display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+video{
+  width:100%;
+  border-radius:18px;
+  background:#000;
+}
+
+/* CONTROLS */
+.controls{
+  padding:18px;
+  display:flex;
+  justify-content:center;
   gap:14px;
 }
-@media(min-width:900px){
-  .vgrid{grid-template-columns:1fr 1fr}
-}
-.videoBox{
-  background:#000;
-  aspect-ratio:16/10;
-  border-radius:22px;
-  overflow:hidden;
-}
-video{width:100%;height:100%;object-fit:cover}
-.controls{
-  margin-top:14px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-button{
-  padding:12px 16px;
-  border-radius:14px;
+.btn{
+  padding:14px 22px;
   border:none;
+  border-radius:16px;
   font-weight:800;
   cursor:pointer;
 }
-.primary{background:var(--success);color:#fff}
-.blue{background:var(--primary);color:#fff}
-.ghost{background:#eef3fb;color:var(--primary)}
-.red{background:var(--danger);color:#fff}
+.end{background:var(--danger);color:#fff}
+
+/* AUDIO UNLOCK */
+#audioBtn{
+  position:fixed;
+  bottom:22px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:14px 24px;
+  border:none;
+  border-radius:18px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+  z-index:999;
+}
 </style>
 </head>
 
 <body>
+
 <div class="app">
 
 <header>
-  <div class="back" onclick="history.back()">←</div>
-  <div>
-    <strong>Consultation sécurisée</strong><br>
-    <span id="subLine">Connexion…</span>
-  </div>
+  <strong>Consultation sécurisée</strong>
+  <span>🔒 Chiffrée</span>
 </header>
 
-<main>
-
-<div class="vgrid">
-  <div class="videoBox">
-    <video id="localVideo" autoplay playsinline muted></video>
-  </div>
-  <div class="videoBox">
-    <video id="remoteVideo" autoplay playsinline></video>
-  </div>
+<div class="videos">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
 <div class="controls">
-  <button id="unlockBtn" class="ghost">🔊 Activer le son</button>
-  <button id="startBtn" class="primary">📞 Démarrer</button>
-  <button id="muteBtn" class="blue">🎙️ Muet</button>
-  <button id="hangBtn" class="red">⛔ Quitter</button>
+  <button class="btn end" id="hangupBtn">Terminer l’appel</button>
 </div>
 
-</main>
+<button id="audioBtn">🔊 Activer le son</button>
+
+</div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params=new URLSearchParams(location.search);
-const requestId=params.get("requestId");
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
-const localVideo=document.getElementById("localVideo");
-const remoteVideo=document.getElementById("remoteVideo");
-const startBtn=document.getElementById("startBtn");
-const unlockBtn=document.getElementById("unlockBtn");
-const muteBtn=document.getElementById("muteBtn");
-const hangBtn=document.getElementById("hangBtn");
-const subLine=document.getElementById("subLine");
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const audioBtn = document.getElementById("audioBtn");
+const hangupBtn = document.getElementById("hangupBtn");
 
-let pc=null;
-let localStream=null;
-let role=null;
-let audioUnlocked=false;
-const callRef=doc(db,"callSessions",requestId);
-
-unlockBtn.onclick=async()=>{
-  audioUnlocked=true;
-  remoteVideo.muted=false;
-  try{await remoteVideo.play()}catch{}
-  unlockBtn.disabled=true;
+const rtcConfig = {
+  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
 };
 
-async function startMedia(){
-  if(localStream) return;
-  localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
-  localVideo.srcObject=localStream;
-}
+let pc, localStream;
 
-function createPC(){
-  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  pc.ontrack=e=>{
-    remoteVideo.srcObject=e.streams[0];
-    if(audioUnlocked){
-      remoteVideo.muted=false;
-      remoteVideo.play().catch(()=>{});
-    }
-  };
-  pc.onicecandidate=e=>{
-    if(e.candidate){
-      updateDoc(callRef,{ice:JSON.stringify(e.candidate)});
-    }
-  };
-}
-
-onAuthStateChanged(auth,async user=>{
-  if(!user) return location.href="/cizahealth/index.html";
-
-  const reqSnap=await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()) return alert("Consultation introuvable");
-
-  const r=reqSnap.data();
-  const isPro=user.uid===r.assignedProUid;
-  const isPatient=user.uid===r.patientUid;
-  if(!isPro && !isPatient) return alert("Accès refusé");
-
-  role=isPro?"pro":"patient";
-  subLine.textContent=isPatient
-    ?`Dr ${r.assignedProName} va vous appeler`
-    :"Vous appelez le patient";
-
-  if(isPatient){
-    startBtn.disabled=true; // 🔑 PATIENT NE DÉMARRE PAS
+auth.onAuthStateChanged(async(user)=>{
+  if(!user || !requestId){
+    alert("Accès refusé");
+    return location.href="index.html";
   }
 
-  await setDoc(callRef,{requestId},{merge:true});
+  const callRef = doc(db,"callSessions",requestId);
+  await setDoc(callRef,{status:"init",createdAt:serverTimestamp()},{merge:true});
 
-  onSnapshot(callRef,async snap=>{
-    const d=snap.data();
+  pc = new RTCPeerConnection(rtcConfig);
 
-    // 🔔 PATIENT RÉPOND AUTOMATIQUEMENT
-    if(d.offer && role==="patient" && !pc){
-      createPC();
-      await startMedia();
-      localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-      await pc.setRemoteDescription(JSON.parse(d.offer));
-      const answer=await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
-    }
-
-    // 🔔 PRO REÇOIT ANSWER
-    if(d.answer && role==="pro" && pc && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(d.answer));
-    }
-
-    if(d.ice && pc){
-      try{await pc.addIceCandidate(JSON.parse(d.ice))}catch{}
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video:true,
+    audio:{
+      echoCancellation:true,
+      noiseSuppression:true,
+      autoGainControl:true
     }
   });
 
-  startBtn.onclick=async()=>{
-    createPC();
-    await startMedia();
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await updateDoc(callRef,{
-      offer:JSON.stringify(offer),
-      status:"calling",
-      startedAt:serverTimestamp()
-    });
+  localVideo.srcObject = localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+
+  pc.onicecandidate = e=>{
+    if(e.candidate){
+      updateDoc(callRef,{ice:e.candidate.toJSON()});
+    }
   };
 
-  muteBtn.onclick=()=>{
-    if(!localStream) return;
-    localStream.getAudioTracks().forEach(t=>t.enabled=!t.enabled);
-  };
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await updateDoc(callRef,{offer});
 
-  hangBtn.onclick=async()=>{
-    if(pc) pc.close();
-    if(localStream) localStream.getTracks().forEach(t=>t.stop());
-    await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
-    history.back();
-  };
+  onSnapshot(callRef, async snap=>{
+    const d=snap.data();
+    if(d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(d.answer);
+    }
+    if(d.ice){
+      try{await pc.addIceCandidate(d.ice)}catch{}
+    }
+  });
 });
+
+/* 🔊 AUDIO UNLOCK */
+audioBtn.onclick = async ()=>{
+  remoteVideo.muted=false;
+  await remoteVideo.play();
+  audioBtn.style.display="none";
+};
+
+/* END */
+hangupBtn.onclick = async ()=>{
+  localStream.getTracks().forEach(t=>t.stop());
+  pc.close();
+  location.href="index.html";
+};
 </script>
 
-</div>
 </body>
 </html>
