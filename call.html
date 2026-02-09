@@ -3,77 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Appel sécurisé</title>
+<title>CizaHealth+ | Appel Consultation</title>
 
 <style>
 :root{
-  --primary:#123C8A;
-  --primary-dark:#0B2C66;
-  --success:#1B6B3A;
+  --primary:#0E3A8A;
   --danger:#C0392B;
-  --bg:#F4F7FB;
-  --text:#0A1A2F;
-  --radius:18px;
+  --success:#1B6B3A;
+  --bg:#0b1220;
+  --radius:22px;
 }
 
 *{box-sizing:border-box}
 html,body{
   margin:0;
   padding:0;
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  height:100%;
   background:var(--bg);
-  color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
 
 .app{
-  min-height:100vh;
+  height:100vh;
   display:flex;
   flex-direction:column;
 }
 
+/* ===== HEADER ===== */
 header{
-  background:#ffffff;
-  border-bottom:1px solid #E6ECF5;
   padding:14px 18px;
+  color:#fff;
   display:flex;
   align-items:center;
-  justify-content:space-between;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.brand img{height:34px}
-.brand strong{font-size:14px}
-
-.status{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:13px;
-  font-weight:700;
-}
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--danger);
-}
-.dot.online{background:#2ECC71}
-
-main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  padding:14px;
   gap:12px;
 }
+header .back{
+  font-size:22px;
+  cursor:pointer;
+}
+header .meta{
+  flex:1;
+}
+header strong{display:block}
+header span{font-size:13px;opacity:.85}
 
+/* ===== VIDEO ===== */
 .videos{
   flex:1;
   display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
+  grid-template-rows:1fr 1fr;
+  gap:14px;
+  padding:14px;
 }
 
 video{
@@ -84,30 +64,27 @@ video{
   object-fit:cover;
 }
 
+/* ===== CONTROLS ===== */
 .controls{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
+  padding:16px;
+  display:flex;
+  gap:12px;
 }
 
 .controls button{
-  padding:14px;
+  flex:1;
   border:none;
-  border-radius:14px;
+  border-radius:16px;
+  padding:14px;
+  font-size:15px;
   font-weight:800;
-  cursor:pointer;
   color:#fff;
+  cursor:pointer;
 }
 
 .start{background:var(--success)}
-.hangup{background:var(--danger)}
-.mute{background:var(--primary)}
-
-@media(min-width:768px){
-  .videos{
-    grid-template-columns:2fr 1fr;
-  }
-}
+.mute{background:#34495e}
+.end{background:var(--danger)}
 </style>
 </head>
 
@@ -115,461 +92,202 @@ video{
 <div class="app">
 
 <header>
-  <div class="brand">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <strong>Appel sécurisé</strong>
-  </div>
-
-  <div class="status">
-    <span id="callDot" class="dot"></span>
-    <span id="callStatus">En attente</span>
+  <div class="back" onclick="history.back()">←</div>
+  <div class="meta">
+    <strong id="callTitle">Appel en cours</strong>
+    <span id="callSub">Connexion…</span>
   </div>
 </header>
 
-<main>
-  <section class="videos">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo" autoplay muted playsinline></video>
-  </section>
+<div class="videos">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+</div>
 
-  <section class="controls">
-    <button id="startCallBtn" class="start">📞 Démarrer</button>
-    <button id="muteBtn" class="mute">🎙️ Muet</button>
-    <button id="hangupBtn" class="hangup">⛔ Quitter</button>
-  </section>
-</main><script type="module">
+<div class="controls">
+  <button class="start" id="startBtn">📞 Démarrer</button>
+  <button class="mute" id="muteBtn">🎤 Muet</button>
+  <button class="end" id="hangupBtn">⛔ Quitter</button>
+</div>
+
+</div>
+
+<!-- =========================
+LOGIQUE WEBRTC + FIRESTORE
+========================= -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 /* =========================
-BLOC 2 — WEBRTC CORE
+PARAMS
 ========================= */
-
-let localStream = null;
-let pc = null;
-let isMuted = false;
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const startCallBtn = document.getElementById("startCallBtn");
-const hangupBtn = document.getElementById("hangupBtn");
+const startBtn = document.getElementById("startBtn");
 const muteBtn = document.getElementById("muteBtn");
-const callStatus = document.getElementById("callStatus");
-const callDot = document.getElementById("callDot");
+const hangupBtn = document.getElementById("hangupBtn");
+const callSub = document.getElementById("callSub");
 
 /* =========================
-WEBRTC CONFIG
+WEBRTC
 ========================= */
 const rtcConfig = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" }
-  ]
+  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
 };
 
-/* =========================
-INIT PEER CONNECTION
-========================= */
-function createPeerConnection(){
-  pc = new RTCPeerConnection(rtcConfig);
+let pc = null;
+let localStream = null;
+let muted = false;
 
-  pc.ontrack = (event)=>{
-    remoteVideo.srcObject = event.streams[0];
+/* =========================
+AUTH + AUTORISATION
+========================= */
+onAuthStateChanged(auth, async(user)=>{
+  if(!user || !requestId){
+    alert("Accès refusé");
+    return history.back();
+  }
+
+  const reqRef = doc(db,"requests",requestId);
+  const reqSnap = await getDoc(reqRef);
+
+  if(!reqSnap.exists()){
+    alert("Demande introuvable");
+    return history.back();
+  }
+
+  const req = reqSnap.data();
+
+  // ✅ AUTORISATION STRICTE
+  if(
+    user.uid !== req.patientUid &&
+    user.uid !== req.assignedProUid
+  ){
+    alert("Non autorisé à faire cet appel");
+    return history.back();
+  }
+
+  callSub.textContent =
+    user.uid === req.assignedProUid
+      ? "Appel avec le patient"
+      : `Appel avec Dr ${req.assignedProName || ""}`;
+
+  const callRef = doc(db,"callSessions",requestId);
+
+  await setDoc(callRef,{
+    requestId,
+    status:"idle",
+    createdAt:serverTimestamp()
+  },{merge:true});
+
+  /* =========================
+  START CALL
+  ========================= */
+  startBtn.onclick = async ()=>{
+    pc = new RTCPeerConnection(rtcConfig);
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video:true,
+      audio:true
+    });
+
+    localVideo.srcObject = localStream;
+    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+    pc.ontrack = e=>{
+      remoteVideo.srcObject = e.streams[0];
+    };
+
+    pc.onicecandidate = e=>{
+      if(e.candidate){
+        updateDoc(callRef,{
+          iceCandidate:JSON.stringify(e.candidate)
+        });
+      }
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    await updateDoc(callRef,{
+      offer:JSON.stringify(offer),
+      status:"calling"
+    });
   };
 
-  pc.oniceconnectionstatechange = ()=>{
-    if(pc.iceConnectionState === "connected"){
-      callStatus.textContent = "Connecté";
-      callDot.classList.add("online");
+  /* =========================
+  SIGNALING
+  ========================= */
+  onSnapshot(callRef, async(snap)=>{
+    if(!snap.exists()) return;
+    const d = snap.data();
+
+    if(d.offer && !pc){
+      pc = new RTCPeerConnection(rtcConfig);
+
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video:true,
+        audio:true
+      });
+
+      localVideo.srcObject = localStream;
+      localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+      pc.ontrack = e=>{
+        remoteVideo.srcObject = e.streams[0];
+      };
+
+      await pc.setRemoteDescription(JSON.parse(d.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      await updateDoc(callRef,{
+        answer:JSON.stringify(answer),
+        status:"connected"
+      });
     }
-  };
-}
 
-/* =========================
-START CALL (LOCAL MEDIA)
-========================= */
-startCallBtn.onclick = async ()=>{
-  startCallBtn.disabled = true;
-  callStatus.textContent = "Connexion…";
+    if(d.answer && pc && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.answer));
+    }
 
-  localStream = await navigator.mediaDevices.getUserMedia({
-    video:true,
-    audio:true
+    if(d.iceCandidate && pc){
+      try{
+        await pc.addIceCandidate(JSON.parse(d.iceCandidate));
+      }catch{}
+    }
   });
 
-  localVideo.srcObject = localStream;
-
-  createPeerConnection();
-
-  localStream.getTracks().forEach(track=>{
-    pc.addTrack(track, localStream);
-  });
-};
+});
 
 /* =========================
-MUTE / UNMUTE
+MUTE
 ========================= */
-muteBtn.onclick = ()=>{
+muteBtn.onclick=()=>{
   if(!localStream) return;
-
-  isMuted = !isMuted;
-  localStream.getAudioTracks().forEach(t=>{
-    t.enabled = !isMuted;
-  });
-
-  muteBtn.textContent = isMuted ? "🔇 Muet" : "🎙️ Muet";
+  muted=!muted;
+  localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
+  muteBtn.textContent = muted ? "🔇 Muet" : "🎤 Muet";
 };
 
 /* =========================
 HANGUP
 ========================= */
-hangupBtn.onclick = ()=>{
-  if(pc){
-    pc.close();
-    pc = null;
-  }
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-    localStream = null;
-  }
-
-  remoteVideo.srcObject = null;
-  localVideo.srcObject = null;
-
-  callStatus.textContent = "Appel terminé";
-  callDot.classList.remove("online");
-  startCallBtn.disabled = false;
-};
-
-/* =========================
-FIN BLOC 2 — WEBRTC CORE
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 3 — SIGNALISATION FIRESTORE
-========================= */
-
-import { auth, db } from "./firebase.js";
-import {
-  doc, setDoc, updateDoc, onSnapshot,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-PARAMS
-========================= */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
-
-if(!requestId){
-  alert("requestId manquant");
-}
-
-/* =========================
-REFS
-========================= */
-const callRef = doc(db,"callSessions",requestId);
-
-/* =========================
-INIT SESSION
-========================= */
-auth.onAuthStateChanged(async(user)=>{
-  if(!user) return location.href="/cizahealth/index.html";
-
-  // Crée / merge la session d’appel
-  await setDoc(callRef,{
-    requestId,
-    status:"idle",
-    updatedAt: serverTimestamp()
-  },{merge:true});
-});
-
-/* =========================
-ICE CANDIDATES
-========================= */
-function bindIceCandidates(){
-  pc.onicecandidate = async (event)=>{
-    if(event.candidate){
-      await updateDoc(callRef,{
-        iceCandidate: JSON.stringify(event.candidate),
-        updatedAt: serverTimestamp()
-      });
-    }
-  };
-}
-
-/* =========================
-START CALL (PRO INITIATE)
-========================= */
-startCallBtn.onclick = async ()=>{
-  // (le BLOC 2 a déjà créé pc + local tracks)
-  bindIceCandidates();
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-
-  await updateDoc(callRef,{
-    offer: JSON.stringify(offer),
-    status:"calling",
-    updatedAt: serverTimestamp()
-  });
-
-  callStatus.textContent = "Appel sortant…";
-};
-
-/* =========================
-LISTEN SIGNALS
-========================= */
-onSnapshot(callRef, async (snap)=>{
-  if(!snap.exists() || !pc) return;
-  const data = snap.data();
-
-  // RECEVOIR OFFER (PATIENT)
-  if(data.offer && !pc.currentRemoteDescription){
-    await pc.setRemoteDescription(JSON.parse(data.offer));
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    await updateDoc(callRef,{
-      answer: JSON.stringify(answer),
-      status:"connected",
-      updatedAt: serverTimestamp()
-    });
-
-    callStatus.textContent = "Connecté";
-    callDot.classList.add("online");
-  }
-
-  // RECEVOIR ANSWER (PRO)
-  if(data.answer && pc.signalingState !== "stable"){
-    await pc.setRemoteDescription(JSON.parse(data.answer));
-    callStatus.textContent = "Connecté";
-    callDot.classList.add("online");
-  }
-
-  // RECEVOIR ICE
-  if(data.iceCandidate){
-    try{
-      await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-    }catch(e){}
-  }
-
-  // FIN APPEL
-  if(data.status === "ended"){
-    callStatus.textContent = "Appel terminé";
-    callDot.classList.remove("online");
-  }
-});
-
-/* =========================
-HANGUP (SYNC)
-========================= */
-hangupBtn.onclick = async ()=>{
-  if(pc){
-    pc.close();
-    pc = null;
-  }
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-    localStream = null;
-  }
-
-  await updateDoc(callRef,{
-    status:"ended",
-    endedAt: serverTimestamp()
-  });
-
+hangupBtn.onclick=async()=>{
+  if(pc) pc.close();
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
   history.back();
 };
-
-/* =========================
-FIN BLOC 3 — SIGNALISATION
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 4 — STATUT & NOTIFS APPEL
-========================= */
-
-import { db } from "./firebase.js";
-import {
-  doc, updateDoc, onSnapshot, serverTimestamp, addDoc, collection
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-PARAMS
-========================= */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
-const callRef = doc(db,"callSessions",requestId);
-
-/* =========================
-UTIL — SEND NOTIFICATION
-========================= */
-async function notify({title, body, receiverId, requestId}){
-  await addDoc(collection(db,"notifications"),{
-    title, body,
-    receiverId,
-    requestId,
-    read:false,
-    createdAt: serverTimestamp()
-  });
-}
-
-/* =========================
-OUTGOING CALL (PRO)
-========================= */
-async function notifyOutgoing(req){
-  await notify({
-    title:"Appel sortant",
-    body:"Le professionnel démarre un appel",
-    receiverId: req.patientUid,
-    requestId
-  });
-}
-
-/* =========================
-INCOMING CALL (PATIENT)
-========================= */
-async function notifyIncoming(req){
-  await notify({
-    title:"Appel entrant",
-    body:"Le professionnel vous appelle",
-    receiverId: req.patientUid,
-    requestId
-  });
-}
-
-/* =========================
-LISTEN CALL STATUS
-========================= */
-onSnapshot(callRef, async (snap)=>{
-  if(!snap.exists()) return;
-  const data = snap.data();
-
-  if(data.status === "calling"){
-    callStatus.textContent = "Sonnerie…";
-    callDot.classList.remove("online");
-  }
-
-  if(data.status === "connected"){
-    callStatus.textContent = "En appel";
-    callDot.classList.add("online");
-  }
-
-  if(data.status === "ended"){
-    callStatus.textContent = "Appel terminé";
-    callDot.classList.remove("online");
-  }
-});
-
-/* =========================
-HOOK START CALL
-========================= */
-const originalStart = startCallBtn.onclick;
-startCallBtn.onclick = async ()=>{
-  await originalStart?.();
-  await updateDoc(callRef,{
-    status:"calling",
-    ringingAt: serverTimestamp()
-  });
-};
-
-/* =========================
-FIN BLOC 4 — STATUT APPEL
-========================= */
-</script><script type="module">
-/* =========================
-BLOC 5 — SÉCURITÉ & RÔLES
-========================= */
-
-import { auth, db } from "./firebase.js";
-import {
-  doc, getDoc, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-PARAMS
-========================= */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
-
-/* =========================
-UI ELEMENTS
-========================= */
-const startBtn = document.getElementById("startCallBtn");
-const muteBtn = document.getElementById("muteBtn");
-const hangBtn = document.getElementById("hangupBtn");
-
-/* =========================
-ROLE STATE
-========================= */
-let currentRole = null; // "pro" | "patient"
-
-/* =========================
-AUTH & ROLE CHECK
-========================= */
-auth.onAuthStateChanged(async (user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="/cizahealth/index.html";
-  }
-
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Consultation introuvable");
-    return location.href="/cizahealth/index.html";
-  }
-
-  const req = reqSnap.data();
-
-  if(user.uid === req.assignedTo){
-    currentRole = "pro";
-  }else if(user.uid === req.patientUid){
-    currentRole = "patient";
-  }else{
-    alert("Non autorisé");
-    return location.href="/cizahealth/index.html";
-  }
-
-  /* =========================
-  UI RULES
-  ========================= */
-  if(currentRole === "patient"){
-    // Le patient ne démarre PAS l’appel
-    startBtn.style.display = "none";
-  }
-
-  if(currentRole === "pro"){
-    // Le pro démarre l’appel
-    startBtn.style.display = "block";
-  }
-});
-
-/* =========================
-CALL STATUS GUARDS
-========================= */
-onSnapshot(doc(db,"callSessions",requestId),(snap)=>{
-  if(!snap.exists()) return;
-  const s = snap.data().status;
-
-  // Boutons actifs seulement en appel
-  if(s === "connected"){
-    muteBtn.disabled = false;
-    hangBtn.disabled = false;
-  }else{
-    muteBtn.disabled = true;
-  }
-});
-
-/* =========================
-FIN BLOC 5 — SÉCURITÉ & RÔLES
-========================= */
-</script><!-- =========================
-BLOC 6 — FERMETURE FINALE
-========================= -->
+</script>
 
 </body>
 </html>
-
-<!-- =========================
-FIN — CIZAHEALTH+
-CALL.HTML — APPEL WEBRTC
-PRODUCTION READY
-========================= -->
