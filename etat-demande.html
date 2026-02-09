@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | État de la demande</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:24px;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header img{height:46px}
+
+/* HERO */
+.hero{
+  padding:34px 26px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  text-align:center;
+}
+.hero h1{
+  margin:0 0 10px;
+  font-size:24px;
+}
+.hero p{
+  font-size:15px;
+  opacity:.95;
+}
+
+/* CONTENT */
+.content{
+  padding:32px 26px;
+  text-align:center;
+}
+
+/* CARD */
+.card{
+  border-radius:var(--radius);
+  padding:30px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+
+/* STATUS */
+.status{
+  font-size:19px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+.sub{
+  font-size:14.5px;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+/* LOADER */
+.loader{
+  margin:24px auto 0;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:4px solid #e3e8f2;
+  border-top-color:var(--primary);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{
+  height:42px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1 id="heroTitle">Demande en cours</h1>
+  <p id="heroDesc">
+    Nous recherchons un professionnel de santé disponible pour vous.
+  </p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="card">
+    <div class="status" id="statusLabel">
+      Recherche d’un professionnel…
+    </div>
+    <div class="sub" id="statusDesc">
+      Veuillez rester sur cet écran.  
+      Vous serez informé dès qu’un professionnel accepte votre demande.
+    </div>
+    <div class="loader" id="loader"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
+  <div>
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Plateforme de santé numérique • Service non urgent
+  </div>
+</div>
+
+</div>
+
+<!-- 🔐 LOGIQUE FIREBASE — SYNCHRONISATION TEMPS RÉEL -->
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where,
+  orderBy, limit, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const heroTitle = document.getElementById("heroTitle");
+const heroDesc = document.getElementById("heroDesc");
+const statusLabel = document.getElementById("statusLabel");
+const statusDesc = document.getElementById("statusDesc");
+const loader = document.getElementById("loader");
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
+
+  // 🔑 Écouter la dernière demande du patient
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
+
+  onSnapshot(q, (snap)=>{
+    if(snap.empty) return;
+
+    const docSnap = snap.docs[0];
+    const r = docSnap.data();
+
+    /* ⏳ EN ATTENTE */
+    if(r.status === "pending"){
+      heroTitle.textContent = "Demande en cours";
+      heroDesc.textContent =
+        "Nous recherchons un professionnel de santé pour vous.";
+
+      statusLabel.textContent = "Recherche en cours…";
+      statusDesc.textContent =
+        "Merci pour votre patience. Un professionnel vous sera attribué sous peu.";
+
+      loader.style.display = "block";
+    }
+
+    /* ✅ ACCEPTÉ — AUCUNE REDIRECTION */
+    if(r.status === "assigned" && r.assignedProUid){
+      heroTitle.textContent = "Consultation acceptée";
+      heroDesc.textContent =
+        "Un professionnel de santé a pris en charge votre demande.";
+
+      statusLabel.textContent = "Professionnel prêt";
+      statusDesc.textContent =
+        r.assignedProName
+          ? `Dr ${r.assignedProName} est prêt. Veuillez attendre son appel.`
+          : "Le professionnel est prêt. Veuillez attendre l’appel.";
+
+      loader.style.display = "none";
+    }
+
+    /* ❌ REFUS / ANNULÉ */
+    if(r.status === "refused" || r.status === "cancelled"){
+      heroTitle.textContent = "Demande non aboutie";
+      heroDesc.textContent =
+        "Nous n’avons pas pu trouver un professionnel disponible.";
+
+      statusLabel.textContent = "Aucun professionnel disponible";
+      statusDesc.textContent =
+        "Veuillez réessayer ou créer une nouvelle demande.";
+
+      loader.style.display = "none";
+    }
+  });
+});
+</script>
+
+</body>
+</html>
