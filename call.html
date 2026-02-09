@@ -26,14 +26,12 @@ body{
   color:var(--text);
 }
 
-/* Layout full */
 .app{
   min-height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-/* Header */
 header{
   position:sticky;
   top:0;
@@ -61,7 +59,6 @@ header{
 }
 .headMeta span{font-size:12px;opacity:.9}
 
-/* Content */
 main{
   width:100%;
   max-width:1200px;
@@ -72,14 +69,9 @@ main{
   gap:14px;
 }
 
-/* Videos grid */
-.vgrid{
-  display:grid;
-  gap:14px;
-}
-@media(min-width:900px){
-  .vgrid{grid-template-columns:1fr 1fr}
-}
+.vgrid{display:grid;gap:14px}
+@media(min-width:900px){ .vgrid{grid-template-columns:1fr 1fr} }
+
 .vcard{
   background:var(--card);
   border-radius:var(--radius);
@@ -112,9 +104,9 @@ video{
   position:absolute;inset:0;
   width:100%;height:100%;
   object-fit:cover;
+  background:#0b0f1a;
 }
 
-/* Controls */
 .controls{
   background:var(--card);
   border-radius:var(--radius);
@@ -138,9 +130,7 @@ video{
 }
 .dot{width:10px;height:10px;border-radius:50%;background:var(--danger)}
 .dot.ok{background:#2ecc71}
-.btns{
-  display:flex;flex-wrap:wrap;gap:10px;
-}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
 button{
   border:none;
   border-radius:14px;
@@ -152,17 +142,9 @@ button{
 .primary{background:var(--success);color:#fff}
 .blue{background:var(--primary);color:#fff}
 .red{background:var(--danger);color:#fff}
-.ghost{
-  background:#eef3fb;
-  color:var(--primary);
-}
-small.help{
-  color:var(--muted);
-  display:block;
-  line-height:1.5;
-}
+.ghost{background:#eef3fb;color:var(--primary)}
+small.help{color:var(--muted);display:block;line-height:1.5}
 
-/* Audio unlock overlay */
 .overlay{
   position:fixed;
   inset:0;
@@ -171,7 +153,7 @@ small.help{
   align-items:center;
   justify-content:center;
   padding:18px;
-  z-index:80;
+  z-index:200;
 }
 .modal{
   width:min(520px,100%);
@@ -238,19 +220,18 @@ small.help{
     </div>
 
     <small class="help" id="helpText">
-      Astuce : sur iPhone/Chrome/Safari, le son doit être activé par un clic (bouton “Activer le son”).
+      Astuce : sur iPhone/Chrome/Safari, l’audio se débloque uniquement après un clic (bouton “Activer le son”).
     </small>
   </section>
 
 </main>
 
-<!-- Overlay audio unlock -->
 <div class="overlay" id="audioOverlay">
   <div class="modal">
     <h3>Activer l’audio</h3>
     <p>
-      Pour des raisons de sécurité, votre navigateur bloque parfois le son automatiquement.
-      Cliquez sur “Activer le son” puis relancez l’appel si nécessaire.
+      Votre navigateur peut bloquer le son automatiquement. Cliquez sur “Activer le son”.
+      (Si l’interlocuteur n’a pas encore rejoint, le son s’activera dès que son flux arrive.)
     </p>
     <div class="mrow">
       <button class="blue" id="audioOkBtn">🔊 Activer le son</button>
@@ -266,33 +247,24 @@ import {
   doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* -------------------------
-  DOM
-------------------------- */
+/* DOM */
 const backBtn = document.getElementById("backBtn");
 const titleLine = document.getElementById("titleLine");
 const subLine = document.getElementById("subLine");
 const meRole = document.getElementById("meRole");
 const peerRole = document.getElementById("peerRole");
-
 const connDot = document.getElementById("connDot");
 const connText = document.getElementById("connText");
-
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-
 const startBtn = document.getElementById("startBtn");
 const muteBtn = document.getElementById("muteBtn");
 const hangBtn = document.getElementById("hangBtn");
 const unlockBtn = document.getElementById("unlockBtn");
-
 const audioOverlay = document.getElementById("audioOverlay");
 const audioOkBtn = document.getElementById("audioOkBtn");
 const audioCloseBtn = document.getElementById("audioCloseBtn");
 
-/* -------------------------
-  Helpers UI
-------------------------- */
 function setStatus(ok, text){
   connDot.classList.toggle("ok", !!ok);
   connText.textContent = text;
@@ -300,75 +272,87 @@ function setStatus(ok, text){
 
 backBtn.onclick = ()=> history.back();
 
-/* -------------------------
-  Params
-------------------------- */
+/* Params */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
-/* -------------------------
-  WebRTC
-------------------------- */
+/* WebRTC */
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
 
 let pc = null;
 let localStream = null;
 let isMuted = false;
-let role = null;        // "patient" | "pro"
+let role = null;
 let reqData = null;
+let audioUnlocked = false;
+let audioCtx = null;
 
 const callRef = requestId ? doc(db,"callSessions",requestId) : null;
 let unsubscribeCall = null;
 
-/* -------------------------
-  Audio unlock (important iOS)
-------------------------- */
-async function unlockAudio(){
+/* AUDIO UNLOCK (FIX IMPORTANT) */
+async function unlockAudioHard(){
+  audioUnlocked = true;
+
   try{
-    // Force play permission
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === "suspended"){
+      await audioCtx.resume();
+    }
+  }catch(e){}
+
+  try{
     remoteVideo.muted = false;
-    await remoteVideo.play().catch(()=>{});
-    await localVideo.play().catch(()=>{});
-    setStatus(true, "Audio prêt");
+    remoteVideo.volume = 1;
+    // Si le stream est déjà là, on tente play
+    if(remoteVideo.srcObject){
+      await remoteVideo.play();
+      setStatus(true, "Audio activé");
+    }else{
+      setStatus(true, "Audio prêt (en attente de l’interlocuteur)");
+    }
   }catch(e){
-    // ignore
+    // Même si play échoue, on garde audioUnlocked=true pour relancer quand le flux arrive
+    setStatus(true, "Audio prêt (auto dès que le flux arrive)");
   }
+
+  audioOverlay.style.display = "none";
 }
 
-unlockBtn.onclick = async ()=>{
-  await unlockAudio();
-  audioOverlay.style.display = "none";
-};
-
-audioOkBtn.onclick = async ()=>{
-  await unlockAudio();
-  audioOverlay.style.display = "none";
-};
-
+unlockBtn.onclick = unlockAudioHard;
+audioOkBtn.onclick = unlockAudioHard;
 audioCloseBtn.onclick = ()=> audioOverlay.style.display = "none";
 
-/* -------------------------
-  Start local media
-------------------------- */
+/* Start local media */
 async function startMedia(){
   if(localStream) return;
   localStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
   localVideo.srcObject = localStream;
-  localStream.getTracks().forEach(t=>{
-    if(pc) pc.addTrack(t, localStream);
-  });
 }
 
-/* -------------------------
-  Create peer connection
-------------------------- */
+/* Create PC */
 function createPC(){
   pc = new RTCPeerConnection(rtcConfig);
 
-  pc.ontrack = (e)=>{
+  // ontrack: quand le flux arrive, on tente play + audio
+  pc.ontrack = async (e)=>{
     remoteVideo.srcObject = e.streams[0];
-    // Try autoplay - if blocked show overlay
-    remoteVideo.play().catch(()=>{ audioOverlay.style.display="flex"; });
+
+    // Autoplay peut être bloqué → on montre overlay
+    try{
+      if(audioUnlocked){
+        remoteVideo.muted = false;
+        remoteVideo.volume = 1;
+        await remoteVideo.play();
+      }else{
+        await remoteVideo.play();
+      }
+    }catch(err){
+      audioOverlay.style.display = "flex";
+    }
   };
 
   pc.onicecandidate = async (e)=>{
@@ -381,10 +365,7 @@ function createPC(){
   };
 }
 
-/* -------------------------
-  Security: authorize by request doc
-  IMPORTANT: your DB uses patientUid + assignedProUid
-------------------------- */
+/* Security (patientUid + assignedProUid) */
 async function authorize(user){
   if(!requestId) return { ok:false, reason:"Paramètre requestId manquant." };
 
@@ -402,7 +383,6 @@ async function authorize(user){
   meRole.textContent = role === "pro" ? "Professionnel" : "Patient";
   peerRole.textContent = role === "pro" ? "Patient" : "Professionnel";
 
-  // Helpful header subtitle
   if(role === "patient"){
     subLine.textContent = reqData.assignedProName ? `Avec Dr ${reqData.assignedProName}` : "Avec votre professionnel";
   }else{
@@ -412,28 +392,23 @@ async function authorize(user){
   return { ok:true };
 }
 
-/* -------------------------
-  Signaling
-------------------------- */
 async function ensureCallDoc(){
   await setDoc(callRef,{
     requestId,
     status:"idle",
     createdAt: serverTimestamp(),
-    // keep who is involved (useful)
     patientUid: reqData.patientUid || null,
     assignedProUid: reqData.assignedProUid || null
   },{merge:true});
 }
 
+/* Start call */
 async function startCallAsCaller(){
   setStatus(false, "Démarrage…");
   createPC();
   await startMedia();
 
-  // attach tracks if not attached yet
   localStream.getTracks().forEach(t=>{
-    // avoid duplicate tracks by checking senders
     const exists = pc.getSenders().some(s=>s.track && s.track.id === t.id);
     if(!exists) pc.addTrack(t, localStream);
   });
@@ -449,13 +424,13 @@ async function startCallAsCaller(){
   });
 
   setStatus(true, "Appel lancé…");
-  // audio may be blocked: prompt user
+  // Toujours proposer audio unlock (iOS/Chrome)
   audioOverlay.style.display = "flex";
 }
 
 async function acceptOfferIfNeeded(data){
   if(!data.offer) return;
-  if(pc) return; // already have pc
+  if(pc) return;
 
   setStatus(false, "Connexion…");
   createPC();
@@ -493,9 +468,7 @@ async function applyIceIfNeeded(data){
   try{ await pc.addIceCandidate(JSON.parse(data.iceCandidate)); }catch(e){}
 }
 
-/* -------------------------
-  Buttons
-------------------------- */
+/* Buttons */
 startBtn.onclick = async ()=>{
   if(!callRef) return alert("requestId manquant.");
   try{
@@ -527,9 +500,7 @@ hangBtn.onclick = async ()=>{
   }
 };
 
-/* -------------------------
-  Init
-------------------------- */
+/* Init */
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
     alert("Veuillez vous connecter.");
@@ -546,28 +517,23 @@ onAuthStateChanged(auth, async(user)=>{
 
   titleLine.textContent = "Consultation sécurisée";
   setStatus(true, "Prêt");
-
   await ensureCallDoc();
 
-  // Listen call session
   unsubscribeCall = onSnapshot(callRef, async (snap)=>{
     if(!snap.exists()) return;
     const data = snap.data();
 
-    // If ended
     if(data.status === "ended"){
       setStatus(false, "Appel terminé");
       return;
     }
 
-    // If I am receiver, accept offer
     await acceptOfferIfNeeded(data);
     await applyAnswerIfNeeded(data);
     await applyIceIfNeeded(data);
   });
 
-  // Try unlock audio early (may still be blocked)
-  remoteVideo.play().catch(()=>{});
+  // Ne force pas overlay ici : on le montre seulement si play est bloqué
 });
 </script>
 
