@@ -10,12 +10,10 @@
   --primary:#123C8A;
   --primary-dark:#0B2C66;
   --bg:#0A1A2F;
-  --card:#ffffff;
   --text:#ffffff;
   --muted:#cfd7ea;
   --success:#2ecc71;
   --danger:#C0392B;
-  --radius:18px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
@@ -24,83 +22,50 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{min-height:100vh;display:flex;flex-direction:column}
 
-/* HEADER */
 header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   padding:14px 16px;
   display:flex;
-  align-items:center;
   gap:12px;
+  align-items:center;
 }
-header img{height:38px}
-.head{
-  flex:1;min-width:0
-}
-.head strong{
-  display:block;
-  font-size:15px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
-}
+header img{height:36px}
+.head strong{display:block;font-size:15px}
 .head span{font-size:12px;color:var(--muted)}
 
-/* VIDEOS */
-.videos{
-  flex:1;
-  position:relative;
-}
-video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  background:#000;
-}
+.videos{flex:1;position:relative}
+video{width:100%;height:100%;object-fit:cover;background:#000}
 #localVideo{
   position:absolute;
-  width:120px;
-  height:160px;
-  bottom:16px;
-  right:16px;
-  border-radius:14px;
+  width:120px;height:160px;
+  bottom:16px;right:16px;
+  border-radius:12px;
   border:2px solid #fff;
 }
 
-/* STATUS */
 .statusBar{
   padding:10px 16px;
   background:#0e1d3a;
-  display:flex;
-  align-items:center;
-  gap:8px;
   font-size:13px;
 }
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--danger)
-}
-.dot.ok{background:var(--success)}
-
-/* CONTROLS */
 .controls{
   padding:16px;
-  background:#0e1d3a;
   display:flex;
   justify-content:center;
   gap:12px;
-  flex-wrap:wrap;
+  background:#0e1d3a;
 }
 .controls button{
   border:none;
   border-radius:999px;
   padding:12px 18px;
   font-weight:800;
-  cursor:pointer;
 }
 .start{background:var(--success);color:#fff}
-.mute{background:#34495e;color:#fff}
 .end{background:var(--danger);color:#fff}
+.mute{background:#34495e;color:#fff}
 </style>
 </head>
 
@@ -110,7 +75,7 @@ video{
 <header>
   <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   <div class="head">
-    <strong id="titleLine">Consultation sécurisée</strong>
+    <strong id="titleLine">Consultation</strong>
     <span id="subLine">Initialisation…</span>
   </div>
 </header>
@@ -120,64 +85,53 @@ video{
   <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
-<div class="statusBar">
-  <span class="dot" id="connDot"></span>
-  <span id="connText">Connexion en attente…</span>
-</div>
-
-<div class="controls">
-  <button class="start" id="startBtn">📞 Démarrer</button>
-  <button class="mute" id="muteBtn">🎙️ Audio</button>
-  <button class="end" id="hangBtn">⛔ Quitter</button>
-</div>
+<div class="statusBar" id="statusText">En attente…</div>
+<div class="controls" id="controls"></div>
 
 </div>
+
+<audio id="ringtone" loop preload="auto">
+  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" type="audio/ogg">
+</audio>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  doc, getDoc, setDoc, updateDoc,
-  onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params=new URLSearchParams(location.search);
 const requestId=params.get("requestId");
 
-const localVideo=document.getElementById("localVideo");
 const remoteVideo=document.getElementById("remoteVideo");
-const startBtn=document.getElementById("startBtn");
-const muteBtn=document.getElementById("muteBtn");
-const hangBtn=document.getElementById("hangBtn");
-const connDot=document.getElementById("connDot");
-const connText=document.getElementById("connText");
+const localVideo=document.getElementById("localVideo");
+const controls=document.getElementById("controls");
+const statusText=document.getElementById("statusText");
 const titleLine=document.getElementById("titleLine");
 const subLine=document.getElementById("subLine");
+const ringtone=document.getElementById("ringtone");
 
 const rtcConfig={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
-let pc=null,localStream=null,role=null,isMuted=false,started=false;
+let pc=null,localStream=null,role=null,started=false,audioUnlocked=false;
 
-function setStatus(ok,text){
-  connDot.classList.toggle("ok",ok);
-  connText.textContent=text;
+function unlockAudio(){
+  audioUnlocked=true;
+  ringtone.play().then(()=>ringtone.pause()).catch(()=>{});
 }
 
 onAuthStateChanged(auth,async(user)=>{
   if(!user||!requestId) return location.href="index.html";
 
   const reqSnap=await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()) return alert("Demande introuvable");
-
   const r=reqSnap.data();
-  if(user.uid===r.patientUid) role="patient";
-  if(user.uid===r.assignedProUid) role="pro";
+
+  role = user.uid===r.patientUid ? "patient" : user.uid===r.assignedProUid ? "pro" : null;
   if(!role) return alert("Accès refusé");
 
-  titleLine.textContent= role==="pro"
-    ? `Consultation avec ${r.patientName||"le patient"}`
-    : `Consultation avec Dr ${r.assignedProName||"le professionnel"}`;
+  titleLine.textContent = role==="pro"
+    ? `Consultation avec ${r.patientName||"Patient"}`
+    : `Consultation avec Dr ${r.assignedProName||"Professionnel"}`;
 
-  subLine.textContent= role==="pro" ? "Professionnel de santé" : "Patient";
+  subLine.textContent = role==="pro" ? "Professionnel de santé" : "Patient";
 
   const callRef=doc(db,"callSessions",requestId);
 
@@ -185,78 +139,74 @@ onAuthStateChanged(auth,async(user)=>{
   localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
   localVideo.srcObject=localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+  pc.ontrack=e=>{ remoteVideo.srcObject=e.streams[0]; if(audioUnlocked) remoteVideo.play().catch(()=>{}); };
+  pc.onicecandidate=e=>e.candidate&&updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
 
-  pc.ontrack=e=>{remoteVideo.srcObject=e.streams[0]};
-  pc.onicecandidate=e=>{
-    if(e.candidate){
-      updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
-    }
-  };
-
-  onSnapshot(callRef,async(snap)=>{
+  onSnapshot(callRef,async snap=>{
     if(!snap.exists()) return;
     const d=snap.data();
 
-    if(d.status==="calling") setStatus(false,"Connexion en cours…");
-    if(d.status==="connected") setStatus(true,"Appel connecté");
+    /* 📲 PATIENT – APPEL ENTRANT */
+    if(d.status==="calling" && role==="patient"){
+      statusText.textContent="📞 Appel entrant…";
+      ringtone.play().catch(()=>{});
+      navigator.vibrate?.([500,300,500]);
 
-    if(role==="patient" && d.offer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(d.offer));
-      const answer=await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
+      controls.innerHTML=`
+        <button class="start" id="answerBtn">📞 Répondre</button>
+        <button class="end" id="rejectBtn">❌ Refuser</button>
+      `;
+
+      document.getElementById("answerBtn").onclick=async()=>{
+        unlockAudio();
+        ringtone.pause(); ringtone.currentTime=0;
+        await pc.setRemoteDescription(JSON.parse(d.offer));
+        const answer=await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
+      };
+
+      document.getElementById("rejectBtn").onclick=async()=>{
+        ringtone.pause(); ringtone.currentTime=0;
+        await updateDoc(callRef,{status:"ended"});
+        history.back();
+      };
     }
 
-    if(role==="pro" && d.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(d.answer));
-    }
-
-    if(d.iceCandidate){
-      try{await pc.addIceCandidate(JSON.parse(d.iceCandidate))}catch(e){}
+    /* 🔗 CONNECTÉ */
+    if(d.status==="connected"){
+      ringtone.pause();
+      statusText.textContent="✅ Appel connecté";
+      controls.innerHTML=`
+        <button class="mute" id="muteBtn">🎙️ Muet</button>
+        <button class="end" id="endBtn">⛔ Quitter</button>
+      `;
+      document.getElementById("endBtn").onclick=async()=>{
+        await updateDoc(callRef,{status:"ended"});
+        history.back();
+      };
     }
   });
 
-  startBtn.onclick=async()=>{
-    if(started||role!=="pro") return;
-    started=true;
-    startBtn.disabled=true;
-
-    await setDoc(callRef,{
-      requestId,
-      patientUid:r.patientUid,
-      assignedProUid:r.assignedProUid,
-      status:"calling",
-      startedAt:serverTimestamp()
-    },{merge:true});
-
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await updateDoc(callRef,{offer:JSON.stringify(offer)});
-
-    // ⏱️ TIMEOUT 30s
-    setTimeout(async()=>{
-      if(pc && pc.connectionState!=="connected"){
-        await updateDoc(callRef,{status:"ended",endedReason:"timeout"});
-        alert("Aucune réponse du patient.");
-        history.back();
-      }
-    },30000);
-  };
-
-  muteBtn.onclick=()=>{
-    isMuted=!isMuted;
-    localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
-    muteBtn.textContent=isMuted?"🔇 Muet":"🎙️ Audio";
-  };
-
-  hangBtn.onclick=async()=>{
-    await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
-    pc.close();
-    localStream.getTracks().forEach(t=>t.stop());
-    history.back();
-  };
+  /* 👨‍⚕️ PRO – DÉMARRER */
+  if(role==="pro"){
+    controls.innerHTML=`<button class="start" id="startBtn">📞 Démarrer</button>`;
+    document.getElementById("startBtn").onclick=async()=>{
+      if(started) return;
+      started=true;
+      await setDoc(callRef,{
+        requestId,
+        patientUid:r.patientUid,
+        assignedProUid:r.assignedProUid,
+        status:"calling",
+        startedAt:serverTimestamp()
+      },{merge:true});
+      const offer=await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{offer:JSON.stringify(offer)});
+    };
+  }
 });
 </script>
-
 </body>
 </html>
