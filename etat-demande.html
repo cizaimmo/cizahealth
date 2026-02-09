@@ -136,7 +136,6 @@ body{
 
 <!-- CONTENT -->
 <div class="content">
-
   <div class="card">
     <div class="status" id="statusLabel">
       Recherche d’un professionnel…
@@ -147,7 +146,6 @@ body{
     </div>
     <div class="loader" id="loader"></div>
   </div>
-
 </div>
 
 <!-- FOOTER -->
@@ -163,7 +161,7 @@ body{
 
 </div>
 
-<!-- 🔐 LOGIQUE FIREBASE — SYNCHRONISATION PRO -->
+<!-- 🔐 LOGIQUE FIREBASE — SYNCHRONISATION TEMPS RÉEL -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
@@ -196,10 +194,10 @@ onAuthStateChanged(auth, (user)=>{
   onSnapshot(q, (snap)=>{
     if(snap.empty) return;
 
-    const doc = snap.docs[0];
-    const r = doc.data();
+    const docSnap = snap.docs[0];
+    const r = docSnap.data();
 
-    // ⏳ EN ATTENTE
+    /* ⏳ EN ATTENTE */
     if(r.status === "pending"){
       heroTitle.textContent = "Demande en cours";
       heroDesc.textContent =
@@ -210,13 +208,28 @@ onAuthStateChanged(auth, (user)=>{
       loader.style.display = "block";
     }
 
-    // ✅ PRO A ACCEPTÉ → REDIRECTION CHAT
-    if(r.status === "assigned" && r.assignedTo){
-      location.href =
-        `chat.html?requestId=${doc.id}`;
+    /* ✅ PRO A ACCEPTÉ → REDIRECTION */
+    if(r.status === "assigned" && r.assignedProUid){
+      heroTitle.textContent = "Consultation acceptée";
+      heroDesc.textContent =
+        "Votre consultation va commencer avec " +
+        (r.assignedProName || "le professionnel");
+
+      statusLabel.textContent = "Professionnel assigné";
+      statusDesc.textContent =
+        r.assignedProName
+          ? `Dr ${r.assignedProName} a accepté votre demande.`
+          : "Un professionnel a accepté votre demande.";
+
+      loader.style.display = "none";
+
+      // ⏱️ petite pause UX puis redirection
+      setTimeout(()=>{
+        location.href = `chat.html?requestId=${docSnap.id}`;
+      }, 1200);
     }
 
-    // ❌ REFUSÉ / ANNULÉ
+    /* ❌ REFUS / ANNULÉ */
     if(r.status === "refused" || r.status === "cancelled"){
       heroTitle.textContent = "Demande annulée";
       heroDesc.textContent = "La demande n’a pas pu être prise en charge.";
