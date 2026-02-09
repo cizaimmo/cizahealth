@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CizaHealth+ | Rapport médical</title>
+
+<style>
+:root{
+  --primary:#123C8A;
+  --primary-dark:#0B2C66;
+  --bg:#F4F7FB;
+  --card:#ffffff;
+  --text:#0A1A2F;
+  --muted:#6B7A90;
+  --success:#1B6B3A;
+  --danger:#C0392B;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:16px 20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+header img{height:40px}
+header strong{font-size:16px}
+
+/* CONTENT */
+main{
+  padding:26px;
+  flex:1;
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:26px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+
+h2{margin-top:0}
+.meta{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* FORM */
+label{
+  display:block;
+  font-weight:700;
+  margin:18px 0 6px;
+}
+textarea{
+  width:100%;
+  min-height:90px;
+  resize:vertical;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid #e3e8f2;
+  font-family:inherit;
+}
+textarea:disabled{background:#f1f3f7}
+
+.actions{
+  margin-top:24px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+button{
+  border:none;
+  border-radius:14px;
+  padding:14px 18px;
+  font-weight:800;
+  cursor:pointer;
+}
+.submit{background:var(--success);color:#fff}
+.back{background:#eef3fb;color:var(--primary)}
+
+.status{
+  margin-top:14px;
+  font-size:13px;
+  font-weight:700;
+}
+.status.draft{color:#c58a00}
+.status.submitted{color:#1b6b3a}
+.status.validated{color:#2ecc71}
+
+/* FOOTER */
+footer{
+  padding:20px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <strong>Rapport médical</strong>
+</header>
+
+<main>
+  <div class="card">
+    <h2 id="title">Consultation</h2>
+    <div class="meta" id="metaLine">Chargement…</div>
+
+    <form id="reportForm">
+      <label>Diagnostic</label>
+      <textarea id="diagnosis" required></textarea>
+
+      <label>Notes cliniques</label>
+      <textarea id="notes"></textarea>
+
+      <label>Prescription / Recommandations</label>
+      <textarea id="prescription"></textarea>
+
+      <div class="actions">
+        <button type="submit" class="submit" id="submitBtn">
+          Soumettre le rapport
+        </button>
+        <button type="button" class="back" id="backBtn">
+          Retour
+        </button>
+      </div>
+
+      <div class="status draft" id="statusText"></div>
+    </form>
+  </div>
+</main>
+
+<footer>
+© 2026 CizaHealth+ — Rapport médical sécurisé
+</footer>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params=new URLSearchParams(location.search);
+const requestId=params.get("requestId");
+
+const title=document.getElementById("title");
+const metaLine=document.getElementById("metaLine");
+const diagnosis=document.getElementById("diagnosis");
+const notes=document.getElementById("notes");
+const prescription=document.getElementById("prescription");
+const statusText=document.getElementById("statusText");
+const backBtn=document.getElementById("backBtn");
+const form=document.getElementById("reportForm");
+
+backBtn.onclick=()=>history.back();
+
+onAuthStateChanged(auth,async(user)=>{
+  if(!user||!requestId) return location.href="index.html";
+
+  const reqSnap=await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Demande introuvable");
+
+  const r=reqSnap.data();
+  if(user.uid!==r.assignedProUid){
+    alert("Accès refusé");
+    return history.back();
+  }
+
+  title.textContent=`Patient ${r.patientName||""}`;
+  metaLine.textContent=`Dr ${r.assignedProName} • Request ${requestId}`;
+
+  const reportRef=doc(db,"reports",requestId);
+  const repSnap=await getDoc(reportRef);
+
+  if(repSnap.exists()){
+    const rep=repSnap.data();
+    diagnosis.value=rep.diagnosis||"";
+    notes.value=rep.notes||"";
+    prescription.value=rep.prescription||"";
+    statusText.textContent=`Statut : ${rep.status}`;
+    statusText.className="status "+rep.status;
+  }else{
+    statusText.textContent="Statut : brouillon";
+  }
+
+  form.onsubmit=async(e)=>{
+    e.preventDefault();
+
+    if(!diagnosis.value.trim()){
+      alert("Diagnostic obligatoire");
+      return;
+    }
+
+    await setDoc(reportRef,{
+      requestId,
+      patientUid:r.patientUid,
+      patientName:r.patientName||"",
+      proUid:r.assignedProUid,
+      proName:r.assignedProName||"",
+      diagnosis:diagnosis.value.trim(),
+      notes:notes.value.trim(),
+      prescription:prescription.value.trim(),
+      status:"submitted",
+      updatedAt:serverTimestamp(),
+      createdAt:repSnap.exists()?repSnap.data().createdAt:serverTimestamp()
+    },{merge:true});
+
+    alert("Rapport soumis à l’administration");
+    history.back();
+  };
+});
+</script>
+
+</body>
+</html>
