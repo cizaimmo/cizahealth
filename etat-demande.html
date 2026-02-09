@@ -111,7 +111,7 @@ body{
     <div class="status" id="statusLabel">Recherche en cours…</div>
     <div class="sub" id="statusDesc">
       Veuillez rester sur cet écran.  
-      Vous serez informé dès qu’un professionnel est prêt.
+      Un professionnel va prendre votre consultation.
     </div>
     <div class="loader" id="loader"></div>
   </div>
@@ -124,7 +124,6 @@ body{
 
 </div>
 
-<!-- 🔐 LOGIQUE FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
@@ -140,7 +139,6 @@ const statusLabel=document.getElementById("statusLabel");
 const statusDesc=document.getElementById("statusDesc");
 const loader=document.getElementById("loader");
 
-let activeRequestId=null;
 let callListenerUnsub=null;
 
 onAuthStateChanged(auth,(user)=>{
@@ -158,27 +156,27 @@ onAuthStateChanged(auth,(user)=>{
 
     const docSnap=snap.docs[0];
     const r=docSnap.data();
-    activeRequestId=docSnap.id;
+    const requestId=docSnap.id;
 
     if(r.status==="pending"){
       heroTitle.textContent="Demande en cours";
-      heroDesc.textContent="Nous recherchons un professionnel.";
+      heroDesc.textContent="Recherche d’un professionnel disponible.";
       statusLabel.textContent="Recherche en cours…";
-      statusDesc.textContent="Merci de patienter.";
+      statusDesc.textContent="Merci de patienter quelques instants.";
       loader.style.display="block";
     }
 
     if(r.status==="assigned"){
       heroTitle.textContent="Consultation acceptée";
-      heroDesc.textContent="Un professionnel est prêt.";
+      heroDesc.textContent="Votre professionnel est prêt.";
       statusLabel.textContent="Veuillez attendre l’appel";
-      statusDesc.textContent=
+      statusDesc.textContent =
         r.assignedProName
-        ? `Dr ${r.assignedProName} va vous appeler.`
-        : "Le professionnel va vous appeler.";
+          ? `Dr ${r.assignedProName} va vous appeler.`
+          : "Le professionnel va vous appeler.";
       loader.style.display="none";
 
-      listenCall(activeRequestId);
+      listenCall(requestId);
     }
   });
 });
@@ -192,7 +190,12 @@ function listenCall(requestId){
     if(!snap.exists()) return;
     const c=snap.data();
 
-    if(c.status==="calling"){
+    // ✅ CONDITIONS ROBUSTES (IMPORTANT)
+    if(
+      c.status==="calling" ||
+      c.status==="connected" ||
+      c.offer
+    ){
       location.href=`call.html?requestId=${requestId}`;
     }
   });
