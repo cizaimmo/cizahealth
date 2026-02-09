@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>CizaHealth+ | Appel sécurisé</title>
 
 <style>
@@ -15,184 +15,581 @@
   --muted:#6b7a90;
   --success:#1b6b3a;
   --danger:#c0392b;
+  --warning:#e67e22;
   --radius:22px;
 }
 
 *{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
+  overflow:hidden;
 }
 
+/* ===== Shell ===== */
 .app{
-  max-width:900px;
-  margin:auto;
   min-height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-/* HEADER */
+/* ===== Header ===== */
 header{
-  padding:16px 20px;
+  position:sticky;
+  top:0;
+  z-index:10;
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
   color:#fff;
+  padding:14px 16px;
+}
+.header-inner{
+  max-width:1100px;
+  margin:0 auto;
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:12px;
 }
-header strong{font-size:15px}
+.h-left{min-width:0}
+.h-title{
+  font-weight:900;
+  font-size:15px;
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.h-sub{
+  font-size:12px;
+  opacity:.92;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.h-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18);
+  padding:8px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  flex-shrink:0;
+}
+.dot{
+  width:10px;height:10px;border-radius:50%;
+  background:#d1d5db;
+}
+.dot.ok{background:#2ecc71}
+.dot.warn{background:#f59e0b}
+.dot.err{background:#ef4444}
 
-/* VIDEO */
-.videos{
+/* ===== Content ===== */
+.main{
   flex:1;
-  padding:18px;
-  display:grid;
-  grid-template-columns:1fr;
-  gap:16px;
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
+  padding:14px;
 }
+.stage{
+  width:100%;
+  max-width:1100px;
+  display:grid;
+  gap:14px;
+  grid-template-rows: 1fr auto;
+}
+
+/* ===== Video area ===== */
+.video-grid{
+  display:grid;
+  gap:14px;
+  grid-template-columns: 1fr;
+}
+
+.video-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:0 12px 34px rgba(10,42,94,.10);
+  border:1px solid #e9eef8;
+  position:relative;
+  min-height:220px;
+}
+
 video{
   width:100%;
-  border-radius:18px;
-  background:#000;
+  height:100%;
+  object-fit:cover;
+  background:#0b1220;
+  display:block;
 }
 
-/* CONTROLS */
-.controls{
-  padding:18px;
-  display:flex;
-  justify-content:center;
-  gap:14px;
+.label{
+  position:absolute;
+  top:12px;left:12px;
+  background:rgba(0,0,0,.45);
+  color:#fff;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  backdrop-filter: blur(8px);
 }
+
+.pip{
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  width:min(38%, 220px);
+  aspect-ratio: 4/3;
+  border-radius:16px;
+  overflow:hidden;
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 14px 40px rgba(0,0,0,.25);
+}
+
+/* ===== Controls ===== */
+.controls{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid #e9eef8;
+  box-shadow:0 12px 34px rgba(10,42,94,.10);
+  padding:12px;
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
+}
+
 .btn{
-  padding:14px 22px;
   border:none;
   border-radius:16px;
-  font-weight:800;
+  padding:14px 14px;
+  font-weight:900;
   cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:48px;
+  flex:1;
+  user-select:none;
 }
-.end{background:var(--danger);color:#fff}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}
+.btn.gray{background:#eef3fb;color:#0b2c66}
+.btn.danger{background:linear-gradient(135deg,#c0392b,#8a1f1f);color:#fff}
+.btn:disabled{opacity:.55;cursor:not-allowed}
 
-/* AUDIO UNLOCK */
-#audioBtn{
+.small{
+  font-size:12px;
+  color:var(--muted);
+  text-align:center;
+  margin-top:10px;
+}
+
+/* ===== Overlays ===== */
+.overlay{
   position:fixed;
-  bottom:22px;
+  inset:0;
+  background:rgba(10,20,40,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:99;
+}
+.modal{
+  width:min(560px, 100%);
+  background:#fff;
+  border-radius:24px;
+  padding:18px 18px 16px;
+  box-shadow:0 22px 70px rgba(0,0,0,.35);
+  border:1px solid #e9eef8;
+}
+.modal h2{
+  margin:0 0 8px;
+  font-size:16px;
+}
+.modal p{
+  margin:0;
+  font-size:13.5px;
+  color:var(--muted);
+  line-height:1.55;
+}
+.modal .row{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+.modal .row .btn{min-height:46px}
+
+#audioUnlock{
+  position:fixed;
   left:50%;
   transform:translateX(-50%);
-  padding:14px 24px;
-  border:none;
-  border-radius:18px;
-  background:var(--primary);
+  bottom:calc(18px + env(safe-area-inset-bottom));
+  z-index:50;
+  display:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
   color:#fff;
+  border:none;
+  border-radius:999px;
+  padding:14px 18px;
   font-weight:900;
-  z-index:999;
+  box-shadow:0 18px 50px rgba(10,42,94,.35);
+}
+
+@media (min-width: 900px){
+  .video-grid{grid-template-columns: 1fr}
+  .video-card{min-height:420px}
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
 <header>
-  <strong>Consultation sécurisée</strong>
-  <span>🔒 Chiffrée</span>
+  <div class="header-inner">
+    <div class="h-left">
+      <div class="h-title" id="hdrTitle">Consultation sécurisée</div>
+      <div class="h-sub" id="hdrSub">Connexion…</div>
+    </div>
+    <div class="h-chip">
+      <span class="dot warn" id="hdrDot"></span>
+      <span id="hdrState">Vérification</span>
+    </div>
+  </div>
 </header>
 
-<div class="videos">
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
+<div class="main">
+  <div class="stage">
+
+    <div class="video-grid">
+      <div class="video-card">
+        <div class="label" id="remoteLabel">Vidéo distant</div>
+        <video id="remoteVideo" autoplay playsinline></video>
+
+        <div class="pip">
+          <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="controls">
+        <button class="btn primary" id="startBtn">📞 Démarrer</button>
+        <button class="btn gray" id="muteBtn" disabled>🎤 Muet</button>
+        <button class="btn gray" id="camBtn" disabled>📷 Caméra</button>
+        <button class="btn danger" id="endBtn" disabled>⛔ Quitter</button>
+      </div>
+      <div class="small" id="hint">
+        Astuce : si tu n’entends rien, clique <b>Activer le son</b> (règle iPhone / navigateur).
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<div class="controls">
-  <button class="btn end" id="hangupBtn">Terminer l’appel</button>
-</div>
+<button id="audioUnlock">🔊 Activer le son</button>
 
-<button id="audioBtn">🔊 Activer le son</button>
-
+<!-- Overlay erreur -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="ovTitle">Accès refusé</h2>
+    <p id="ovMsg">Vous n’êtes pas autorisé à accéder à cet appel.</p>
+    <div class="row">
+      <button class="btn gray" id="ovBack">Retour</button>
+      <button class="btn primary" id="ovOk">OK</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  doc, getDoc, setDoc, updateDoc, onSnapshot,
+  collection, addDoc, serverTimestamp, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* ===== DOM ===== */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const audioBtn = document.getElementById("audioBtn");
-const hangupBtn = document.getElementById("hangupBtn");
+const hdrTitle = document.getElementById("hdrTitle");
+const hdrSub   = document.getElementById("hdrSub");
+const hdrDot   = document.getElementById("hdrDot");
+const hdrState = document.getElementById("hdrState");
 
-const rtcConfig = {
-  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+const localVideo  = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+
+const startBtn = document.getElementById("startBtn");
+const muteBtn  = document.getElementById("muteBtn");
+const camBtn   = document.getElementById("camBtn");
+const endBtn   = document.getElementById("endBtn");
+
+const audioUnlock = document.getElementById("audioUnlock");
+
+const overlay = document.getElementById("overlay");
+const ovTitle = document.getElementById("ovTitle");
+const ovMsg   = document.getElementById("ovMsg");
+document.getElementById("ovOk").onclick = ()=> overlay.style.display="none";
+document.getElementById("ovBack").onclick = ()=> history.back();
+
+function setState(type, text){
+  hdrDot.classList.remove("ok","warn","err");
+  if(type==="ok") hdrDot.classList.add("ok");
+  if(type==="warn") hdrDot.classList.add("warn");
+  if(type==="err") hdrDot.classList.add("err");
+  hdrState.textContent = text;
+}
+
+function showError(title, msg){
+  ovTitle.textContent = title;
+  ovMsg.textContent = msg;
+  overlay.style.display="flex";
+  setState("err","Bloqué");
+}
+
+/* ===== Guard: requestId ===== */
+if(!requestId){
+  showError("Lien invalide", "Il manque requestId dans l’URL. Ouvre l’appel depuis le bouton 📞 de la consultation.");
+}
+
+/* ===== WebRTC ===== */
+const rtcConfig = { iceServers:[{urls:"stun:stun.l.google.com:19302"}] };
+
+let pc = null;
+let localStream = null;
+
+let me = null;
+let role = null; // "patient" | "pro"
+let reqData = null;
+
+let callRef = null;
+let offerCandidatesRef = null;
+let answerCandidatesRef = null;
+
+/* ===== Buttons ===== */
+muteBtn.onclick = ()=>{
+  if(!localStream) return;
+  const track = localStream.getAudioTracks()[0];
+  if(!track) return;
+  track.enabled = !track.enabled;
+  muteBtn.textContent = track.enabled ? "🎤 Muet" : "🔇 Réactiver";
 };
 
-let pc, localStream;
+camBtn.onclick = ()=>{
+  if(!localStream) return;
+  const track = localStream.getVideoTracks()[0];
+  if(!track) return;
+  track.enabled = !track.enabled;
+  camBtn.textContent = track.enabled ? "📷 Caméra" : "🚫 Caméra";
+};
 
-auth.onAuthStateChanged(async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="index.html";
+audioUnlock.onclick = async ()=>{
+  try{
+    remoteVideo.muted = false;
+    await remoteVideo.play();
+    audioUnlock.style.display = "none";
+  }catch(e){
+    // si encore bloqué, l’utilisateur reclique
+  }
+};
+
+endBtn.onclick = async ()=>{
+  try{
+    if(localStream) localStream.getTracks().forEach(t=>t.stop());
+    if(pc) pc.close();
+  }catch{}
+  pc = null;
+  localStream = null;
+
+  // on laisse le doc callSessions, mais on peut marquer ended
+  try{
+    if(callRef) await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
+  }catch{}
+
+  history.back();
+};
+
+/* ===== Core ===== */
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    showError("Connexion requise", "Veuillez vous connecter pour accéder à l’appel.");
+    return;
+  }
+  me = user;
+
+  setState("warn","Vérification");
+  hdrSub.textContent = "Validation de la consultation…";
+
+  // 1) charger request
+  const reqRef = doc(db,"requests",requestId);
+  const reqSnap = await getDoc(reqRef);
+  if(!reqSnap.exists()){
+    showError("Consultation introuvable", "Cette demande n’existe pas ou a été supprimée.");
+    return;
+  }
+  reqData = reqSnap.data();
+
+  // 2) vérifier statut + champs (IMPORTANT : ton schéma)
+  const patientUid = reqData.patientUid;
+  const proUid = reqData.assignedProUid;
+  const status = reqData.status;
+
+  if(status !== "assigned"){
+    showError("Appel indisponible", "L’appel est possible uniquement après acceptation du professionnel.");
+    return;
   }
 
-  const callRef = doc(db,"callSessions",requestId);
-  await setDoc(callRef,{status:"init",createdAt:serverTimestamp()},{merge:true});
+  // 3) autorisation
+  if(me.uid === patientUid) role = "patient";
+  else if(me.uid === proUid) role = "pro";
+  else{
+    showError("Accès refusé", "Vous n’êtes ni le patient ni le professionnel assigné.");
+    return;
+  }
 
-  pc = new RTCPeerConnection(rtcConfig);
+  hdrTitle.textContent = "Consultation sécurisée";
+  hdrSub.textContent = role === "patient"
+    ? `Avec Dr ${reqData.assignedProName || "le professionnel"}`
+    : "Avec le patient";
+  setState("ok","Autorisé");
 
-  localStream = await navigator.mediaDevices.getUserMedia({
-    video:true,
-    audio:{
-      echoCancellation:true,
-      noiseSuppression:true,
-      autoGainControl:true
+  // 4) init callSession
+  callRef = doc(db,"callSessions",requestId);
+  offerCandidatesRef = collection(db,"callSessions",requestId,"offerCandidates");
+  answerCandidatesRef = collection(db,"callSessions",requestId,"answerCandidates");
+
+  await setDoc(callRef,{
+    requestId,
+    patientUid,
+    proUid,
+    status:"ready",
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  // 5) UI enable
+  startBtn.textContent = role === "patient" ? "📞 Démarrer" : "📞 Rejoindre";
+  startBtn.disabled = false;
+  endBtn.disabled = false;
+  muteBtn.disabled = false;
+  camBtn.disabled = false;
+
+  // 6) bouton start
+  startBtn.onclick = async ()=>{
+    startBtn.disabled = true;
+    setState("warn","Connexion…");
+    hdrSub.textContent = "Initialisation audio/vidéo…";
+
+    // local media
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video:true,
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
+      }
+    });
+    localVideo.srcObject = localStream;
+
+    pc = new RTCPeerConnection(rtcConfig);
+
+    localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
+
+    pc.ontrack = (e)=>{
+      remoteVideo.srcObject = e.streams[0];
+      // afficher bouton audio unlock (iOS)
+      audioUnlock.style.display = "block";
+    };
+
+    pc.onicecandidate = async (e)=>{
+      if(!e.candidate) return;
+      // patient -> offerCandidates, pro -> answerCandidates
+      if(role === "patient"){
+        await addDoc(offerCandidatesRef, e.candidate.toJSON());
+      }else{
+        await addDoc(answerCandidatesRef, e.candidate.toJSON());
+      }
+    };
+
+    // patient crée l’offre, pro attend l’offre puis répond
+    if(role === "patient"){
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{
+        offer:{
+          type: offer.type,
+          sdp: offer.sdp
+        },
+        status:"calling",
+        startedAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      });
+
+      setState("warn","En appel…");
+      hdrSub.textContent = "En attente du professionnel…";
+    }else{
+      // PRO: attendre l’offre via snapshot
+      setState("warn","Connexion…");
+      hdrSub.textContent = "Connexion à l’appel du patient…";
     }
-  });
 
-  localVideo.srcObject = localStream;
-  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    // listen call doc (offer/answer)
+    onSnapshot(callRef, async (snap)=>{
+      const c = snap.data();
+      if(!c) return;
 
-  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+      // PRO reçoit offer -> setRemote -> create answer
+      if(role === "pro" && c.offer && !pc.currentRemoteDescription){
+        await pc.setRemoteDescription(c.offer);
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(callRef,{
+          answer:{type:answer.type, sdp:answer.sdp},
+          status:"connected",
+          updatedAt:serverTimestamp()
+        });
+        setState("ok","Connecté");
+        hdrSub.textContent = "Appel en cours";
+      }
 
-  pc.onicecandidate = e=>{
-    if(e.candidate){
-      updateDoc(callRef,{ice:e.candidate.toJSON()});
-    }
+      // PATIENT reçoit answer
+      if(role === "patient" && c.answer && !pc.currentRemoteDescription){
+        await pc.setRemoteDescription(c.answer);
+        setState("ok","Connecté");
+        hdrSub.textContent = "Appel en cours";
+      }
+
+      if(c.status === "ended"){
+        setState("warn","Terminé");
+        hdrSub.textContent = "L’appel a été terminé.";
+      }
+    });
+
+    // listen candidates
+    onSnapshot(role==="patient" ? answerCandidatesRef : offerCandidatesRef, async (snap)=>{
+      for(const change of snap.docChanges()){
+        if(change.type === "added"){
+          try{
+            await pc.addIceCandidate(change.doc.data());
+          }catch{}
+        }
+      }
+    });
   };
 
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await updateDoc(callRef,{offer});
-
-  onSnapshot(callRef, async snap=>{
-    const d=snap.data();
-    if(d.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(d.answer);
-    }
-    if(d.ice){
-      try{await pc.addIceCandidate(d.ice)}catch{}
-    }
-  });
 });
-
-/* 🔊 AUDIO UNLOCK */
-audioBtn.onclick = async ()=>{
-  remoteVideo.muted=false;
-  await remoteVideo.play();
-  audioBtn.style.display="none";
-};
-
-/* END */
-hangupBtn.onclick = async ()=>{
-  localStream.getTracks().forEach(t=>t.stop());
-  pc.close();
-  location.href="index.html";
-};
 </script>
 
 </body>
