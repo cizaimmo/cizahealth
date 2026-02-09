@@ -2,42 +2,49 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Consultation en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CizaHealth+ | Consultation sécurisée</title>
 
 <style>
 :root{
   --primary:#123C8A;
   --primary-dark:#0B2C66;
-  --danger:#C0392B;
   --bg:#0A1A2F;
+  --card:#ffffff;
   --text:#ffffff;
+  --muted:#cfd7ea;
+  --success:#2ecc71;
+  --danger:#C0392B;
+  --radius:18px;
 }
 *{box-sizing:border-box}
-html,body{
-  margin:0;
-  padding:0;
+html,body{margin:0;height:100%}
+body{
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  height:100%;
 }
 
-.app{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{min-height:100vh;display:flex;flex-direction:column}
 
 /* HEADER */
 header{
-  padding:14px 18px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  padding:14px 16px;
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  gap:12px;
 }
-header strong{font-size:15px}
+header img{height:38px}
+.head{
+  flex:1;min-width:0
+}
+.head strong{
+  display:block;
+  font-size:15px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.head span{font-size:12px;color:var(--muted)}
 
 /* VIDEOS */
 .videos{
@@ -54,25 +61,45 @@ video{
   position:absolute;
   width:120px;
   height:160px;
-  bottom:20px;
-  right:20px;
+  bottom:16px;
+  right:16px;
   border-radius:14px;
   border:2px solid #fff;
 }
 
+/* STATUS */
+.statusBar{
+  padding:10px 16px;
+  background:#0e1d3a;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+}
+.dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--danger)
+}
+.dot.ok{background:var(--success)}
+
 /* CONTROLS */
 .controls{
-  padding:18px;
+  padding:16px;
+  background:#0e1d3a;
   display:flex;
   justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
 }
 .controls button{
   border:none;
   border-radius:999px;
-  padding:14px 20px;
+  padding:12px 18px;
   font-weight:800;
   cursor:pointer;
 }
+.start{background:var(--success);color:#fff}
+.mute{background:#34495e;color:#fff}
 .end{background:var(--danger);color:#fff}
 </style>
 </head>
@@ -81,7 +108,11 @@ video{
 <div class="app">
 
 <header>
-  <strong id="callTitle">Consultation médicale</strong>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="head">
+    <strong id="titleLine">Consultation sécurisée</strong>
+    <span id="subLine">Initialisation…</span>
+  </div>
 </header>
 
 <div class="videos">
@@ -89,156 +120,139 @@ video{
   <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
+<div class="statusBar">
+  <span class="dot" id="connDot"></span>
+  <span id="connText">Connexion en attente…</span>
+</div>
+
 <div class="controls">
-  <button class="end" id="hangupBtn">Raccrocher</button>
+  <button class="start" id="startBtn">📞 Démarrer</button>
+  <button class="mute" id="muteBtn">🎙️ Audio</button>
+  <button class="end" id="hangBtn">⛔ Quitter</button>
 </div>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, setDoc, updateDoc,
   onSnapshot, serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* PARAMS */
-const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
+const params=new URLSearchParams(location.search);
+const requestId=params.get("requestId");
 
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const hangupBtn = document.getElementById("hangupBtn");
+const localVideo=document.getElementById("localVideo");
+const remoteVideo=document.getElementById("remoteVideo");
+const startBtn=document.getElementById("startBtn");
+const muteBtn=document.getElementById("muteBtn");
+const hangBtn=document.getElementById("hangBtn");
+const connDot=document.getElementById("connDot");
+const connText=document.getElementById("connText");
+const titleLine=document.getElementById("titleLine");
+const subLine=document.getElementById("subLine");
 
-const rtcConfig = {
-  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
-};
+const rtcConfig={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+let pc=null,localStream=null,role=null,isMuted=false,started=false;
 
-let pc = null;
-let localStream = null;
-let role = null;
-let callRef = null;
-
-/* CLEANUP */
-function cleanup(){
-  if(pc){ pc.close(); pc=null; }
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-    localStream=null;
-  }
+function setStatus(ok,text){
+  connDot.classList.toggle("ok",ok);
+  connText.textContent=text;
 }
 
-/* AUTH */
-onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="/cizahealth/index.html";
-  }
+onAuthStateChanged(auth,async(user)=>{
+  if(!user||!requestId) return location.href="index.html";
 
-  /* LOAD REQUEST */
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
+  const reqSnap=await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Demande introuvable");
 
-  const req = reqSnap.data();
+  const r=reqSnap.data();
+  if(user.uid===r.patientUid) role="patient";
+  if(user.uid===r.assignedProUid) role="pro";
+  if(!role) return alert("Accès refusé");
 
-  if(user.uid === req.patientUid) role="patient";
-  if(user.uid === req.assignedProUid) role="pro";
+  titleLine.textContent= role==="pro"
+    ? `Consultation avec ${r.patientName||"le patient"}`
+    : `Consultation avec Dr ${r.assignedProName||"le professionnel"}`;
 
-  if(!role){
-    alert("Non autorisé à participer à l’appel");
-    return;
-  }
+  subLine.textContent= role==="pro" ? "Professionnel de santé" : "Patient";
 
-  callRef = doc(db,"callSessions",requestId);
+  const callRef=doc(db,"callSessions",requestId);
 
-  /* INIT WEBRTC */
-  pc = new RTCPeerConnection(rtcConfig);
-
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio:true,
-    video:true
-  });
-
-  localVideo.srcObject = localStream;
+  pc=new RTCPeerConnection(rtcConfig);
+  localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+  localVideo.srcObject=localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
-  pc.ontrack = e=>{
-    remoteVideo.srcObject = e.streams[0];
-  };
-
-  pc.onicecandidate = e=>{
+  pc.ontrack=e=>{remoteVideo.srcObject=e.streams[0]};
+  pc.onicecandidate=e=>{
     if(e.candidate){
-      updateDoc(callRef,{
-        iceCandidate: JSON.stringify(e.candidate)
-      });
+      updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
     }
   };
 
-  /* 🔑 SEUL LE PRO DÉMARRE L’APPEL */
-  if(role === "pro"){
-    await setDoc(callRef,{
-      requestId,
-      patientUid: req.patientUid,
-      assignedProUid: req.assignedProUid,
-      status: "calling",
-      startedAt: serverTimestamp()
-    },{merge:true});
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await updateDoc(callRef,{
-      offer: JSON.stringify(offer)
-    });
-  }
-
-  /* SIGNALING */
-  onSnapshot(callRef, async(snap)=>{
+  onSnapshot(callRef,async(snap)=>{
     if(!snap.exists()) return;
-    const data = snap.data();
+    const d=snap.data();
 
-    /* PATIENT RÉPOND À L’APPEL */
-    if(role==="patient" && data.offer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.offer));
-      const answer = await pc.createAnswer();
+    if(d.status==="calling") setStatus(false,"Connexion en cours…");
+    if(d.status==="connected") setStatus(true,"Appel connecté");
+
+    if(role==="patient" && d.offer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.offer));
+      const answer=await pc.createAnswer();
       await pc.setLocalDescription(answer);
-
-      await updateDoc(callRef,{
-        answer: JSON.stringify(answer),
-        status: "connected"
-      });
+      await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
     }
 
-    /* PRO REÇOIT LA RÉPONSE */
-    if(role==="pro" && data.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.answer));
+    if(role==="pro" && d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.answer));
     }
 
-    if(data.iceCandidate){
-      try{
-        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-      }catch(e){}
-    }
-
-    if(data.status==="ended"){
-      cleanup();
-      history.back();
+    if(d.iceCandidate){
+      try{await pc.addIceCandidate(JSON.parse(d.iceCandidate))}catch(e){}
     }
   });
 
-  /* HANGUP */
-  hangupBtn.onclick = async()=>{
-    await updateDoc(callRef,{
-      status:"ended",
-      endedAt:serverTimestamp()
-    });
-    cleanup();
+  startBtn.onclick=async()=>{
+    if(started||role!=="pro") return;
+    started=true;
+    startBtn.disabled=true;
+
+    await setDoc(callRef,{
+      requestId,
+      patientUid:r.patientUid,
+      assignedProUid:r.assignedProUid,
+      status:"calling",
+      startedAt:serverTimestamp()
+    },{merge:true});
+
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await updateDoc(callRef,{offer:JSON.stringify(offer)});
+
+    // ⏱️ TIMEOUT 30s
+    setTimeout(async()=>{
+      if(pc && pc.connectionState!=="connected"){
+        await updateDoc(callRef,{status:"ended",endedReason:"timeout"});
+        alert("Aucune réponse du patient.");
+        history.back();
+      }
+    },30000);
+  };
+
+  muteBtn.onclick=()=>{
+    isMuted=!isMuted;
+    localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
+    muteBtn.textContent=isMuted?"🔇 Muet":"🎙️ Audio";
+  };
+
+  hangBtn.onclick=async()=>{
+    await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
+    pc.close();
+    localStream.getTracks().forEach(t=>t.stop());
     history.back();
   };
 });
