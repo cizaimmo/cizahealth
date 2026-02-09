@@ -130,7 +130,7 @@ import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where,
-  orderBy, limit, onSnapshot, doc
+  orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const heroTitle=document.getElementById("heroTitle");
@@ -139,26 +139,28 @@ const statusLabel=document.getElementById("statusLabel");
 const statusDesc=document.getElementById("statusDesc");
 const loader=document.getElementById("loader");
 
-let callListenerUnsub=null;
+let requestId = null;
+let callListenerUnsub = null;
 
 onAuthStateChanged(auth,(user)=>{
   if(!user) return location.href="login.html";
 
-  const q=query(
+  // 1️⃣ Écoute la dernière demande du patient
+  const reqQuery = query(
     collection(db,"requests"),
     where("patientUid","==",user.uid),
     orderBy("createdAt","desc"),
     limit(1)
   );
 
-  onSnapshot(q,(snap)=>{
+  onSnapshot(reqQuery,(snap)=>{
     if(snap.empty) return;
 
-    const docSnap=snap.docs[0];
-    const r=docSnap.data();
-    const requestId=docSnap.id;
+    const docSnap = snap.docs[0];
+    const r = docSnap.data();
+    requestId = docSnap.id;
 
-    if(r.status==="pending"){
+    if(r.status === "pending"){
       heroTitle.textContent="Demande en cours";
       heroDesc.textContent="Recherche d’un professionnel disponible.";
       statusLabel.textContent="Recherche en cours…";
@@ -166,41 +168,42 @@ onAuthStateChanged(auth,(user)=>{
       loader.style.display="block";
     }
 
-    if(r.status==="assigned"){
+    if(r.status === "assigned"){
       heroTitle.textContent="Consultation acceptée";
       heroDesc.textContent="Votre professionnel est prêt.";
-      statusLabel.textContent="Veuillez attendre l’appel";
+      statusLabel.textContent="En attente de l’appel";
       statusDesc.textContent =
         r.assignedProName
           ? `Dr ${r.assignedProName} va vous appeler.`
           : "Le professionnel va vous appeler.";
       loader.style.display="none";
 
-      listenCall(requestId);
+      // 🔥 ON DÉMARRE L'ÉCOUTE DE L’APPEL (UNE SEULE FOIS)
+      listenForCall();
     }
   });
 });
 
-function listenCall(requestId){
-  if(callListenerUnsub) return;
+function listenForCall(){
+  if(callListenerUnsub || !requestId) return;
 
-  const callRef=doc(db,"callSessions",requestId);
+  const callQuery = query(
+    collection(db,"callSessions"),
+    where("requestId","==",requestId)
+  );
 
-  callListenerUnsub=onSnapshot(callRef,(snap)=>{
-    if(!snap.exists()) return;
-    const c=snap.data();
+  callListenerUnsub = onSnapshot(callQuery,(snap)=>{
+    if(snap.empty) return;
 
-    // ✅ CONDITIONS ROBUSTES (IMPORTANT)
-    if(
-      c.status==="calling" ||
-      c.status==="connected" ||
-      c.offer
-    ){
-      location.href=`call.html?requestId=${requestId}`;
+    const callDoc = snap.docs[0];
+    const call = callDoc.data();
+
+    // ✅ LE PRO A DÉMARRÉ L’APPEL
+    if(call.status === "calling" || call.offer){
+      location.href = `call.html?requestId=${requestId}`;
     }
   });
 }
 </script>
-
 </body>
 </html>
