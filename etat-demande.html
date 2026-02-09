@@ -7,8 +7,9 @@
 
 <style>
 :root{
-  --blue:#123c8a;
-  --blue-soft:#f1f5fc;
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
@@ -40,12 +41,12 @@ body{
   align-items:center;
   gap:12px;
 }
-.header img{height:48px}
+.header img{height:46px}
 
 /* HERO */
 .hero{
   padding:32px 26px;
-  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
   color:#fff;
   text-align:center;
 }
@@ -76,7 +77,7 @@ body{
 /* STATUS */
 .status{
   font-size:18px;
-  font-weight:700;
+  font-weight:800;
   margin-bottom:10px;
 }
 .sub{
@@ -92,7 +93,7 @@ body{
   height:42px;
   border-radius:50%;
   border:4px solid #e3e8f2;
-  border-top-color:var(--blue);
+  border-top-color:var(--primary);
   animation:spin 1s linear infinite;
 }
 @keyframes spin{
@@ -109,7 +110,7 @@ body{
   color:#8a95a8;
 }
 .footer img{
-  height:44px;
+  height:42px;
   margin-bottom:8px;
 }
 </style>
@@ -118,67 +119,76 @@ body{
 <body>
 <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
-      alt="CizaHealth+">
-  </div>
+<!-- HEADER -->
+<div class="header">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
+</div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <h1>Demande en cours</h1>
-    <p>Veuillez patienter pendant l’assignation d’un professionnel.</p>
-  </div>
+<!-- HERO -->
+<div class="hero">
+  <h1 id="heroTitle">Demande en cours</h1>
+  <p id="heroDesc">
+    Veuillez patienter pendant l’assignation d’un professionnel.
+  </p>
+</div>
 
-  <!-- CONTENT -->
-  <div class="content">
+<!-- CONTENT -->
+<div class="content">
 
-    <div class="card">
-      <div class="status" id="statusLabel">
-        Recherche d’un professionnel…
-      </div>
-      <div class="sub" id="statusDesc">
-        Un professionnel de santé est en cours de sélection.
-        Vous serez automatiquement redirigé dès qu’il est disponible.
-      </div>
-      <div class="loader"></div>
+  <div class="card">
+    <div class="status" id="statusLabel">
+      Recherche d’un professionnel…
     </div>
-
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <img
-      src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
-      alt="CizaHealth+">
-    <div>
-      © 2026 CizaHealth+ — CIZA GROUP<br>
-      Plateforme de santé numérique • Service non urgent
+    <div class="sub" id="statusDesc">
+      Un professionnel de santé est en cours de sélection.
+      Vous serez automatiquement redirigé dès qu’il accepte.
     </div>
+    <div class="loader" id="loader"></div>
   </div>
 
 </div>
 
-<!-- 🔐 AUTH + REQUEST STATUS -->
+<!-- FOOTER -->
+<div class="footer">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
+  <div>
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Plateforme de santé numérique • Service non urgent
+  </div>
+</div>
+
+</div>
+
+<!-- 🔐 LOGIQUE FIREBASE — SYNCHRONISATION PRO -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where, onSnapshot, orderBy, limit
+  collection, query, where,
+  orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const heroTitle = document.getElementById("heroTitle");
+const heroDesc = document.getElementById("heroDesc");
+const statusLabel = document.getElementById("statusLabel");
+const statusDesc = document.getElementById("statusDesc");
+const loader = document.getElementById("loader");
 
 onAuthStateChanged(auth, (user)=>{
   if(!user){
-    window.location.href = "login.html";
+    location.href = "login.html";
     return;
   }
 
-  // écouter la dernière request du patient
+  // 🔑 écouter la DERNIÈRE demande du patient
   const q = query(
     collection(db,"requests"),
-    where("userId","==",user.uid),
+    where("patientUid","==",user.uid),
     orderBy("createdAt","desc"),
     limit(1)
   );
@@ -186,17 +196,34 @@ onAuthStateChanged(auth, (user)=>{
   onSnapshot(q, (snap)=>{
     if(snap.empty) return;
 
-    const r = snap.docs[0].data();
+    const doc = snap.docs[0];
+    const r = doc.data();
 
-    if(r.status === "assigned"){
-      window.location.href = "consultation.html";
+    // ⏳ EN ATTENTE
+    if(r.status === "pending"){
+      heroTitle.textContent = "Demande en cours";
+      heroDesc.textContent =
+        "Veuillez patienter pendant l’assignation d’un professionnel.";
+      statusLabel.textContent = "Recherche d’un professionnel…";
+      statusDesc.textContent =
+        "Un professionnel de santé est en cours de sélection.";
+      loader.style.display = "block";
     }
 
-    if(r.status === "cancelled"){
-      document.getElementById("statusLabel").innerText =
-        "Demande annulée";
-      document.getElementById("statusDesc").innerText =
-        "Votre demande a été annulée. Vous pouvez en créer une nouvelle.";
+    // ✅ PRO A ACCEPTÉ → REDIRECTION CHAT
+    if(r.status === "assigned" && r.assignedTo){
+      location.href =
+        `chat.html?requestId=${doc.id}`;
+    }
+
+    // ❌ REFUSÉ / ANNULÉ
+    if(r.status === "refused" || r.status === "cancelled"){
+      heroTitle.textContent = "Demande annulée";
+      heroDesc.textContent = "La demande n’a pas pu être prise en charge.";
+      statusLabel.textContent = "Aucun professionnel disponible";
+      statusDesc.textContent =
+        "Veuillez réessayer ou créer une nouvelle demande.";
+      loader.style.display = "none";
     }
   });
 });
