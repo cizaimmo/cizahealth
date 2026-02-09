@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Appel Consultation</title>
+<title>CizaHealth+ | Appel en cours</title>
 
 <style>
 :root{
-  --primary:#0E3A8A;
+  --primary:#123C8A;
+  --primary-dark:#0B2C66;
   --danger:#C0392B;
-  --success:#1B6B3A;
-  --bg:#0b1220;
-  --radius:22px;
+  --bg:#0A1A2F;
+  --text:#ffffff;
 }
-
 *{box-sizing:border-box}
 html,body{
   margin:0;
   padding:0;
-  height:100%;
   background:var(--bg);
+  color:var(--text);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  height:100%;
 }
 
 .app{
@@ -29,62 +29,54 @@ html,body{
   flex-direction:column;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 header{
   padding:14px 18px;
-  color:#fff;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  gap:12px;
 }
-header .back{
-  font-size:22px;
-  cursor:pointer;
-}
-header .meta{
-  flex:1;
-}
-header strong{display:block}
-header span{font-size:13px;opacity:.85}
+header strong{font-size:15px}
 
-/* ===== VIDEO ===== */
+/* VIDEOS */
 .videos{
   flex:1;
   display:grid;
-  grid-template-rows:1fr 1fr;
-  gap:14px;
-  padding:14px;
+  grid-template-columns:1fr;
+  position:relative;
 }
-
 video{
   width:100%;
   height:100%;
-  background:#000;
-  border-radius:var(--radius);
   object-fit:cover;
+  background:#000;
+}
+#localVideo{
+  position:absolute;
+  width:120px;
+  height:160px;
+  bottom:20px;
+  right:20px;
+  border-radius:14px;
+  border:2px solid #fff;
 }
 
-/* ===== CONTROLS ===== */
+/* CONTROLS */
 .controls{
-  padding:16px;
+  padding:18px;
   display:flex;
-  gap:12px;
+  justify-content:center;
+  gap:16px;
 }
-
 .controls button{
-  flex:1;
   border:none;
-  border-radius:16px;
-  padding:14px;
-  font-size:15px;
+  border-radius:999px;
+  padding:14px 20px;
   font-weight:800;
-  color:#fff;
   cursor:pointer;
 }
-
-.start{background:var(--success)}
-.mute{background:#34495e}
-.end{background:var(--danger)}
+.end{background:var(--danger);color:#fff}
 </style>
 </head>
 
@@ -92,11 +84,7 @@ video{
 <div class="app">
 
 <header>
-  <div class="back" onclick="history.back()">←</div>
-  <div class="meta">
-    <strong id="callTitle">Appel en cours</strong>
-    <span id="callSub">Connexion…</span>
-  </div>
+  <strong id="callTitle">Appel médical</strong>
 </header>
 
 <div class="videos">
@@ -105,188 +93,152 @@ video{
 </div>
 
 <div class="controls">
-  <button class="start" id="startBtn">📞 Démarrer</button>
-  <button class="mute" id="muteBtn">🎤 Muet</button>
-  <button class="end" id="hangupBtn">⛔ Quitter</button>
+  <button class="end" id="hangupBtn">Raccrocher</button>
 </div>
 
 </div>
 
-<!-- =========================
-LOGIQUE WEBRTC + FIRESTORE
-========================= -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  doc, getDoc, setDoc, updateDoc,
+  onSnapshot, serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =========================
-PARAMS
-========================= */
+/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const startBtn = document.getElementById("startBtn");
-const muteBtn = document.getElementById("muteBtn");
 const hangupBtn = document.getElementById("hangupBtn");
-const callSub = document.getElementById("callSub");
 
-/* =========================
-WEBRTC
-========================= */
 const rtcConfig = {
-  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
 };
 
 let pc = null;
 let localStream = null;
-let muted = false;
+let role = null;
 
-/* =========================
-AUTH + AUTORISATION
-========================= */
+/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
   if(!user || !requestId){
     alert("Accès refusé");
-    return history.back();
+    return location.href="/cizahealth/index.html";
   }
 
+  /* LOAD REQUEST */
   const reqRef = doc(db,"requests",requestId);
   const reqSnap = await getDoc(reqRef);
-
   if(!reqSnap.exists()){
     alert("Demande introuvable");
-    return history.back();
+    return;
   }
 
   const req = reqSnap.data();
 
-  // ✅ AUTORISATION STRICTE
-  if(
-    user.uid !== req.patientUid &&
-    user.uid !== req.assignedProUid
-  ){
-    alert("Non autorisé à faire cet appel");
-    return history.back();
-  }
+  if(user.uid === req.patientUid) role="patient";
+  if(user.uid === req.assignedProUid) role="pro";
 
-  callSub.textContent =
-    user.uid === req.assignedProUid
-      ? "Appel avec le patient"
-      : `Appel avec Dr ${req.assignedProName || ""}`;
+  if(!role){
+    alert("Non autorisé à participer à l’appel");
+    return;
+  }
 
   const callRef = doc(db,"callSessions",requestId);
 
+  /* INIT CALL DOC */
   await setDoc(callRef,{
     requestId,
-    status:"idle",
-    createdAt:serverTimestamp()
+    patientUid:req.patientUid,
+    proUid:req.assignedProUid,
+    status:"calling",
+    startedAt:serverTimestamp()
   },{merge:true});
 
-  /* =========================
-  START CALL
-  ========================= */
-  startBtn.onclick = async ()=>{
-    pc = new RTCPeerConnection(rtcConfig);
+  /* WEBRTC */
+  pc = new RTCPeerConnection(rtcConfig);
 
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video:true,
-      audio:true
-    });
+  localStream = await navigator.mediaDevices.getUserMedia({
+    audio:true,
+    video:true
+  });
 
-    localVideo.srcObject = localStream;
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+  localVideo.srcObject = localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
-    pc.ontrack = e=>{
-      remoteVideo.srcObject = e.streams[0];
-    };
-
-    pc.onicecandidate = e=>{
-      if(e.candidate){
-        updateDoc(callRef,{
-          iceCandidate:JSON.stringify(e.candidate)
-        });
-      }
-    };
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await updateDoc(callRef,{
-      offer:JSON.stringify(offer),
-      status:"calling"
-    });
+  pc.ontrack = e=>{
+    remoteVideo.srcObject = e.streams[0];
   };
 
-  /* =========================
-  SIGNALING
-  ========================= */
+  pc.onicecandidate = e=>{
+    if(e.candidate){
+      updateDoc(callRef,{
+        iceCandidate:JSON.stringify(e.candidate)
+      });
+    }
+  };
+
+  if(role==="pro"){
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await updateDoc(callRef,{
+      offer:JSON.stringify(offer)
+    });
+  }
+
+  /* SIGNALING */
   onSnapshot(callRef, async(snap)=>{
     if(!snap.exists()) return;
-    const d = snap.data();
+    const data = snap.data();
 
-    if(d.offer && !pc){
-      pc = new RTCPeerConnection(rtcConfig);
-
-      localStream = await navigator.mediaDevices.getUserMedia({
-        video:true,
-        audio:true
-      });
-
-      localVideo.srcObject = localStream;
-      localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-
-      pc.ontrack = e=>{
-        remoteVideo.srcObject = e.streams[0];
-      };
-
-      await pc.setRemoteDescription(JSON.parse(d.offer));
+    if(data.offer && role==="patient" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-
       await updateDoc(callRef,{
         answer:JSON.stringify(answer),
         status:"connected"
       });
     }
 
-    if(d.answer && pc && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(d.answer));
+    if(data.answer && role==="pro" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.answer));
     }
 
-    if(d.iceCandidate && pc){
+    if(data.iceCandidate){
       try{
-        await pc.addIceCandidate(JSON.parse(d.iceCandidate));
-      }catch{}
+        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
+      }catch(e){}
+    }
+
+    if(data.status==="ended"){
+      cleanup();
+      history.back();
     }
   });
 
+  /* HANGUP */
+  hangupBtn.onclick = async()=>{
+    await updateDoc(callRef,{
+      status:"ended",
+      endedAt:serverTimestamp()
+    });
+    cleanup();
+    history.back();
+  };
 });
 
-/* =========================
-MUTE
-========================= */
-muteBtn.onclick=()=>{
-  if(!localStream) return;
-  muted=!muted;
-  localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
-  muteBtn.textContent = muted ? "🔇 Muet" : "🎤 Muet";
-};
-
-/* =========================
-HANGUP
-========================= */
-hangupBtn.onclick=async()=>{
-  if(pc) pc.close();
-  if(localStream) localStream.getTracks().forEach(t=>t.stop());
-  history.back();
-};
+function cleanup(){
+  if(pc){pc.close();pc=null;}
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+  }
+}
 </script>
 
 </body>
