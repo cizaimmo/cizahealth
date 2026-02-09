@@ -3,60 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Appel sécurisé</title>
+<title>CizaHealth+ | Appel en cours</title>
 
 <style>
 :root{
-  --primary:#123c8a;
-  --primary-dark:#0b2c66;
-  --bg:#f4f7fb;
-  --card:#ffffff;
-  --text:#0a1a2f;
-  --muted:#6b7a90;
-  --success:#1b6b3a;
-  --danger:#c0392b;
-  --radius:22px;
+  --primary:#123C8A;
+  --primary-dark:#0B2C66;
+  --danger:#C0392B;
+  --bg:#0A1A2F;
+  --text:#ffffff;
 }
-
 *{box-sizing:border-box}
-body{
+html,body{
   margin:0;
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  padding:0;
   background:var(--bg);
   color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  height:100%;
 }
 
 .app{
-  max-width:900px;
-  margin:auto;
-  min-height:100vh;
+  height:100vh;
   display:flex;
   flex-direction:column;
 }
 
 /* HEADER */
 header{
-  padding:16px 20px;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  color:#fff;
+  padding:14px 18px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
 }
 header strong{font-size:15px}
 
-/* VIDEO */
+/* VIDEOS */
 .videos{
   flex:1;
-  padding:18px;
   display:grid;
   grid-template-columns:1fr;
-  gap:16px;
+  position:relative;
 }
 video{
   width:100%;
-  border-radius:18px;
+  height:100%;
+  object-fit:cover;
   background:#000;
+}
+#localVideo{
+  position:absolute;
+  width:120px;
+  height:160px;
+  bottom:20px;
+  right:20px;
+  border-radius:14px;
+  border:2px solid #fff;
 }
 
 /* CONTROLS */
@@ -64,41 +67,24 @@ video{
   padding:18px;
   display:flex;
   justify-content:center;
-  gap:14px;
+  gap:16px;
 }
-.btn{
-  padding:14px 22px;
+.controls button{
   border:none;
-  border-radius:16px;
+  border-radius:999px;
+  padding:14px 20px;
   font-weight:800;
   cursor:pointer;
 }
 .end{background:var(--danger);color:#fff}
-
-/* AUDIO UNLOCK */
-#audioBtn{
-  position:fixed;
-  bottom:22px;
-  left:50%;
-  transform:translateX(-50%);
-  padding:14px 24px;
-  border:none;
-  border-radius:18px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:900;
-  z-index:999;
-}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
 <header>
-  <strong>Consultation sécurisée</strong>
-  <span>🔒 Chiffrée</span>
+  <strong id="callTitle">Appel médical</strong>
 </header>
 
 <div class="videos">
@@ -107,92 +93,152 @@ video{
 </div>
 
 <div class="controls">
-  <button class="btn end" id="hangupBtn">Terminer l’appel</button>
+  <button class="end" id="hangupBtn">Raccrocher</button>
 </div>
-
-<button id="audioBtn">🔊 Activer le son</button>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, setDoc, updateDoc, onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, getDoc, setDoc, updateDoc,
+  onSnapshot, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const audioBtn = document.getElementById("audioBtn");
 const hangupBtn = document.getElementById("hangupBtn");
 
 const rtcConfig = {
-  iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
 };
 
-let pc, localStream;
+let pc = null;
+let localStream = null;
+let role = null;
 
-auth.onAuthStateChanged(async(user)=>{
+/* AUTH */
+onAuthStateChanged(auth, async(user)=>{
   if(!user || !requestId){
     alert("Accès refusé");
-    return location.href="index.html";
+    return location.href="/cizahealth/index.html";
+  }
+
+  /* LOAD REQUEST */
+  const reqRef = doc(db,"requests",requestId);
+  const reqSnap = await getDoc(reqRef);
+  if(!reqSnap.exists()){
+    alert("Demande introuvable");
+    return;
+  }
+
+  const req = reqSnap.data();
+
+  if(user.uid === req.patientUid) role="patient";
+  if(user.uid === req.assignedProUid) role="pro";
+
+  if(!role){
+    alert("Non autorisé à participer à l’appel");
+    return;
   }
 
   const callRef = doc(db,"callSessions",requestId);
-  await setDoc(callRef,{status:"init",createdAt:serverTimestamp()},{merge:true});
 
+  /* INIT CALL DOC */
+  await setDoc(callRef,{
+    requestId,
+    patientUid:req.patientUid,
+    proUid:req.assignedProUid,
+    status:"calling",
+    startedAt:serverTimestamp()
+  },{merge:true});
+
+  /* WEBRTC */
   pc = new RTCPeerConnection(rtcConfig);
 
   localStream = await navigator.mediaDevices.getUserMedia({
-    video:true,
-    audio:{
-      echoCancellation:true,
-      noiseSuppression:true,
-      autoGainControl:true
-    }
+    audio:true,
+    video:true
   });
 
   localVideo.srcObject = localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
-  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+  pc.ontrack = e=>{
+    remoteVideo.srcObject = e.streams[0];
+  };
 
   pc.onicecandidate = e=>{
     if(e.candidate){
-      updateDoc(callRef,{ice:e.candidate.toJSON()});
+      updateDoc(callRef,{
+        iceCandidate:JSON.stringify(e.candidate)
+      });
     }
   };
 
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await updateDoc(callRef,{offer});
+  if(role==="pro"){
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await updateDoc(callRef,{
+      offer:JSON.stringify(offer)
+    });
+  }
 
-  onSnapshot(callRef, async snap=>{
-    const d=snap.data();
-    if(d.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(d.answer);
+  /* SIGNALING */
+  onSnapshot(callRef, async(snap)=>{
+    if(!snap.exists()) return;
+    const data = snap.data();
+
+    if(data.offer && role==="patient" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await updateDoc(callRef,{
+        answer:JSON.stringify(answer),
+        status:"connected"
+      });
     }
-    if(d.ice){
-      try{await pc.addIceCandidate(d.ice)}catch{}
+
+    if(data.answer && role==="pro" && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(data.answer));
+    }
+
+    if(data.iceCandidate){
+      try{
+        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
+      }catch(e){}
+    }
+
+    if(data.status==="ended"){
+      cleanup();
+      history.back();
     }
   });
+
+  /* HANGUP */
+  hangupBtn.onclick = async()=>{
+    await updateDoc(callRef,{
+      status:"ended",
+      endedAt:serverTimestamp()
+    });
+    cleanup();
+    history.back();
+  };
 });
 
-/* 🔊 AUDIO UNLOCK */
-audioBtn.onclick = async ()=>{
-  remoteVideo.muted=false;
-  await remoteVideo.play();
-  audioBtn.style.display="none";
-};
-
-/* END */
-hangupBtn.onclick = async ()=>{
-  localStream.getTracks().forEach(t=>t.stop());
-  pc.close();
-  location.href="index.html";
-};
+function cleanup(){
+  if(pc){pc.close();pc=null;}
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+  }
+}
 </script>
 
 </body>
