@@ -1,103 +1,3 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Appel en cours</title>
-
-<style>
-:root{
-  --primary:#123C8A;
-  --primary-dark:#0B2C66;
-  --danger:#C0392B;
-  --bg:#0A1A2F;
-  --text:#ffffff;
-}
-*{box-sizing:border-box}
-html,body{
-  margin:0;
-  padding:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  height:100%;
-}
-
-.app{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-}
-
-/* HEADER */
-header{
-  padding:14px 18px;
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-header strong{font-size:15px}
-
-/* VIDEOS */
-.videos{
-  flex:1;
-  display:grid;
-  grid-template-columns:1fr;
-  position:relative;
-}
-video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  background:#000;
-}
-#localVideo{
-  position:absolute;
-  width:120px;
-  height:160px;
-  bottom:20px;
-  right:20px;
-  border-radius:14px;
-  border:2px solid #fff;
-}
-
-/* CONTROLS */
-.controls{
-  padding:18px;
-  display:flex;
-  justify-content:center;
-  gap:16px;
-}
-.controls button{
-  border:none;
-  border-radius:999px;
-  padding:14px 20px;
-  font-weight:800;
-  cursor:pointer;
-}
-.end{background:var(--danger);color:#fff}
-</style>
-</head>
-
-<body>
-<div class="app">
-
-<header>
-  <strong id="callTitle">Appel médical</strong>
-</header>
-
-<div class="videos">
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
-</div>
-
-<div class="controls">
-  <button class="end" id="hangupBtn">Raccrocher</button>
-</div>
-
-</div>
-
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
@@ -108,7 +8,6 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
@@ -123,8 +22,8 @@ const rtcConfig = {
 let pc = null;
 let localStream = null;
 let role = null;
+let callRef = null;
 
-/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
   if(!user || !requestId){
     alert("Accès refusé");
@@ -149,18 +48,9 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  const callRef = doc(db,"callSessions",requestId);
+  callRef = doc(db,"callSessions",requestId);
 
-  /* INIT CALL DOC */
-  await setDoc(callRef,{
-    requestId,
-    patientUid:req.patientUid,
-    proUid:req.assignedProUid,
-    status:"calling",
-    startedAt:serverTimestamp()
-  },{merge:true});
-
-  /* WEBRTC */
+  /* INIT WEBRTC */
   pc = new RTCPeerConnection(rtcConfig);
 
   localStream = await navigator.mediaDevices.getUserMedia({
@@ -178,35 +68,48 @@ onAuthStateChanged(auth, async(user)=>{
   pc.onicecandidate = e=>{
     if(e.candidate){
       updateDoc(callRef,{
-        iceCandidate:JSON.stringify(e.candidate)
+        iceCandidate: JSON.stringify(e.candidate)
       });
     }
   };
 
-  if(role==="pro"){
+  /* 👉 SEUL LE PRO CRÉE / DÉMARRE L’APPEL */
+  if(role === "pro"){
+    await setDoc(callRef,{
+      requestId,
+      patientUid: req.patientUid,
+      assignedProUid: req.assignedProUid,
+      status: "calling",
+      startedAt: serverTimestamp()
+    },{merge:true});
+
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
+
     await updateDoc(callRef,{
-      offer:JSON.stringify(offer)
+      offer: JSON.stringify(offer)
     });
   }
 
-  /* SIGNALING */
+  /* SIGNALING — PATIENT ÉCOUTE */
   onSnapshot(callRef, async(snap)=>{
     if(!snap.exists()) return;
     const data = snap.data();
 
-    if(data.offer && role==="patient" && !pc.currentRemoteDescription){
+    // PATIENT reçoit l’appel
+    if(role==="patient" && data.offer && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+
       await updateDoc(callRef,{
-        answer:JSON.stringify(answer),
-        status:"connected"
+        answer: JSON.stringify(answer),
+        status: "connected"
       });
     }
 
-    if(data.answer && role==="pro" && !pc.currentRemoteDescription){
+    // PRO reçoit la réponse
+    if(role==="pro" && data.answer && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(data.answer));
     }
 
@@ -222,7 +125,6 @@ onAuthStateChanged(auth, async(user)=>{
     }
   });
 
-  /* HANGUP */
   hangupBtn.onclick = async()=>{
     await updateDoc(callRef,{
       status:"ended",
@@ -234,12 +136,9 @@ onAuthStateChanged(auth, async(user)=>{
 });
 
 function cleanup(){
-  if(pc){pc.close();pc=null;}
+  if(pc){ pc.close(); pc=null; }
   if(localStream){
     localStream.getTracks().forEach(t=>t.stop());
   }
 }
 </script>
-
-</body>
-</html>
