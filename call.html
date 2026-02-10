@@ -38,6 +38,7 @@ header img{height:36px}
 
 .videos{flex:1;position:relative}
 video{width:100%;height:100%;object-fit:cover;background:#000}
+
 #localVideo{
   position:absolute;
   width:120px;height:160px;
@@ -79,7 +80,7 @@ video{width:100%;height:100%;object-fit:cover;background:#000}
 <div class="app">
 
 <header>
-  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png" alt="CizaHealth+">
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
   <div class="head">
     <strong id="titleLine">Consultation</strong>
     <span id="subLine">Initialisation…</span>
@@ -87,8 +88,8 @@ video{width:100%;height:100%;object-fit:cover;background:#000}
 </header>
 
 <div class="videos">
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
+  <video id="remoteVideo" playsinline autoplay></video>
+  <video id="localVideo" playsinline autoplay muted></video>
 </div>
 
 <div class="statusBar" id="statusText">En attente…</div>
@@ -104,8 +105,8 @@ video{width:100%;height:100%;object-fit:cover;background:#000}
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp,
-  arrayUnion
+  doc, getDoc, setDoc, updateDoc, onSnapshot,
+  serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
@@ -121,297 +122,166 @@ const ringtone    = document.getElementById("ringtone");
 
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
 
-let pc = null;
-let localStream = null;
-let role = null;
-let started = false;
-let isMuted = false;
-
-let callRef = null;
-let appliedIce = new Set(); // éviter d’appliquer 2x
-let gotRemoteStream = false;
-
-function safePlay(el){
-  try{ return el.play(); }catch(e){ return Promise.reject(e); }
-}
+let pc=null, localStream=null, role=null, started=false;
+let appliedIce=new Set();
 
 function startRingtone(){
   ringtone.play().catch(()=>{});
-  navigator.vibrate?.([400,250,400,250,600]);
+  navigator.vibrate?.([500,300,500]);
 }
 function stopRingtone(){
-  try{ ringtone.pause(); ringtone.currentTime = 0; }catch(e){}
+  try{ ringtone.pause(); ringtone.currentTime=0; }catch(e){}
 }
 
 function cleanup(){
   stopRingtone();
-  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
+  if(pc){ try{pc.close()}catch(e){} pc=null; }
   if(localStream){
-    try{ localStream.getTracks().forEach(t=>t.stop()); }catch(e){}
+    localStream.getTracks().forEach(t=>t.stop());
     localStream=null;
   }
-  remoteVideo.srcObject = null;
-  localVideo.srcObject = null;
-  gotRemoteStream = false;
+  remoteVideo.srcObject=null;
+  localVideo.srcObject=null;
 }
 
-function setControls(html){
-  controls.innerHTML = html;
-}
+function createPC(callRef){
+  pc=new RTCPeerConnection(rtcConfig);
 
-async function ensureCallDoc(r){
-  await setDoc(callRef,{
-    requestId,
-    patientUid: r.patientUid || null,
-    assignedProUid: r.assignedProUid || null,
-    status: "idle",
-    offer: null,
-    answer: null,
-    iceCandidates: [],
-    createdAt: serverTimestamp()
-  },{ merge:true });
-}
-
-async function startMedia(){
-  if(localStream) return;
-  localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:true });
-  localVideo.srcObject = localStream;
-}
-
-function createPC(){
-  pc = new RTCPeerConnection(rtcConfig);
-
-  pc.ontrack = (e)=>{
-    const [stream] = e.streams;
-    if(!stream) return;
-
-    // ✅ flux distant
-    if(remoteVideo.srcObject !== stream){
-      remoteVideo.srcObject = stream;
-      gotRemoteStream = true;
-
-      // autoplay peut être bloqué → on tente quand même
-      setTimeout(()=>{
-        remoteVideo.muted = false;
-        safePlay(remoteVideo).catch(()=>{});
-      },150);
+  pc.ontrack=e=>{
+    if(!remoteVideo.srcObject){
+      remoteVideo.srcObject=e.streams[0];
+      remoteVideo.muted=false;
+      remoteVideo.play().catch(()=>{});
     }
   };
 
-  pc.onicecandidate = (e)=>{
-    if(!e.candidate) return;
-    // ✅ stocker plusieurs candidates (ne pas écraser)
-    updateDoc(callRef,{
-      iceCandidates: arrayUnion(JSON.stringify(e.candidate)),
-      updatedAt: serverTimestamp()
-    }).catch(()=>{});
+  pc.onicecandidate=e=>{
+    if(e.candidate){
+      updateDoc(callRef,{
+        iceCandidates:arrayUnion(JSON.stringify(e.candidate))
+      }).catch(()=>{});
+    }
   };
 }
 
-async function applyIceCandidates(arr){
-  if(!pc || !Array.isArray(arr)) return;
-  for(const c of arr){
-    if(!c || appliedIce.has(c)) continue;
+async function applyIce(list){
+  if(!pc||!Array.isArray(list))return;
+  for(const c of list){
+    if(appliedIce.has(c))continue;
     appliedIce.add(c);
     try{ await pc.addIceCandidate(JSON.parse(c)); }catch(e){}
   }
 }
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId) return location.href="index.html";
+onAuthStateChanged(auth,async user=>{
+  if(!user||!requestId) return location.href="index.html";
 
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  const reqSnap=await getDoc(doc(db,"requests",requestId));
   if(!reqSnap.exists()) return alert("Demande introuvable");
-  const r = reqSnap.data();
+  const r=reqSnap.data();
 
   role = user.uid===r.patientUid ? "patient" :
          user.uid===r.assignedProUid ? "pro" : null;
   if(!role) return alert("Accès refusé");
 
-  // ✅ Noms réels (selon tes champs Firestore)
-  const patientName = r.fullName || r.patientName || "Patient";
-  const proName     = r.assignedProName ? `Dr ${r.assignedProName}` : "Professionnel";
-
   titleLine.textContent = role==="pro"
-    ? `Consultation avec ${patientName}`
-    : `Consultation avec ${proName}`;
-
+    ? `Consultation avec ${r.patientName||"Patient"}`
+    : `Consultation avec Dr ${r.assignedProName||"Professionnel"}`;
   subLine.textContent = role==="pro" ? "Professionnel de santé" : "Patient";
 
-  callRef = doc(db,"callSessions",requestId);
+  const callRef=doc(db,"callSessions",requestId);
 
-  // ✅ init
-  await ensureCallDoc(r);
-  createPC();
-  await startMedia();
+  await setDoc(callRef,{
+    requestId,
+    patientUid:r.patientUid,
+    assignedProUid:r.assignedProUid,
+    status:"idle",
+    iceCandidates:[]
+  },{merge:true});
 
-  // ✅ envoyer nos tracks
-  localStream.getTracks().forEach(t=>{
-    pc.addTrack(t, localStream);
-  });
+  createPC(callRef);
 
-  // ✅ UI initiale
+  localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+  localVideo.srcObject=localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
   if(role==="pro"){
-    statusText.textContent = "Prêt à appeler";
-    setControls(`
+    statusText.textContent="Prêt à appeler";
+    controls.innerHTML=`
       <button class="start" id="startBtn">📞 Démarrer</button>
-      <button class="mute"  id="muteBtn">🎙️ Muet</button>
-      <button class="end"   id="endBtn">⛔ Quitter</button>
-    `);
+      <button class="mute" id="muteBtn">🎙️ Muet</button>
+      <button class="end"  id="endBtn">⛔ Quitter</button>
+    `;
   }else{
-    statusText.textContent = "En attente de l’appel…";
-    setControls(`
-      <button class="ghost" id="waitBtn" disabled>En attente…</button>
-      <button class="mute"  id="muteBtn">🎙️ Muet</button>
-      <button class="end"   id="endBtn">⛔ Quitter</button>
-    `);
+    statusText.textContent="En attente de l’appel…";
+    controls.innerHTML=`
+      <button class="ghost" disabled>En attente…</button>
+      <button class="mute" id="muteBtn">🎙️ Muet</button>
+      <button class="end"  id="endBtn">⛔ Quitter</button>
+    `;
   }
 
-  // ✅ Mute / Quitter (commun)
-  const bindCommonButtons = ()=>{
-    const muteBtn = document.getElementById("muteBtn");
-    const endBtn  = document.getElementById("endBtn");
-
-    if(muteBtn){
-      muteBtn.onclick = ()=>{
-        if(!localStream) return;
-        isMuted = !isMuted;
-        localStream.getAudioTracks().forEach(t=> t.enabled = !isMuted);
-        muteBtn.textContent = isMuted ? "🔇 Muet" : "🎙️ Muet";
-      };
-    }
-
-    if(endBtn){
-      endBtn.onclick = async()=>{
-        await updateDoc(callRef,{ status:"ended", endedAt: serverTimestamp() }).catch(()=>{});
-      };
-    }
+  document.getElementById("muteBtn").onclick=()=>{
+    localStream.getAudioTracks().forEach(t=>t.enabled=!t.enabled);
   };
-  bindCommonButtons();
+  document.getElementById("endBtn").onclick=async()=>{
+    await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
+  };
 
-  // ✅ Start call (PRO)
-  const startBtn = document.getElementById("startBtn");
-  if(startBtn){
-    startBtn.onclick = async()=>{
-      if(role!=="pro" || started) return;
-      started = true;
-      startBtn.disabled = true;
-      statusText.textContent = "Appel en cours…";
-
-      // important: reset offer/answer et candidates pour un nouvel appel propre
-      await updateDoc(callRef,{
-        status:"calling",
-        offer: null,
-        answer: null,
-        iceCandidates: [],
-        startedAt: serverTimestamp()
-      }).catch(()=>{});
-
-      const offer = await pc.createOffer({ offerToReceiveAudio:true, offerToReceiveVideo:true });
-      await pc.setLocalDescription(offer);
+  if(role==="pro"){
+    document.getElementById("startBtn").onclick=async()=>{
+      if(started)return;
+      started=true;
 
       await updateDoc(callRef,{
-        offer: JSON.stringify(offer),
         status:"calling",
-        callerUid: user.uid,
-        callerRole: "pro",
-        updatedAt: serverTimestamp()
+        iceCandidates:[],
+        offer:null,
+        answer:null,
+        startedAt:serverTimestamp()
       });
 
-      // ⏱️ TIMEOUT (si patient ne répond pas)
-      setTimeout(async()=>{
-        try{
-          const s = await getDoc(callRef);
-          const d = s.data();
-          if(d && d.status==="calling" && !d.answer){
-            await updateDoc(callRef,{ status:"ended", endedReason:"timeout", endedAt: serverTimestamp() });
-          }
-        }catch(e){}
-      }, 30000);
+      const offer=await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{offer:JSON.stringify(offer)});
     };
   }
 
-  // ✅ Listen signaling
-  onSnapshot(callRef, async(snap)=>{
-    if(!snap.exists()) return;
-    const d = snap.data();
+  onSnapshot(callRef,async snap=>{
+    if(!snap.exists())return;
+    const d=snap.data();
 
-    // appliquer ICE
-    await applyIceCandidates(d.iceCandidates);
+    await applyIce(d.iceCandidates);
 
-    // ENDED
     if(d.status==="ended"){
-      statusText.textContent = "Appel terminé";
       cleanup();
-      // retour propre (tu peux remplacer par chat.html si tu veux)
-      setTimeout(()=>{ location.href = `chat.html?requestId=${requestId}`; }, 700);
-      return;
+      statusText.textContent="Appel terminé";
+      setTimeout(()=>location.href=`chat.html?requestId=${requestId}`,700);
     }
 
-    // PATIENT: appel entrant
     if(role==="patient" && d.status==="calling" && d.offer && !pc.currentRemoteDescription){
-      statusText.textContent = "📞 Appel entrant…";
       startRingtone();
-
-      setControls(`
+      statusText.textContent="📞 Appel entrant…";
+      controls.innerHTML=`
         <button class="start" id="answerBtn">📞 Répondre</button>
-        <button class="end"   id="rejectBtn">❌ Refuser</button>
-      `);
-
-      document.getElementById("answerBtn").onclick = async()=>{
+        <button class="end" id="rejectBtn">❌ Refuser</button>
+      `;
+      document.getElementById("answerBtn").onclick=async()=>{
         stopRingtone();
-
-        // accepter offre + répondre
         await pc.setRemoteDescription(JSON.parse(d.offer));
-        const answer = await pc.createAnswer();
+        const answer=await pc.createAnswer();
         await pc.setLocalDescription(answer);
-
-        await updateDoc(callRef,{
-          answer: JSON.stringify(answer),
-          status:"connected",
-          answeredAt: serverTimestamp(),
-          answeredBy: user.uid
-        });
-
-        statusText.textContent = "✅ Appel connecté";
-
-        setControls(`
-          <button class="mute" id="muteBtn">🎙️ Muet</button>
-          <button class="end"  id="endBtn">⛔ Quitter</button>
-        `);
-        bindCommonButtons();
+        await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
       };
-
-      document.getElementById("rejectBtn").onclick = async()=>{
+      document.getElementById("rejectBtn").onclick=async()=>{
         stopRingtone();
-        await updateDoc(callRef,{ status:"ended", endedReason:"rejected", endedAt: serverTimestamp() }).catch(()=>{});
+        await updateDoc(callRef,{status:"ended"});
       };
     }
 
-    // PRO: reçoit answer
     if(role==="pro" && d.answer && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(d.answer));
-      statusText.textContent = "✅ Appel connecté";
-    }
-
-    // connecté: UI pro/patient
-    if(d.status==="connected"){
-      stopRingtone();
-      statusText.textContent = "✅ Appel connecté";
-
-      // Si on est patient et qu’on est déjà passé en UI réponse, ne pas écraser.
-      if(role==="pro"){
-        setControls(`
-          <button class="mute" id="muteBtn">🎙️ Muet</button>
-          <button class="end"  id="endBtn">⛔ Quitter</button>
-        `);
-        bindCommonButtons();
-      }
-
-      // Petit garde-fou si remote n’arrive pas encore
-      if(!gotRemoteStream){
-        // on laisse le temps au réseau; pas d’alert agressif
-      }
+      statusText.textContent="✅ Appel connecté";
     }
   });
 });
