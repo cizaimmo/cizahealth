@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CizaHealth+ | Consultation en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CizaHealth+ | Consultation</title>
 
 <style>
 :root{
@@ -15,35 +15,26 @@
 }
 *{box-sizing:border-box}
 html,body{
-  margin:0;
-  padding:0;
+  margin:0;height:100%;
   background:var(--bg);
   color:var(--text);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  height:100%;
 }
-
-.app{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{height:100vh;display:flex;flex-direction:column}
 
 /* HEADER */
 header{
   padding:14px 18px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  gap:12px;
 }
-header strong{font-size:15px}
+header img{height:34px}
+header strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* VIDEOS */
-.videos{
-  flex:1;
-  position:relative;
-}
+.videos{flex:1;position:relative}
 video{
   width:100%;
   height:100%;
@@ -54,26 +45,38 @@ video{
   position:absolute;
   width:120px;
   height:160px;
-  bottom:20px;
-  right:20px;
+  bottom:18px;
+  right:18px;
   border-radius:14px;
   border:2px solid #fff;
+  z-index:10;
+}
+
+/* STATUS */
+.status{
+  padding:10px 16px;
+  font-size:13px;
+  background:#0e1d3a;
 }
 
 /* CONTROLS */
 .controls{
-  padding:18px;
+  padding:16px;
   display:flex;
   justify-content:center;
+  gap:12px;
+  background:#0e1d3a;
 }
 .controls button{
   border:none;
   border-radius:999px;
-  padding:14px 20px;
+  padding:12px 20px;
   font-weight:800;
   cursor:pointer;
 }
+.start{background:#2ecc71;color:#fff}
 .end{background:var(--danger);color:#fff}
+.mute{background:#34495e;color:#fff}
 </style>
 </head>
 
@@ -81,7 +84,8 @@ video{
 <div class="app">
 
 <header>
-  <strong id="callTitle">Consultation médicale</strong>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <strong id="callTitle">Consultation</strong>
 </header>
 
 <div class="videos">
@@ -89,160 +93,178 @@ video{
   <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
-<div class="controls">
-  <button class="end" id="hangupBtn">Raccrocher</button>
-</div>
+<div class="status" id="statusText">Initialisation…</div>
+<div class="controls" id="controls"></div>
 
 </div>
+
+<audio id="ringtone" loop>
+  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" type="audio/ogg">
+</audio>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, updateDoc,
-  onSnapshot, serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
-const localVideo = document.getElementById("localVideo");
+const localVideo  = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const hangupBtn = document.getElementById("hangupBtn");
+const controls    = document.getElementById("controls");
+const statusText  = document.getElementById("statusText");
+const callTitle   = document.getElementById("callTitle");
+const ringtone    = document.getElementById("ringtone");
 
-const rtcConfig = {
-  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
-};
+const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
 
-let pc = null;
-let localStream = null;
-let role = null;
-let callRef = null;
+let pc=null, localStream=null, role=null, callRef=null, muted=false;
 
 /* CLEANUP */
 function cleanup(){
+  try{ ringtone.pause(); ringtone.currentTime=0; }catch(e){}
   if(pc){ pc.close(); pc=null; }
   if(localStream){
     localStream.getTracks().forEach(t=>t.stop());
     localStream=null;
   }
+  remoteVideo.srcObject=null;
+  localVideo.srcObject=null;
 }
 
 /* AUTH */
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="/cizahealth/index.html";
-  }
+  if(!user || !requestId) return location.href="index.html";
 
-  /* LOAD REQUEST */
   const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
-
+  if(!reqSnap.exists()) return alert("Demande introuvable");
   const req = reqSnap.data();
 
-  if(user.uid === req.patientUid) role="patient";
-  if(user.uid === req.assignedProUid) role="pro";
+  if(user.uid===req.patientUid) role="patient";
+  if(user.uid===req.assignedProUid) role="pro";
+  if(!role) return alert("Accès refusé");
 
-  if(!role){
-    alert("Non autorisé à participer à l’appel");
-    return;
-  }
+  callTitle.textContent = role==="pro"
+    ? `Consultation avec ${req.patientName || "Patient"}`
+    : `Consultation avec Dr ${req.assignedProName || "Professionnel"}`;
 
   callRef = doc(db,"callSessions",requestId);
 
-  /* INIT WEBRTC */
+  /* 🔥 RESET CRITIQUE (ANTI BUG) */
+  await setDoc(callRef,{
+    status:"idle",
+    offer:null,
+    answer:null,
+    iceCandidate:null,
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  /* WEBRTC */
   pc = new RTCPeerConnection(rtcConfig);
 
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio:true,
-    video:true
-  });
-
+  localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:true});
   localVideo.srcObject = localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
   pc.ontrack = e=>{
     remoteVideo.srcObject = e.streams[0];
+    remoteVideo.play().catch(()=>{});
   };
 
   pc.onicecandidate = e=>{
     if(e.candidate){
-      updateDoc(callRef,{
-        iceCandidate: JSON.stringify(e.candidate)
-      });
+      updateDoc(callRef,{ iceCandidate: JSON.stringify(e.candidate) });
     }
   };
 
-  /* 🔑 SEUL LE PRO DÉMARRE L’APPEL */
-  if(role === "pro"){
-    await setDoc(callRef,{
-      requestId,
-      patientUid: req.patientUid,
-      assignedProUid: req.assignedProUid,
-      status: "calling",
-      startedAt: serverTimestamp()
-    },{merge:true});
+  /* UI INIT */
+  if(role==="pro"){
+    statusText.textContent="Prêt à appeler";
+    controls.innerHTML=`<button class="start" id="startBtn">📞 Démarrer</button>`;
+    document.getElementById("startBtn").onclick = async()=>{
+      statusText.textContent="Appel en cours…";
 
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{
+        status:"calling",
+        startedAt:serverTimestamp()
+      });
 
-    await updateDoc(callRef,{
-      offer: JSON.stringify(offer)
-    });
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{ offer: JSON.stringify(offer) });
+    };
+  }else{
+    statusText.textContent="En attente de l’appel…";
   }
 
   /* SIGNALING */
   onSnapshot(callRef, async(snap)=>{
     if(!snap.exists()) return;
-    const data = snap.data();
+    const d = snap.data();
 
-    /* PATIENT RÉPOND À L’APPEL */
-    if(role==="patient" && data.offer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+    /* PATIENT – APPEL ENTRANT */
+    if(role==="patient" && d.status==="calling" && d.offer && !pc.currentRemoteDescription){
+      statusText.textContent="📞 Appel entrant…";
+      ringtone.play().catch(()=>{});
 
-      await updateDoc(callRef,{
-        answer: JSON.stringify(answer),
-        status: "connected"
-      });
+      controls.innerHTML=`
+        <button class="start" id="answerBtn">📞 Répondre</button>
+        <button class="end" id="rejectBtn">❌ Refuser</button>
+      `;
+
+      document.getElementById("answerBtn").onclick = async()=>{
+        ringtone.pause();
+        await pc.setRemoteDescription(JSON.parse(d.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(callRef,{ answer:JSON.stringify(answer), status:"connected" });
+      };
+
+      document.getElementById("rejectBtn").onclick = async()=>{
+        ringtone.pause();
+        await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
+      };
     }
 
-    /* PRO REÇOIT LA RÉPONSE */
-    if(role==="pro" && data.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.answer));
+    /* PRO – REÇOIT ANSWER */
+    if(role==="pro" && d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.answer));
     }
 
-    if(data.iceCandidate){
-      try{
-        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-      }catch(e){}
+    if(d.iceCandidate){
+      try{ await pc.addIceCandidate(JSON.parse(d.iceCandidate)); }catch(e){}
     }
 
-    if(data.status==="ended"){
+    /* CONNECTED */
+    if(d.status==="connected"){
+      statusText.textContent="✅ Appel connecté";
+      controls.innerHTML=`
+        <button class="mute" id="muteBtn">🎙️ Muet</button>
+        <button class="end" id="endBtn">⛔ Quitter</button>
+      `;
+
+      document.getElementById("muteBtn").onclick=()=>{
+        muted=!muted;
+        localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
+      };
+
+      document.getElementById("endBtn").onclick=async()=>{
+        await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
+      };
+    }
+
+    /* ENDED */
+    if(d.status==="ended"){
       cleanup();
-      history.back();
+      statusText.textContent="Appel terminé";
+      setTimeout(()=>location.href=`chat.html?requestId=${requestId}`,600);
     }
   });
-
-  /* HANGUP */
-  hangupBtn.onclick = async()=>{
-    await updateDoc(callRef,{
-      status:"ended",
-      endedAt:serverTimestamp()
-    });
-    cleanup();
-    history.back();
-  };
 });
 </script>
-
 </body>
 </html>
