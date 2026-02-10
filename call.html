@@ -99,54 +99,86 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params=new URLSearchParams(location.search);
-const requestId=params.get("requestId");
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
-const remoteVideo=document.getElementById("remoteVideo");
-const localVideo=document.getElementById("localVideo");
-const controls=document.getElementById("controls");
-const statusText=document.getElementById("statusText");
-const titleLine=document.getElementById("titleLine");
-const subLine=document.getElementById("subLine");
-const ringtone=document.getElementById("ringtone");
+const remoteVideo = document.getElementById("remoteVideo");
+const localVideo = document.getElementById("localVideo");
+const controls = document.getElementById("controls");
+const statusText = document.getElementById("statusText");
+const titleLine = document.getElementById("titleLine");
+const subLine = document.getElementById("subLine");
+const ringtone = document.getElementById("ringtone");
 
-const rtcConfig={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
-let pc=null,localStream=null,role=null,started=false,audioUnlocked=false;
+const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
+
+let pc = null;
+let localStream = null;
+let role = null;
+let started = false;
+let audioUnlocked = false;
 
 function unlockAudio(){
-  audioUnlocked=true;
+  audioUnlocked = true;
   ringtone.play().then(()=>ringtone.pause()).catch(()=>{});
 }
 
-onAuthStateChanged(auth,async(user)=>{
-  if(!user||!requestId) return location.href="index.html";
+function cleanup(){
+  if(pc){ pc.close(); pc=null; }
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+    localStream=null;
+  }
+  remoteVideo.srcObject = null;
+  localVideo.srcObject = null;
+}
 
-  const reqSnap=await getDoc(doc(db,"requests",requestId));
-  const r=reqSnap.data();
+onAuthStateChanged(auth, async(user)=>{
+  if(!user || !requestId) return location.href="index.html";
 
-  role = user.uid===r.patientUid ? "patient" : user.uid===r.assignedProUid ? "pro" : null;
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Demande introuvable");
+  const r = reqSnap.data();
+
+  role = user.uid===r.patientUid ? "patient" :
+         user.uid===r.assignedProUid ? "pro" : null;
   if(!role) return alert("Accès refusé");
 
   titleLine.textContent = role==="pro"
-    ? `Consultation avec ${r.patientName||"Patient"}`
-    : `Consultation avec Dr ${r.assignedProName||"Professionnel"}`;
+    ? `Consultation avec ${r.patientName || "Patient"}`
+    : `Consultation avec Dr ${r.assignedProName || "Professionnel"}`;
 
   subLine.textContent = role==="pro" ? "Professionnel de santé" : "Patient";
 
-  const callRef=doc(db,"callSessions",requestId);
+  const callRef = doc(db,"callSessions",requestId);
 
-  pc=new RTCPeerConnection(rtcConfig);
-  localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
-  localVideo.srcObject=localStream;
+  pc = new RTCPeerConnection(rtcConfig);
+
+  localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+  localVideo.srcObject = localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-  pc.ontrack=e=>{ remoteVideo.srcObject=e.streams[0]; if(audioUnlocked) remoteVideo.play().catch(()=>{}); };
-  pc.onicecandidate=e=>e.candidate&&updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
 
-  onSnapshot(callRef,async snap=>{
+  pc.ontrack = e=>{
+    const [remoteStream] = e.streams;
+    if(remoteVideo.srcObject !== remoteStream){
+      remoteVideo.srcObject = remoteStream;
+      setTimeout(()=>{
+        remoteVideo.muted = false;
+        remoteVideo.play().catch(()=>{});
+      },200);
+    }
+  };
+
+  pc.onicecandidate = e=>{
+    if(e.candidate){
+      updateDoc(callRef,{ iceCandidate: JSON.stringify(e.candidate) });
+    }
+  };
+
+  onSnapshot(callRef, async snap=>{
     if(!snap.exists()) return;
-    const d=snap.data();
+    const d = snap.data();
 
-    /* 📲 PATIENT – APPEL ENTRANT */
     if(d.status==="calling" && role==="patient"){
       statusText.textContent="📞 Appel entrant…";
       ringtone.play().catch(()=>{});
@@ -157,23 +189,21 @@ onAuthStateChanged(auth,async(user)=>{
         <button class="end" id="rejectBtn">❌ Refuser</button>
       `;
 
-      document.getElementById("answerBtn").onclick=async()=>{
+      document.getElementById("answerBtn").onclick = async()=>{
         unlockAudio();
         ringtone.pause(); ringtone.currentTime=0;
         await pc.setRemoteDescription(JSON.parse(d.offer));
-        const answer=await pc.createAnswer();
+        const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
+        await updateDoc(callRef,{ answer: JSON.stringify(answer), status:"connected" });
       };
 
-      document.getElementById("rejectBtn").onclick=async()=>{
+      document.getElementById("rejectBtn").onclick = async()=>{
         ringtone.pause(); ringtone.currentTime=0;
-        await updateDoc(callRef,{status:"ended"});
-        history.back();
+        await updateDoc(callRef,{ status:"ended" });
       };
     }
 
-    /* 🔗 CONNECTÉ */
     if(d.status==="connected"){
       ringtone.pause();
       statusText.textContent="✅ Appel connecté";
@@ -181,19 +211,30 @@ onAuthStateChanged(auth,async(user)=>{
         <button class="mute" id="muteBtn">🎙️ Muet</button>
         <button class="end" id="endBtn">⛔ Quitter</button>
       `;
-      document.getElementById("endBtn").onclick=async()=>{
-        await updateDoc(callRef,{status:"ended"});
-        history.back();
+
+      document.getElementById("muteBtn").onclick=()=>{
+        localStream.getAudioTracks().forEach(t=>t.enabled = !t.enabled);
       };
+
+      document.getElementById("endBtn").onclick = async()=>{
+        await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
+      };
+    }
+
+    if(d.status==="ended"){
+      ringtone.pause();
+      statusText.textContent="Appel terminé";
+      cleanup();
+      setTimeout(()=>location.href="etat-demande.html",800);
     }
   });
 
-  /* 👨‍⚕️ PRO – DÉMARRER */
   if(role==="pro"){
     controls.innerHTML=`<button class="start" id="startBtn">📞 Démarrer</button>`;
-    document.getElementById("startBtn").onclick=async()=>{
+    document.getElementById("startBtn").onclick = async()=>{
       if(started) return;
-      started=true;
+      started = true;
+
       await setDoc(callRef,{
         requestId,
         patientUid:r.patientUid,
@@ -201,9 +242,10 @@ onAuthStateChanged(auth,async(user)=>{
         status:"calling",
         startedAt:serverTimestamp()
       },{merge:true});
-      const offer=await pc.createOffer();
+
+      const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      await updateDoc(callRef,{offer:JSON.stringify(offer)});
+      await updateDoc(callRef,{ offer: JSON.stringify(offer) });
     };
   }
 });
