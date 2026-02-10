@@ -291,9 +291,9 @@ onAuthStateChanged(auth,async(user)=>{
       statusText.textContent="Appel terminé";
       setTimeout(()=>{
         if(role==="pro"){
-          location.href=`rapport.html?requestId=${requestId}`;
+          location.href=`report.html?requestId=${requestId}`;
         }else{
-          location.href="patient-home.html";
+          location.href="dashboard-client.html";
         }
       },800);
     }
