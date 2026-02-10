@@ -2,25 +2,31 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CizaHealth+ | Rapport médical</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<!-- PWA / WebView -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
-  --primary:#123C8A;
-  --bg:#F4F7FB;
-  --card:#FFFFFF;
-  --text:#0A1A2F;
-  --muted:#6B7A90;
-  --success:#1B6B3A;
-  --danger:#C0392B;
-  --radius:18px;
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --success:#2ecc71;
+  --danger:#c0392b;
+  --radius:22px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
 .app{
@@ -30,70 +36,74 @@ body{
   display:flex;
   flex-direction:column;
 }
+
+/* HEADER */
 header{
-  background:linear-gradient(90deg,var(--primary),#0B2C66);
   padding:18px 22px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
 }
-header strong{font-size:18px}
-header span{font-size:13px;opacity:.9}
+header strong{font-size:16px;display:block}
+header span{font-size:12px;opacity:.9}
 
-main{
-  padding:26px;
-  flex:1;
-}
+/* CONTENT */
+.content{padding:26px}
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:26px;
-  box-shadow:0 12px 32px rgba(10,42,94,.08);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.field{
-  margin-bottom:22px;
+.card h2{
+  margin:0 0 14px;
+  font-size:18px;
 }
-.field label{
+
+/* FORM */
+.field{margin-bottom:16px}
+label{
   display:block;
-  font-weight:800;
-  margin-bottom:8px;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
 }
-.field textarea{
+input, textarea, select{
   width:100%;
-  min-height:90px;
   padding:14px;
   border-radius:14px;
   border:1px solid #dde3ef;
-  font-family:inherit;
   font-size:14px;
-  resize:vertical;
+  font-family:inherit;
 }
+textarea{resize:vertical;min-height:90px}
+
+/* ACTIONS */
 .actions{
-  margin-top:28px;
+  margin-top:22px;
   display:flex;
   gap:14px;
+  flex-wrap:wrap;
 }
-button{
+.btn{
+  flex:1;
+  padding:16px;
   border:none;
   border-radius:999px;
-  padding:14px 26px;
-  font-weight:900;
+  font-weight:700;
+  font-size:15px;
   cursor:pointer;
 }
-.submit{
-  background:var(--success);
-  color:#fff;
-}
-.submit:disabled{
-  background:#b7c9bf;
-  cursor:not-allowed;
-}
-.cancel{
-  background:#eaeef5;
-  color:var(--primary);
-}
-.footer-note{
-  margin-top:18px;
+.primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
+.secondary{background:#eef2f8;color:var(--primary)}
+.danger{background:var(--danger);color:#fff}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
   font-size:12px;
-  color:var(--muted);
+  color:#8a95a8;
 }
 </style>
 </head>
@@ -102,124 +112,123 @@ button{
 <div class="app">
 
 <header>
-  <strong>Rapport médical</strong><br>
-  <span id="headerMeta">Chargement…</span>
+  <strong>Rapport médical</strong>
+  <span id="subTitle">Consultation terminée</span>
 </header>
 
-<main>
+<div class="content">
   <div class="card">
+    <h2>Compte rendu de consultation</h2>
 
     <div class="field">
-      <label>🧾 Motif de consultation</label>
-      <textarea id="motif"></textarea>
+      <label>Motif de consultation</label>
+      <textarea id="motif" placeholder="Motif principal de la consultation"></textarea>
     </div>
 
     <div class="field">
-      <label>🩺 Diagnostic</label>
-      <textarea id="diagnostic"></textarea>
+      <label>Diagnostic</label>
+      <textarea id="diagnostic" placeholder="Diagnostic médical"></textarea>
     </div>
 
     <div class="field">
-      <label>👁️ Observations cliniques</label>
-      <textarea id="observations"></textarea>
+      <label>Traitement / Recommandations</label>
+      <textarea id="traitement" placeholder="Traitement proposé ou recommandations"></textarea>
     </div>
 
     <div class="field">
-      <label>💊 Traitement / Prescription</label>
-      <textarea id="traitement"></textarea>
+      <label>Suivi recommandé</label>
+      <select id="suivi">
+        <option value="">— Sélectionner —</option>
+        <option value="aucun">Aucun suivi nécessaire</option>
+        <option value="teleconsultation">Téléconsultation de suivi</option>
+        <option value="presentiel">Consultation présentielle</option>
+      </select>
     </div>
 
     <div class="field">
-      <label>📌 Recommandations</label>
-      <textarea id="recommandations"></textarea>
+      <label>
+        <input type="checkbox" id="ordonnance">
+        Ordonnance nécessaire
+      </label>
     </div>
 
     <div class="actions">
-      <button class="submit" id="submitBtn" disabled>
-        ✅ Soumettre le rapport
-      </button>
-      <button class="cancel" id="cancelBtn">
-        Retour
-      </button>
+      <button class="btn secondary" id="saveDraft">Enregistrer brouillon</button>
+      <button class="btn primary" id="submitReport">Soumettre le rapport</button>
     </div>
-
-    <div class="footer-note">
-      ⚠️ Une fois soumis, le rapport ne pourra plus être modifié.
-    </div>
-
   </div>
-</main>
+</div>
+
+<div class="footer">
+  © 2026 CizaHealth+ — CIZA GROUP<br>
+  Rapport médical professionnel
+</div>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, serverTimestamp
-} from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, setDoc, serverTimestamp
+}
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
-const headerMeta = document.getElementById("headerMeta");
-const submitBtn = document.getElementById("submitBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-
-const fields = {
-  motif: document.getElementById("motif"),
-  diagnostic: document.getElementById("diagnostic"),
-  observations: document.getElementById("observations"),
-  traitement: document.getElementById("traitement"),
-  recommandations: document.getElementById("recommandations")
-};
-
-function checkValidity(){
-  const ok = Object.values(fields).every(f => f.value.trim().length > 3);
-  submitBtn.disabled = !ok;
-}
-
-Object.values(fields).forEach(f => f.addEventListener("input", checkValidity));
+const motif = document.getElementById("motif");
+const diagnostic = document.getElementById("diagnostic");
+const traitement = document.getElementById("traitement");
+const suivi = document.getElementById("suivi");
+const ordonnance = document.getElementById("ordonnance");
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId) return location.href="index.html";
-
-  const reqRef = doc(db,"requests",requestId);
-  const reqSnap = await getDoc(reqRef);
-  if(!reqSnap.exists()) return alert("Consultation introuvable");
-
-  const r = reqSnap.data();
-  if(user.uid !== r.assignedProUid){
-    alert("Accès refusé");
+  if(!user || !requestId){
+    location.href="login.html";
     return;
   }
 
-  headerMeta.textContent =
-    `Patient : ${r.patientName || "—"} • ${r.province || ""}`;
+  const reportRef = doc(db,"reports",requestId);
+
+  document.getElementById("saveDraft").onclick = async()=>{
+    await setDoc(reportRef,{
+      requestId,
+      proUid:user.uid,
+      motif:motif.value,
+      diagnostic:diagnostic.value,
+      traitement:traitement.value,
+      suivi:suivi.value,
+      ordonnance:ordonnance.checked,
+      status:"draft",
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    alert("Brouillon enregistré");
+  };
+
+  document.getElementById("submitReport").onclick = async()=>{
+    if(!diagnostic.value){
+      alert("Le diagnostic est obligatoire");
+      return;
+    }
+
+    await setDoc(reportRef,{
+      requestId,
+      proUid:user.uid,
+      motif:motif.value,
+      diagnostic:diagnostic.value,
+      traitement:traitement.value,
+      suivi:suivi.value,
+      ordonnance:ordonnance.checked,
+      status:"submitted",
+      submittedAt:serverTimestamp()
+    },{merge:true});
+
+    // 🔁 Redirection PRO
+    location.href="dashboard-pro.html";
+  };
 });
-
-submitBtn.onclick = async()=>{
-  submitBtn.disabled = true;
-
-  await setDoc(doc(db,"reports",requestId),{
-    requestId,
-    content:{
-      motif: fields.motif.value.trim(),
-      diagnostic: fields.diagnostic.value.trim(),
-      observations: fields.observations.value.trim(),
-      traitement: fields.traitement.value.trim(),
-      recommandations: fields.recommandations.value.trim()
-    },
-    submittedAt: serverTimestamp(),
-    status:"submitted"
-  });
-
-  location.href = `rapport-confirmation.html?requestId=${requestId}`;
-};
-
-cancelBtn.onclick = ()=> history.back();
 </script>
 
 </body>
