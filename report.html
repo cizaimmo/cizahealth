@@ -8,14 +8,13 @@
 <style>
 :root{
   --primary:#123C8A;
-  --primary-dark:#0B2C66;
   --bg:#F4F7FB;
-  --card:#ffffff;
+  --card:#FFFFFF;
   --text:#0A1A2F;
   --muted:#6B7A90;
   --success:#1B6B3A;
   --danger:#C0392B;
-  --radius:22px;
+  --radius:18px;
 }
 *{box-sizing:border-box}
 body{
@@ -24,7 +23,6 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-
 .app{
   max-width:900px;
   margin:auto;
@@ -32,20 +30,14 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* HEADER */
 header{
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  background:linear-gradient(90deg,var(--primary),#0B2C66);
+  padding:18px 22px;
   color:#fff;
-  padding:16px 20px;
-  display:flex;
-  align-items:center;
-  gap:12px;
 }
-header img{height:40px}
-header strong{font-size:16px}
+header strong{font-size:18px}
+header span{font-size:13px;opacity:.9}
 
-/* CONTENT */
 main{
   padding:26px;
   flex:1;
@@ -54,62 +46,52 @@ main{
   background:var(--card);
   border-radius:var(--radius);
   padding:26px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  box-shadow:0 12px 32px rgba(10,42,94,.08);
 }
-
-h2{margin-top:0}
-.meta{
-  font-size:13px;
-  color:var(--muted);
-  margin-bottom:18px;
+.field{
+  margin-bottom:22px;
 }
-
-/* FORM */
-label{
+.field label{
   display:block;
-  font-weight:700;
-  margin:18px 0 6px;
+  font-weight:800;
+  margin-bottom:8px;
 }
-textarea{
+.field textarea{
   width:100%;
   min-height:90px;
-  resize:vertical;
-  padding:12px 14px;
+  padding:14px;
   border-radius:14px;
-  border:1px solid #e3e8f2;
+  border:1px solid #dde3ef;
   font-family:inherit;
+  font-size:14px;
+  resize:vertical;
 }
-textarea:disabled{background:#f1f3f7}
-
 .actions{
-  margin-top:24px;
+  margin-top:28px;
   display:flex;
-  gap:12px;
-  flex-wrap:wrap;
+  gap:14px;
 }
 button{
   border:none;
-  border-radius:14px;
-  padding:14px 18px;
-  font-weight:800;
+  border-radius:999px;
+  padding:14px 26px;
+  font-weight:900;
   cursor:pointer;
 }
-.submit{background:var(--success);color:#fff}
-.back{background:#eef3fb;color:var(--primary)}
-
-.status{
-  margin-top:14px;
-  font-size:13px;
-  font-weight:700;
+.submit{
+  background:var(--success);
+  color:#fff;
 }
-.status.draft{color:#c58a00}
-.status.submitted{color:#1b6b3a}
-.status.validated{color:#2ecc71}
-
-/* FOOTER */
-footer{
-  padding:20px;
-  text-align:center;
+.submit:disabled{
+  background:#b7c9bf;
+  cursor:not-allowed;
+}
+.cancel{
+  background:#eaeef5;
+  color:var(--primary);
+}
+.footer-note{
+  margin-top:18px;
   font-size:12px;
   color:var(--muted);
 }
@@ -120,122 +102,124 @@ footer{
 <div class="app">
 
 <header>
-  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  <strong>Rapport médical</strong>
+  <strong>Rapport médical</strong><br>
+  <span id="headerMeta">Chargement…</span>
 </header>
 
 <main>
   <div class="card">
-    <h2 id="title">Consultation</h2>
-    <div class="meta" id="metaLine">Chargement…</div>
 
-    <form id="reportForm">
-      <label>Diagnostic</label>
-      <textarea id="diagnosis" required></textarea>
+    <div class="field">
+      <label>🧾 Motif de consultation</label>
+      <textarea id="motif"></textarea>
+    </div>
 
-      <label>Notes cliniques</label>
-      <textarea id="notes"></textarea>
+    <div class="field">
+      <label>🩺 Diagnostic</label>
+      <textarea id="diagnostic"></textarea>
+    </div>
 
-      <label>Prescription / Recommandations</label>
-      <textarea id="prescription"></textarea>
+    <div class="field">
+      <label>👁️ Observations cliniques</label>
+      <textarea id="observations"></textarea>
+    </div>
 
-      <div class="actions">
-        <button type="submit" class="submit" id="submitBtn">
-          Soumettre le rapport
-        </button>
-        <button type="button" class="back" id="backBtn">
-          Retour
-        </button>
-      </div>
+    <div class="field">
+      <label>💊 Traitement / Prescription</label>
+      <textarea id="traitement"></textarea>
+    </div>
 
-      <div class="status draft" id="statusText"></div>
-    </form>
+    <div class="field">
+      <label>📌 Recommandations</label>
+      <textarea id="recommandations"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="submit" id="submitBtn" disabled>
+        ✅ Soumettre le rapport
+      </button>
+      <button class="cancel" id="cancelBtn">
+        Retour
+      </button>
+    </div>
+
+    <div class="footer-note">
+      ⚠️ Une fois soumis, le rapport ne pourra plus être modifié.
+    </div>
+
   </div>
 </main>
-
-<footer>
-© 2026 CizaHealth+ — Rapport médical sécurisé
-</footer>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, setDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params=new URLSearchParams(location.search);
-const requestId=params.get("requestId");
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
-const title=document.getElementById("title");
-const metaLine=document.getElementById("metaLine");
-const diagnosis=document.getElementById("diagnosis");
-const notes=document.getElementById("notes");
-const prescription=document.getElementById("prescription");
-const statusText=document.getElementById("statusText");
-const backBtn=document.getElementById("backBtn");
-const form=document.getElementById("reportForm");
+const headerMeta = document.getElementById("headerMeta");
+const submitBtn = document.getElementById("submitBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
-backBtn.onclick=()=>history.back();
+const fields = {
+  motif: document.getElementById("motif"),
+  diagnostic: document.getElementById("diagnostic"),
+  observations: document.getElementById("observations"),
+  traitement: document.getElementById("traitement"),
+  recommandations: document.getElementById("recommandations")
+};
 
-onAuthStateChanged(auth,async(user)=>{
-  if(!user||!requestId) return location.href="index.html";
+function checkValidity(){
+  const ok = Object.values(fields).every(f => f.value.trim().length > 3);
+  submitBtn.disabled = !ok;
+}
 
-  const reqSnap=await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()) return alert("Demande introuvable");
+Object.values(fields).forEach(f => f.addEventListener("input", checkValidity));
 
-  const r=reqSnap.data();
-  if(user.uid!==r.assignedProUid){
+onAuthStateChanged(auth, async(user)=>{
+  if(!user || !requestId) return location.href="index.html";
+
+  const reqRef = doc(db,"requests",requestId);
+  const reqSnap = await getDoc(reqRef);
+  if(!reqSnap.exists()) return alert("Consultation introuvable");
+
+  const r = reqSnap.data();
+  if(user.uid !== r.assignedProUid){
     alert("Accès refusé");
-    return history.back();
+    return;
   }
 
-  title.textContent=`Patient ${r.patientName||""}`;
-  metaLine.textContent=`Dr ${r.assignedProName} • Request ${requestId}`;
-
-  const reportRef=doc(db,"reports",requestId);
-  const repSnap=await getDoc(reportRef);
-
-  if(repSnap.exists()){
-    const rep=repSnap.data();
-    diagnosis.value=rep.diagnosis||"";
-    notes.value=rep.notes||"";
-    prescription.value=rep.prescription||"";
-    statusText.textContent=`Statut : ${rep.status}`;
-    statusText.className="status "+rep.status;
-  }else{
-    statusText.textContent="Statut : brouillon";
-  }
-
-  form.onsubmit=async(e)=>{
-    e.preventDefault();
-
-    if(!diagnosis.value.trim()){
-      alert("Diagnostic obligatoire");
-      return;
-    }
-
-    await setDoc(reportRef,{
-      requestId,
-      patientUid:r.patientUid,
-      patientName:r.patientName||"",
-      proUid:r.assignedProUid,
-      proName:r.assignedProName||"",
-      diagnosis:diagnosis.value.trim(),
-      notes:notes.value.trim(),
-      prescription:prescription.value.trim(),
-      status:"submitted",
-      updatedAt:serverTimestamp(),
-      createdAt:repSnap.exists()?repSnap.data().createdAt:serverTimestamp()
-    },{merge:true});
-
-    alert("Rapport soumis à l’administration");
-    history.back();
-  };
+  headerMeta.textContent =
+    `Patient : ${r.patientName || "—"} • ${r.province || ""}`;
 });
+
+submitBtn.onclick = async()=>{
+  submitBtn.disabled = true;
+
+  await setDoc(doc(db,"reports",requestId),{
+    requestId,
+    content:{
+      motif: fields.motif.value.trim(),
+      diagnostic: fields.diagnostic.value.trim(),
+      observations: fields.observations.value.trim(),
+      traitement: fields.traitement.value.trim(),
+      recommandations: fields.recommandations.value.trim()
+    },
+    submittedAt: serverTimestamp(),
+    status:"submitted"
+  });
+
+  location.href = `rapport-confirmation.html?requestId=${requestId}`;
+};
+
+cancelBtn.onclick = ()=> history.back();
 </script>
 
 </body>
