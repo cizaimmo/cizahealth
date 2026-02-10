@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CizaHealth+ | Consultation en cours</title>
+<title>CizaHealth+ | Consultation</title>
 
 <style>
 :root{
@@ -12,23 +12,15 @@
   --danger:#C0392B;
   --bg:#0A1A2F;
   --text:#ffffff;
-  --success:#2ecc71;
 }
 *{box-sizing:border-box}
 html,body{
-  margin:0;
-  padding:0;
+  margin:0;height:100%;
   background:var(--bg);
   color:var(--text);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  height:100%;
 }
-
-.app{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{height:100vh;display:flex;flex-direction:column}
 
 /* HEADER */
 header{
@@ -36,16 +28,13 @@ header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
   align-items:center;
-  justify-content:center;
-  font-weight:800;
-  font-size:15px;
+  gap:12px;
 }
+header img{height:34px}
+header strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* VIDEOS */
-.videos{
-  flex:1;
-  position:relative;
-}
+.videos{flex:1;position:relative}
 video{
   width:100%;
   height:100%;
@@ -56,16 +45,16 @@ video{
   position:absolute;
   width:120px;
   height:160px;
-  bottom:20px;
-  right:20px;
+  bottom:18px;
+  right:18px;
   border-radius:14px;
   border:2px solid #fff;
+  z-index:10;
 }
 
 /* STATUS */
 .status{
-  padding:10px;
-  text-align:center;
+  padding:10px 16px;
   font-size:13px;
   background:#0e1d3a;
 }
@@ -76,18 +65,16 @@ video{
   display:flex;
   justify-content:center;
   gap:12px;
-  flex-wrap:wrap;
   background:#0e1d3a;
 }
 .controls button{
   border:none;
   border-radius:999px;
-  padding:12px 18px;
+  padding:12px 20px;
   font-weight:800;
   cursor:pointer;
-  min-width:140px;
 }
-.start{background:var(--success);color:#fff}
+.start{background:#2ecc71;color:#fff}
 .end{background:var(--danger);color:#fff}
 .mute{background:#34495e;color:#fff}
 </style>
@@ -96,46 +83,48 @@ video{
 <body>
 <div class="app">
 
-<header id="callTitle">Consultation médicale</header>
+<header>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <strong id="callTitle">Consultation</strong>
+</header>
 
 <div class="videos">
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
-<div class="status" id="statusText">Connexion…</div>
-
+<div class="status" id="statusText">Initialisation…</div>
 <div class="controls" id="controls"></div>
-
-<audio id="ringtone" loop>
-  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg">
-</audio>
 
 </div>
 
+<audio id="ringtone" loop>
+  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" type="audio/ogg">
+</audio>
+
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, updateDoc,
-  onSnapshot, serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
-const localVideo = document.getElementById("localVideo");
+const localVideo  = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const controls = document.getElementById("controls");
-const statusText = document.getElementById("statusText");
-const ringtone = document.getElementById("ringtone");
+const controls    = document.getElementById("controls");
+const statusText  = document.getElementById("statusText");
+const callTitle   = document.getElementById("callTitle");
+const ringtone    = document.getElementById("ringtone");
 
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
 
-let pc=null, localStream=null, role=null, muted=false;
+let pc=null, localStream=null, role=null, callRef=null, muted=false;
 
+/* CLEANUP */
 function cleanup(){
   try{ ringtone.pause(); ringtone.currentTime=0; }catch(e){}
   if(pc){ pc.close(); pc=null; }
@@ -143,27 +132,48 @@ function cleanup(){
     localStream.getTracks().forEach(t=>t.stop());
     localStream=null;
   }
+  remoteVideo.srcObject=null;
+  localVideo.srcObject=null;
 }
 
+/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
   if(!user || !requestId) return location.href="index.html";
 
   const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) return alert("Demande introuvable");
   const req = reqSnap.data();
 
-  if(user.uid === req.patientUid) role="patient";
-  if(user.uid === req.assignedProUid) role="pro";
+  if(user.uid===req.patientUid) role="patient";
+  if(user.uid===req.assignedProUid) role="pro";
   if(!role) return alert("Accès refusé");
 
-  const callRef = doc(db,"callSessions",requestId);
+  callTitle.textContent = role==="pro"
+    ? `Consultation avec ${req.patientName || "Patient"}`
+    : `Consultation avec Dr ${req.assignedProName || "Professionnel"}`;
 
+  callRef = doc(db,"callSessions",requestId);
+
+  /* 🔥 RESET CRITIQUE (ANTI BUG) */
+  await setDoc(callRef,{
+    status:"idle",
+    offer:null,
+    answer:null,
+    iceCandidate:null,
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  /* WEBRTC */
   pc = new RTCPeerConnection(rtcConfig);
 
-  localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:true });
+  localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:true});
   localVideo.srcObject = localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
-  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+  pc.ontrack = e=>{
+    remoteVideo.srcObject = e.streams[0];
+    remoteVideo.play().catch(()=>{});
+  };
 
   pc.onicecandidate = e=>{
     if(e.candidate){
@@ -171,22 +181,42 @@ onAuthStateChanged(auth, async(user)=>{
     }
   };
 
-  onSnapshot(callRef, async snap=>{
+  /* UI INIT */
+  if(role==="pro"){
+    statusText.textContent="Prêt à appeler";
+    controls.innerHTML=`<button class="start" id="startBtn">📞 Démarrer</button>`;
+    document.getElementById("startBtn").onclick = async()=>{
+      statusText.textContent="Appel en cours…";
+
+      await updateDoc(callRef,{
+        status:"calling",
+        startedAt:serverTimestamp()
+      });
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{ offer: JSON.stringify(offer) });
+    };
+  }else{
+    statusText.textContent="En attente de l’appel…";
+  }
+
+  /* SIGNALING */
+  onSnapshot(callRef, async(snap)=>{
     if(!snap.exists()) return;
     const d = snap.data();
 
-    // 📞 APPEL ENTRANT (PATIENT)
-    if(role==="patient" && d.offer && !pc.currentRemoteDescription){
+    /* PATIENT – APPEL ENTRANT */
+    if(role==="patient" && d.status==="calling" && d.offer && !pc.currentRemoteDescription){
       statusText.textContent="📞 Appel entrant…";
       ringtone.play().catch(()=>{});
-      navigator.vibrate?.([500,300,500]);
 
       controls.innerHTML=`
-        <button class="start" id="answer">Répondre</button>
-        <button class="end" id="reject">Refuser</button>
+        <button class="start" id="answerBtn">📞 Répondre</button>
+        <button class="end" id="rejectBtn">❌ Refuser</button>
       `;
 
-      document.getElementById("answer").onclick = async()=>{
+      document.getElementById("answerBtn").onclick = async()=>{
         ringtone.pause();
         await pc.setRemoteDescription(JSON.parse(d.offer));
         const answer = await pc.createAnswer();
@@ -194,33 +224,13 @@ onAuthStateChanged(auth, async(user)=>{
         await updateDoc(callRef,{ answer:JSON.stringify(answer), status:"connected" });
       };
 
-      document.getElementById("reject").onclick = async()=>{
+      document.getElementById("rejectBtn").onclick = async()=>{
         ringtone.pause();
-        await updateDoc(callRef,{ status:"ended" });
-      };
-    }
-
-    // 🔗 CONNECTÉ
-    if(d.status==="connected"){
-      ringtone.pause();
-      statusText.textContent="Appel en cours";
-      controls.innerHTML=`
-        <button class="mute" id="mute">Muet</button>
-        <button class="end" id="end">Quitter</button>
-      `;
-
-      document.getElementById("mute").onclick=()=>{
-        muted=!muted;
-        localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
-      };
-
-      document.getElementById("end").onclick=async()=>{
         await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
-        cleanup();
-        history.back();
       };
     }
 
+    /* PRO – REÇOIT ANSWER */
     if(role==="pro" && d.answer && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(d.answer));
     }
@@ -228,27 +238,33 @@ onAuthStateChanged(auth, async(user)=>{
     if(d.iceCandidate){
       try{ await pc.addIceCandidate(JSON.parse(d.iceCandidate)); }catch(e){}
     }
+
+    /* CONNECTED */
+    if(d.status==="connected"){
+      statusText.textContent="✅ Appel connecté";
+      controls.innerHTML=`
+        <button class="mute" id="muteBtn">🎙️ Muet</button>
+        <button class="end" id="endBtn">⛔ Quitter</button>
+      `;
+
+      document.getElementById("muteBtn").onclick=()=>{
+        muted=!muted;
+        localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
+      };
+
+      document.getElementById("endBtn").onclick=async()=>{
+        await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
+      };
+    }
+
+    /* ENDED */
+    if(d.status==="ended"){
+      cleanup();
+      statusText.textContent="Appel terminé";
+      setTimeout(()=>location.href=`chat.html?requestId=${requestId}`,600);
+    }
   });
-
-  // 👨‍⚕️ PRO DÉMARRE
-  if(role==="pro"){
-    controls.innerHTML=`<button class="start" id="start">Démarrer</button>`;
-    document.getElementById("start").onclick=async()=>{
-      await setDoc(callRef,{
-        requestId,
-        patientUid:req.patientUid,
-        assignedProUid:req.assignedProUid,
-        status:"calling",
-        startedAt:serverTimestamp()
-      },{merge:true});
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await updateDoc(callRef,{ offer:JSON.stringify(offer) });
-    };
-  }
 });
 </script>
-
 </body>
 </html>
