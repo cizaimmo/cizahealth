@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CizaHealth+ | Consultation en cours</title>
 
 <style>
@@ -12,6 +12,7 @@
   --danger:#C0392B;
   --bg:#0A1A2F;
   --text:#ffffff;
+  --success:#2ecc71;
 }
 *{box-sizing:border-box}
 html,body{
@@ -34,10 +35,11 @@ header{
   padding:14px 18px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:15px;
 }
-header strong{font-size:15px}
 
 /* VIDEOS */
 .videos{
@@ -60,38 +62,54 @@ video{
   border:2px solid #fff;
 }
 
+/* STATUS */
+.status{
+  padding:10px;
+  text-align:center;
+  font-size:13px;
+  background:#0e1d3a;
+}
+
 /* CONTROLS */
 .controls{
-  padding:18px;
+  padding:16px;
   display:flex;
   justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+  background:#0e1d3a;
 }
 .controls button{
   border:none;
   border-radius:999px;
-  padding:14px 20px;
+  padding:12px 18px;
   font-weight:800;
   cursor:pointer;
+  min-width:140px;
 }
+.start{background:var(--success);color:#fff}
 .end{background:var(--danger);color:#fff}
+.mute{background:#34495e;color:#fff}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-<header>
-  <strong id="callTitle">Consultation médicale</strong>
-</header>
+<header id="callTitle">Consultation médicale</header>
 
 <div class="videos">
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
 </div>
 
-<div class="controls">
-  <button class="end" id="hangupBtn">Raccrocher</button>
-</div>
+<div class="status" id="statusText">Connexion…</div>
+
+<div class="controls" id="controls"></div>
+
+<audio id="ringtone" loop>
+  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg">
+</audio>
 
 </div>
 
@@ -105,25 +123,21 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* PARAMS */
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
 
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
-const hangupBtn = document.getElementById("hangupBtn");
+const controls = document.getElementById("controls");
+const statusText = document.getElementById("statusText");
+const ringtone = document.getElementById("ringtone");
 
-const rtcConfig = {
-  iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
-};
+const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
 
-let pc = null;
-let localStream = null;
-let role = null;
-let callRef = null;
+let pc=null, localStream=null, role=null, muted=false;
 
-/* CLEANUP */
 function cleanup(){
+  try{ ringtone.pause(); ringtone.currentTime=0; }catch(e){}
   if(pc){ pc.close(); pc=null; }
   if(localStream){
     localStream.getTracks().forEach(t=>t.stop());
@@ -131,116 +145,108 @@ function cleanup(){
   }
 }
 
-/* AUTH */
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
-    alert("Accès refusé");
-    return location.href="/cizahealth/index.html";
-  }
+  if(!user || !requestId) return location.href="index.html";
 
-  /* LOAD REQUEST */
   const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
-
   const req = reqSnap.data();
 
   if(user.uid === req.patientUid) role="patient";
   if(user.uid === req.assignedProUid) role="pro";
+  if(!role) return alert("Accès refusé");
 
-  if(!role){
-    alert("Non autorisé à participer à l’appel");
-    return;
-  }
+  const callRef = doc(db,"callSessions",requestId);
 
-  callRef = doc(db,"callSessions",requestId);
-
-  /* INIT WEBRTC */
   pc = new RTCPeerConnection(rtcConfig);
 
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio:true,
-    video:true
-  });
-
+  localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:true });
   localVideo.srcObject = localStream;
   localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
 
-  pc.ontrack = e=>{
-    remoteVideo.srcObject = e.streams[0];
-  };
+  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
 
   pc.onicecandidate = e=>{
     if(e.candidate){
-      updateDoc(callRef,{
-        iceCandidate: JSON.stringify(e.candidate)
-      });
+      updateDoc(callRef,{ iceCandidate: JSON.stringify(e.candidate) });
     }
   };
 
-  /* 🔑 SEUL LE PRO DÉMARRE L’APPEL */
-  if(role === "pro"){
-    await setDoc(callRef,{
-      requestId,
-      patientUid: req.patientUid,
-      assignedProUid: req.assignedProUid,
-      status: "calling",
-      startedAt: serverTimestamp()
-    },{merge:true});
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await updateDoc(callRef,{
-      offer: JSON.stringify(offer)
-    });
-  }
-
-  /* SIGNALING */
-  onSnapshot(callRef, async(snap)=>{
+  onSnapshot(callRef, async snap=>{
     if(!snap.exists()) return;
-    const data = snap.data();
+    const d = snap.data();
 
-    /* PATIENT RÉPOND À L’APPEL */
-    if(role==="patient" && data.offer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+    // 📞 APPEL ENTRANT (PATIENT)
+    if(role==="patient" && d.offer && !pc.currentRemoteDescription){
+      statusText.textContent="📞 Appel entrant…";
+      ringtone.play().catch(()=>{});
+      navigator.vibrate?.([500,300,500]);
 
-      await updateDoc(callRef,{
-        answer: JSON.stringify(answer),
-        status: "connected"
-      });
+      controls.innerHTML=`
+        <button class="start" id="answer">Répondre</button>
+        <button class="end" id="reject">Refuser</button>
+      `;
+
+      document.getElementById("answer").onclick = async()=>{
+        ringtone.pause();
+        await pc.setRemoteDescription(JSON.parse(d.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(callRef,{ answer:JSON.stringify(answer), status:"connected" });
+      };
+
+      document.getElementById("reject").onclick = async()=>{
+        ringtone.pause();
+        await updateDoc(callRef,{ status:"ended" });
+      };
     }
 
-    /* PRO REÇOIT LA RÉPONSE */
-    if(role==="pro" && data.answer && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(JSON.parse(data.answer));
+    // 🔗 CONNECTÉ
+    if(d.status==="connected"){
+      ringtone.pause();
+      statusText.textContent="Appel en cours";
+      controls.innerHTML=`
+        <button class="mute" id="mute">Muet</button>
+        <button class="end" id="end">Quitter</button>
+      `;
+
+      document.getElementById("mute").onclick=()=>{
+        muted=!muted;
+        localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
+      };
+
+      document.getElementById("end").onclick=async()=>{
+        await updateDoc(callRef,{ status:"ended", endedAt:serverTimestamp() });
+        cleanup();
+        history.back();
+      };
     }
 
-    if(data.iceCandidate){
-      try{
-        await pc.addIceCandidate(JSON.parse(data.iceCandidate));
-      }catch(e){}
+    if(role==="pro" && d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.answer));
     }
 
-    if(data.status==="ended"){
-      cleanup();
-      history.back();
+    if(d.iceCandidate){
+      try{ await pc.addIceCandidate(JSON.parse(d.iceCandidate)); }catch(e){}
     }
   });
 
-  /* HANGUP */
-  hangupBtn.onclick = async()=>{
-    await updateDoc(callRef,{
-      status:"ended",
-      endedAt:serverTimestamp()
-    });
-    cleanup();
-    history.back();
-  };
+  // 👨‍⚕️ PRO DÉMARRE
+  if(role==="pro"){
+    controls.innerHTML=`<button class="start" id="start">Démarrer</button>`;
+    document.getElementById("start").onclick=async()=>{
+      await setDoc(callRef,{
+        requestId,
+        patientUid:req.patientUid,
+        assignedProUid:req.assignedProUid,
+        status:"calling",
+        startedAt:serverTimestamp()
+      },{merge:true});
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{ offer:JSON.stringify(offer) });
+    };
+  }
 });
 </script>
 
