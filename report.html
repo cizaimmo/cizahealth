@@ -171,7 +171,7 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, setDoc, serverTimestamp
+  doc, getDoc, setDoc, serverTimestamp
 }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -189,6 +189,14 @@ onAuthStateChanged(auth, async(user)=>{
     location.href="login.html";
     return;
   }
+
+  // 🔹 Charger la demande liée
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()){
+    alert("Demande introuvable");
+    return;
+  }
+  const requestData = reqSnap.data();
 
   const reportRef = doc(db,"reports",requestId);
 
@@ -213,6 +221,7 @@ onAuthStateChanged(auth, async(user)=>{
       return;
     }
 
+    // 1️⃣ Enregistrer le rapport
     await setDoc(reportRef,{
       requestId,
       proUid:user.uid,
@@ -225,7 +234,25 @@ onAuthStateChanged(auth, async(user)=>{
       submittedAt:serverTimestamp()
     },{merge:true});
 
-    // 🔁 Redirection PRO
+    // 2️⃣ Créer ordonnance si nécessaire
+    if(ordonnance.checked){
+      const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
+
+      await setDoc(doc(db,"prescriptions",requestId),{
+        requestId,
+        patientUid: requestData.patientUid,
+        patientName: requestData.patientName || "",
+        proUid: user.uid,
+        proName: user.displayName || "",
+        code: rxCode,
+        medications: [],
+        used: false,
+        status: "active",
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // 3️⃣ Redirection PRO
     location.href="dashboard-pro.html";
   };
 });
