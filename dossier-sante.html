@@ -5,6 +5,7 @@
 <title>CizaHealth+ | Dossier médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<!-- PWA / WebView -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -27,7 +28,7 @@ body{
   color:var(--text);
 }
 .app{
-  max-width:1100px;
+  max-width:1000px;
   margin:auto;
   min-height:100vh;
   display:flex;
@@ -36,30 +37,19 @@ body{
 
 /* HEADER */
 header{
-  padding:20px;
+  padding:18px 22px;
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
   color:#fff;
 }
-header strong{font-size:18px;display:block}
-header span{font-size:13px;opacity:.9}
+header strong{font-size:16px;display:block}
+header span{font-size:12px;opacity:.9}
 
 /* CONTENT */
-.content{padding:24px}
-.section{margin-bottom:32px}
+.content{padding:22px}
+.section{margin-bottom:26px}
 .section h2{
   font-size:18px;
-  margin-bottom:16px;
-}
-
-/* GRID */
-.grid{
-  display:grid;
-  gap:18px;
-}
-@media(min-width:900px){
-  .grid{
-    grid-template-columns:1fr 1fr;
-  }
+  margin:0 0 14px;
 }
 
 /* CARD */
@@ -68,31 +58,26 @@ header span{font-size:13px;opacity:.9}
   border-radius:var(--radius);
   padding:18px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
-  transition:.2s ease;
+  margin-bottom:14px;
 }
-.card:hover{
-  transform:translateY(-3px);
-}
-.card small{
-  color:var(--muted);
-  font-size:12px;
-}
+.card small{color:var(--muted);font-size:12px}
 .card h3{
-  margin:8px 0;
+  margin:6px 0 10px;
   font-size:15px;
 }
 .kv{
   font-size:13.5px;
   line-height:1.6;
+  color:var(--text);
 }
 .kv span{color:var(--muted)}
 
 /* BUTTON */
 .btn{
   margin-top:12px;
-  padding:10px 14px;
+  padding:12px 16px;
   border:none;
-  border-radius:14px;
+  border-radius:16px;
   background:#eef3fb;
   color:var(--blue);
   font-weight:700;
@@ -101,7 +86,7 @@ header span{font-size:13px;opacity:.9}
 
 /* EMPTY */
 .empty{
-  padding:20px;
+  padding:22px;
   text-align:center;
   color:var(--muted);
   font-size:14px;
@@ -122,8 +107,8 @@ header span{font-size:13px;opacity:.9}
 <div class="app">
 
 <header>
-  <strong>Dossier médical sécurisé</strong>
-  <span>Historique de vos consultations et ordonnances</span>
+  <strong>Dossier médical</strong>
+  <span>Historique de vos consultations et documents</span>
 </header>
 
 <div class="content">
@@ -131,20 +116,20 @@ header span{font-size:13px;opacity:.9}
   <!-- RAPPORTS -->
   <div class="section">
     <h2>Rapports médicaux</h2>
-    <div id="reportsList" class="grid"></div>
+    <div id="reportsList"></div>
   </div>
 
   <!-- ORDONNANCES -->
   <div class="section">
     <h2>Ordonnances</h2>
-    <div id="rxList" class="grid"></div>
+    <div id="rxList"></div>
   </div>
 
 </div>
 
 <div class="footer">
   © 2026 CizaHealth+ — CIZA GROUP<br>
-  Accès strictement personnel • Données médicales protégées
+  Dossier patient sécurisé • Accès personnel
 </div>
 
 </div>
@@ -152,18 +137,19 @@ header span{font-size:13px;opacity:.9}
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, orderBy, onSnapshot
 }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const reportsList = document.getElementById("reportsList");
 const rxList = document.getElementById("rxList");
 
 function fmtDate(ts){
   try{
-    const d = ts?.toDate();
+    const d = ts?.toDate ? ts.toDate() : null;
+    if(!d) return "—";
     return d.toLocaleDateString("fr-FR",{year:"numeric",month:"short",day:"numeric"});
   }catch(e){ return "—"; }
 }
@@ -174,9 +160,7 @@ onAuthStateChanged(auth,(user)=>{
     return;
   }
 
-  /* =====================
-     RAPPORTS
-  ===================== */
+  /* 📄 RAPPORTS */
   const qReports = query(
     collection(db,"reports"),
     where("patientUid","==",user.uid),
@@ -186,13 +170,11 @@ onAuthStateChanged(auth,(user)=>{
   onSnapshot(qReports,(snap)=>{
     reportsList.innerHTML="";
     if(snap.empty){
-      reportsList.innerHTML=`<div class="empty">Aucun rapport disponible.</div>`;
+      reportsList.innerHTML=`<div class="empty">Aucun rapport médical disponible.</div>`;
       return;
     }
-
     snap.forEach(docu=>{
       const r = docu.data();
-
       const div=document.createElement("div");
       div.className="card";
       div.innerHTML=`
@@ -200,18 +182,17 @@ onAuthStateChanged(auth,(user)=>{
         <h3>Consultation médicale</h3>
         <div class="kv">
           <span>Diagnostic :</span><br>
-          ${r.diagnostic || "—"}<br><br>
-          <span>Suivi :</span> ${r.suivi || "—"}
+          ${r.diagnostic || "—"}
         </div>
+        <button class="btn" onclick="location.href='rapport-view.html?requestId=${r.requestId || docu.id}'">
+          Voir le rapport
+        </button>
       `;
-
       reportsList.appendChild(div);
     });
   });
 
-  /* =====================
-     ORDONNANCES
-  ===================== */
+  /* 💊 ORDONNANCES */
   const qRx = query(
     collection(db,"prescriptions"),
     where("patientUid","==",user.uid),
@@ -224,25 +205,21 @@ onAuthStateChanged(auth,(user)=>{
       rxList.innerHTML=`<div class="empty">Aucune ordonnance disponible.</div>`;
       return;
     }
-
     snap.forEach(docu=>{
       const p = docu.data();
-
       const div=document.createElement("div");
       div.className="card";
       div.innerHTML=`
         <small>${fmtDate(p.createdAt)}</small>
         <h3>Ordonnance</h3>
         <div class="kv">
-          <span>Code :</span> <b>${p.code}</b><br>
+          <span>Code :</span> <b>${p.code || "—"}</b><br>
           <span>Statut :</span> ${p.used ? "Utilisée" : "Active"}
         </div>
-        <button class="btn"
-          onclick="location.href='ordonnance.html?requestId=${p.requestId}'">
+        <button class="btn" onclick="location.href='ordonnance.html?requestId=${p.requestId || docu.id}'">
           Voir l’ordonnance
         </button>
       `;
-
       rxList.appendChild(div);
     });
   });
