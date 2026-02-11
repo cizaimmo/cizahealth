@@ -5,6 +5,7 @@
 <title>CizaHealth+ | Rapport médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<!-- PWA / WebView -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -42,7 +43,7 @@ header strong{font-size:16px;display:block}
 header span{font-size:12px;opacity:.9}
 .content{padding:26px}
 .card{
-  background:#fff;
+  background:var(--card);
   border-radius:var(--radius);
   padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
@@ -50,17 +51,20 @@ header span{font-size:12px;opacity:.9}
 .card h2{margin:0 0 14px;font-size:18px}
 .field{margin-bottom:16px}
 label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
-input,textarea,select{
+textarea,select{
   width:100%;
   padding:14px;
   border-radius:14px;
   border:1px solid #dde3ef;
   font-size:14px;
+  font-family:inherit;
 }
+textarea{min-height:90px}
 .actions{
   margin-top:22px;
   display:flex;
   gap:14px;
+  flex-wrap:wrap;
 }
 .btn{
   flex:1;
@@ -72,7 +76,7 @@ input,textarea,select{
   cursor:pointer;
 }
 .primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
-.secondary{background:#eef2f8;color:#123c8a}
+.secondary{background:#eef2f8;color:var(--primary)}
 .footer{
   margin-top:auto;
   padding:22px;
@@ -114,7 +118,7 @@ input,textarea,select{
       <label>Suivi recommandé</label>
       <select id="suivi">
         <option value="">— Sélectionner —</option>
-        <option value="aucun">Aucun suivi nécessaire</option>
+        <option value="aucun">Aucun suivi</option>
         <option value="teleconsultation">Téléconsultation de suivi</option>
         <option value="presentiel">Consultation présentielle</option>
       </select>
@@ -154,6 +158,8 @@ const diagnostic = document.getElementById("diagnostic");
 const traitement = document.getElementById("traitement");
 const suivi = document.getElementById("suivi");
 const ordonnance = document.getElementById("ordonnance");
+
+const saveDraftBtn = document.getElementById("saveDraft");
 const submitBtn = document.getElementById("submitReport");
 
 let requestData = null;
@@ -164,12 +170,35 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
+  try{
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Demande introuvable");
+      return;
+    }
+    requestData = reqSnap.data();
+  }catch(e){
+    alert("Erreur Firestore (request)");
     return;
   }
-  requestData = reqSnap.data();
+
+  const reportRef = doc(db,"reports",requestId);
+
+  saveDraftBtn.onclick = async()=>{
+    await setDoc(reportRef,{
+      requestId,
+      patientUid: requestData.patientUid,
+      proUid: user.uid,
+      motif: motif.value,
+      diagnostic: diagnostic.value,
+      traitement: traitement.value,
+      suivi: suivi.value,
+      ordonnance: ordonnance.checked,
+      status: "draft",
+      updatedAt: serverTimestamp()
+    },{merge:true});
+    alert("Brouillon enregistré");
+  };
 
   submitBtn.onclick = async()=>{
     if(!diagnostic.value){
@@ -181,20 +210,23 @@ onAuthStateChanged(auth, async(user)=>{
     submitBtn.textContent = "Envoi…";
 
     try{
-      await setDoc(doc(db,"reports",requestId),{
+      await setDoc(reportRef,{
         requestId,
-        proUid:user.uid,
-        motif:motif.value,
-        diagnostic:diagnostic.value,
-        traitement:traitement.value,
-        suivi:suivi.value,
-        ordonnance:ordonnance.checked,
-        status:"submitted",
-        submittedAt:serverTimestamp()
+        patientUid: requestData.patientUid,
+        proUid: user.uid,
+        motif: motif.value,
+        diagnostic: diagnostic.value,
+        traitement: traitement.value,
+        suivi: suivi.value,
+        ordonnance: ordonnance.checked,
+        status: "submitted",
+        createdAt: serverTimestamp(),
+        submittedAt: serverTimestamp()
       },{merge:true});
 
       if(ordonnance.checked){
         const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
+
         await setDoc(doc(db,"prescriptions",requestId),{
           requestId,
           patientUid: requestData.patientUid,
@@ -202,16 +234,17 @@ onAuthStateChanged(auth, async(user)=>{
           proUid: user.uid,
           proName: user.displayName || "",
           code: rxCode,
-          used:false,
-          status:"active",
-          createdAt:serverTimestamp()
+          medications: [],
+          used: false,
+          status: "active",
+          createdAt: serverTimestamp()
         });
       }
 
-      location.href="dashboard-pro.html";
+      location.href = "dashboard-pro.html";
 
-    }catch(err){
-      console.error(err);
+    }catch(e){
+      console.error(e);
       alert("Erreur lors de l’envoi du rapport. Vérifie Firestore.");
       submitBtn.disabled = false;
       submitBtn.textContent = "Soumettre le rapport";
