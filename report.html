@@ -164,7 +164,7 @@ textarea{resize:vertical;min-height:90px}
   Rapport médical professionnel
 </div>
 
-</div>
+</div
 
 <script type="module">
 import { auth, db } from "./firebase.js";
@@ -184,76 +184,109 @@ const traitement = document.getElementById("traitement");
 const suivi = document.getElementById("suivi");
 const ordonnance = document.getElementById("ordonnance");
 
+const saveDraftBtn = document.getElementById("saveDraft");
+const submitBtn = document.getElementById("submitReport");
+
+let requestData = null;
+let reportRef = null;
+
+/* 🔐 Auth */
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
+  if(!user){
     location.href="login.html";
     return;
   }
 
-  // 🔹 Charger la demande liée
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
+  if(!requestId){
+    alert("Erreur : consultation introuvable");
     return;
   }
-  const requestData = reqSnap.data();
 
-  const reportRef = doc(db,"reports",requestId);
+  reportRef = doc(db,"reports",requestId);
 
-  document.getElementById("saveDraft").onclick = async()=>{
-    await setDoc(reportRef,{
-      requestId,
-      proUid:user.uid,
-      motif:motif.value,
-      diagnostic:diagnostic.value,
-      traitement:traitement.value,
-      suivi:suivi.value,
-      ordonnance:ordonnance.checked,
-      status:"draft",
-      updatedAt:serverTimestamp()
-    },{merge:true});
-    alert("Brouillon enregistré");
+  /* Charger la demande (sécurisé) */
+  try{
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Demande introuvable");
+      return;
+    }
+    requestData = reqSnap.data();
+  }catch(e){
+    alert("Erreur réseau. Réessayez.");
+    return;
+  }
+
+  /* 💾 BROUILLON */
+  saveDraftBtn.onclick = async()=>{
+    try{
+      await setDoc(reportRef,{
+        requestId,
+        proUid:user.uid,
+        motif:motif.value,
+        diagnostic:diagnostic.value,
+        traitement:traitement.value,
+        suivi:suivi.value,
+        ordonnance:ordonnance.checked,
+        status:"draft",
+        updatedAt:serverTimestamp()
+      },{merge:true});
+      alert("Brouillon enregistré");
+    }catch(e){
+      alert("Erreur lors de l’enregistrement");
+    }
   };
 
-  document.getElementById("submitReport").onclick = async()=>{
+  /* ✅ SOUMISSION */
+  submitBtn.onclick = async()=>{
     if(!diagnostic.value){
       alert("Le diagnostic est obligatoire");
       return;
     }
 
-    // 1️⃣ Enregistrer le rapport
-    await setDoc(reportRef,{
-      requestId,
-      proUid:user.uid,
-      motif:motif.value,
-      diagnostic:diagnostic.value,
-      traitement:traitement.value,
-      suivi:suivi.value,
-      ordonnance:ordonnance.checked,
-      status:"submitted",
-      submittedAt:serverTimestamp()
-    },{merge:true});
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Envoi…";
 
-    // 2️⃣ Créer ordonnance si nécessaire
-    if(ordonnance.checked){
-      const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-      await setDoc(doc(db,"prescriptions",requestId),{
+    try{
+      /* 1️⃣ Rapport */
+      await setDoc(reportRef,{
         requestId,
-        patientUid: requestData.patientUid,
-        patientName: requestData.patientName || "",
-        proUid: user.uid,
-        proName: user.displayName || "",
-        code: rxCode,
-        medications: [],
-        used: false,
-        status: "active",
-        createdAt: serverTimestamp()
-      });
-    }
+        proUid:user.uid,
+        motif:motif.value,
+        diagnostic:diagnostic.value,
+        traitement:traitement.value,
+        suivi:suivi.value,
+        ordonnance:ordonnance.checked,
+        status:"submitted",
+        submittedAt:serverTimestamp()
+      },{merge:true});
 
-    // 3️⃣ Redirection PRO
-    location.href="dashboard-pro.html";
+      /* 2️⃣ Ordonnance si cochée */
+      if(ordonnance.checked){
+        const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
+
+        await setDoc(doc(db,"prescriptions",requestId),{
+          requestId,
+          patientUid: requestData.patientUid,
+          patientName: requestData.patientName || "",
+          proUid: user.uid,
+          proName: user.displayName || "",
+          code: rxCode,
+          medications: [],
+          used: false,
+          status: "active",
+          createdAt: serverTimestamp()
+        });
+      }
+
+      /* 3️⃣ Redirection */
+      location.href="dashboard-pro.html";
+
+    }catch(e){
+      alert("Erreur lors de la soumission");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Soumettre le rapport";
+    }
   };
 });
 </script>
