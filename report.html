@@ -5,6 +5,7 @@
 <title>CizaHealth+ | Rapport médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<!-- PWA / WebView -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,6 +18,8 @@
   --card:#ffffff;
   --text:#0a1a2f;
   --muted:#6b7a90;
+  --success:#2ecc71;
+  --danger:#c0392b;
   --radius:22px;
 }
 *{box-sizing:border-box}
@@ -33,13 +36,17 @@ body{
   display:flex;
   flex-direction:column;
 }
+
+/* HEADER */
 header{
-  padding:20px;
+  padding:18px 22px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
 }
-header strong{font-size:18px;display:block}
-header span{font-size:13px;opacity:.9}
+header strong{font-size:16px;display:block}
+header span{font-size:12px;opacity:.9}
+
+/* CONTENT */
 .content{padding:26px}
 .card{
   background:var(--card);
@@ -47,14 +54,20 @@ header span{font-size:13px;opacity:.9}
   padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.field{margin-bottom:18px}
+.card h2{
+  margin:0 0 14px;
+  font-size:18px;
+}
+
+/* FORM */
+.field{margin-bottom:16px}
 label{
   display:block;
   font-size:13px;
   font-weight:600;
   margin-bottom:6px;
 }
-textarea, select{
+input, textarea, select{
   width:100%;
   padding:14px;
   border-radius:14px;
@@ -63,20 +76,27 @@ textarea, select{
   font-family:inherit;
 }
 textarea{resize:vertical;min-height:90px}
+
+/* ACTIONS */
 .actions{
   margin-top:22px;
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
 }
 .btn{
-  width:100%;
+  flex:1;
   padding:16px;
   border:none;
   border-radius:999px;
   font-weight:700;
   font-size:15px;
   cursor:pointer;
-  background:linear-gradient(135deg,#123c8a,#1b4fa3);
-  color:#fff;
 }
+.primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
+.secondary{background:#eef2f8;color:var(--primary)}
+
+/* FOOTER */
 .footer{
   margin-top:auto;
   padding:22px;
@@ -92,33 +112,34 @@ textarea{resize:vertical;min-height:90px}
 
 <header>
   <strong>Rapport médical</strong>
-  <span>Compte rendu professionnel</span>
+  <span id="subTitle">Consultation terminée</span>
 </header>
 
 <div class="content">
   <div class="card">
+    <h2>Compte rendu de consultation</h2>
 
     <div class="field">
-      <label>Motif</label>
-      <textarea id="motif"></textarea>
+      <label>Motif de consultation</label>
+      <textarea id="motif" placeholder="Motif principal de la consultation"></textarea>
     </div>
 
     <div class="field">
-      <label>Diagnostic *</label>
-      <textarea id="diagnostic"></textarea>
+      <label>Diagnostic</label>
+      <textarea id="diagnostic" placeholder="Diagnostic médical"></textarea>
     </div>
 
     <div class="field">
       <label>Traitement / Recommandations</label>
-      <textarea id="traitement"></textarea>
+      <textarea id="traitement" placeholder="Traitement proposé ou recommandations"></textarea>
     </div>
 
     <div class="field">
       <label>Suivi recommandé</label>
       <select id="suivi">
         <option value="">— Sélectionner —</option>
-        <option value="aucun">Aucun</option>
-        <option value="teleconsultation">Téléconsultation</option>
+        <option value="aucun">Aucun suivi nécessaire</option>
+        <option value="teleconsultation">Téléconsultation de suivi</option>
         <option value="presentiel">Consultation présentielle</option>
       </select>
     </div>
@@ -131,16 +152,15 @@ textarea{resize:vertical;min-height:90px}
     </div>
 
     <div class="actions">
-      <button class="btn" id="submitBtn">
-        Soumettre le rapport
-      </button>
+      <button class="btn secondary" id="saveDraft">Enregistrer brouillon</button>
+      <button class="btn primary" id="submitReport">Soumettre le rapport</button>
     </div>
-
   </div>
 </div>
 
 <div class="footer">
-  © 2026 CizaHealth+ — CIZA GROUP
+  © 2026 CizaHealth+ — CIZA GROUP<br>
+  Rapport médical professionnel
 </div>
 
 </div>
@@ -148,11 +168,11 @@ textarea{resize:vertical;min-height:90px}
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, setDoc, serverTimestamp
 }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
@@ -162,7 +182,15 @@ const diagnostic = document.getElementById("diagnostic");
 const traitement = document.getElementById("traitement");
 const suivi = document.getElementById("suivi");
 const ordonnance = document.getElementById("ordonnance");
-const submitBtn = document.getElementById("submitBtn");
+
+const saveDraftBtn = document.getElementById("saveDraft");
+const submitBtn = document.getElementById("submitReport");
+
+let requestData = null;
+
+function makeRxCode(){
+  return "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
+}
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
@@ -171,17 +199,50 @@ onAuthStateChanged(auth, async(user)=>{
   }
 
   if(!requestId){
-    alert("Consultation introuvable");
+    alert("Erreur : consultation introuvable");
     return;
   }
 
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
+  const reportRef = doc(db,"reports",requestId);
+
+  try{
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Demande introuvable");
+      return;
+    }
+    requestData = reqSnap.data();
+  }catch(e){
+    alert("Erreur réseau : " + (e?.message || "inconnue"));
     return;
   }
 
-  const reqData = reqSnap.data();
+  saveDraftBtn.onclick = async()=>{
+    try{
+      await setDoc(reportRef,{
+        requestId: requestId,
+        patientUid: requestData.patientUid || null,
+        assignedProUid: requestData.assignedProUid || null,
+
+        patientName: requestData.patientName || "",
+        proName: requestData.assignedProName || "",
+
+        proUid:user.uid,
+        motif:motif.value,
+        diagnostic:diagnostic.value,
+        traitement:traitement.value,
+        suivi:suivi.value,
+        ordonnance:ordonnance.checked,
+
+        status:"draft",
+        updatedAt:serverTimestamp()
+      },{merge:true});
+
+      alert("Brouillon enregistré");
+    }catch(e){
+      alert("Impossible d’enregistrer : " + (e?.message || "inconnue"));
+    }
+  };
 
   submitBtn.onclick = async()=>{
     if(!diagnostic.value){
@@ -192,42 +253,51 @@ onAuthStateChanged(auth, async(user)=>{
     submitBtn.disabled = true;
     submitBtn.textContent = "Envoi…";
 
-    /* =====================
-       ENREGISTRE REPORT
-    ===================== */
-    await setDoc(doc(db,"reports",requestId),{
-      requestId: requestId,
-      patientUid: reqData.patientUid,   // 🔥 IMPORTANT
-      proUid: user.uid,
-      motif: motif.value,
-      diagnostic: diagnostic.value,
-      traitement: traitement.value,
-      suivi: suivi.value,
-      ordonnance: ordonnance.checked,
-      submittedAt: serverTimestamp()
-    });
-
-    /* =====================
-       ORDONNANCE
-    ===================== */
-    if(ordonnance.checked){
-
-      const code = "RX-" +
-        Math.random().toString(36)
-        .substring(2,8)
-        .toUpperCase();
-
-      await setDoc(doc(db,"prescriptions",requestId),{
+    try{
+      // 1) Rapport (avec patientUid + requestId => dossier-sante peut lire)
+      await setDoc(reportRef,{
         requestId: requestId,
-        patientUid: reqData.patientUid,
-        proUid: user.uid,
-        code: code,
-        used: false,
-        createdAt: serverTimestamp()
-      });
-    }
+        patientUid: requestData.patientUid || null,
+        assignedProUid: requestData.assignedProUid || null,
 
-    location.href="dashboard-pro.html";
+        patientName: requestData.patientName || "",
+        proName: requestData.assignedProName || "",
+
+        proUid:user.uid,
+        motif:motif.value,
+        diagnostic:diagnostic.value,
+        traitement:traitement.value,
+        suivi:suivi.value,
+        ordonnance:ordonnance.checked,
+
+        status:"submitted",
+        submittedAt:serverTimestamp()
+      },{merge:true});
+
+      // 2) Ordonnance (si cochée) — si rules manquent => on affiche l’erreur au lieu de figer
+      if(ordonnance.checked){
+        const rxCode = makeRxCode();
+
+        await setDoc(doc(db,"prescriptions",requestId),{
+          requestId: requestId,
+          patientUid: requestData.patientUid || null,
+          patientName: requestData.patientName || "",
+          proUid: user.uid,
+          proName: requestData.assignedProName || (user.displayName || ""),
+          code: rxCode,
+          medications: [],
+          used: false,
+          status: "active",
+          createdAt: serverTimestamp()
+        },{merge:true});
+      }
+
+      location.href="dashboard-pro.html";
+    }catch(e){
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Soumettre le rapport";
+      alert("Erreur lors de l’envoi : " + (e?.message || "inconnue") + "\n\n⚠️ Si l’ordonnance est cochée, vérifie aussi les rules /prescriptions.");
+    }
   };
 });
 </script>
