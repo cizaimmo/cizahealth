@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Rapport médical</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<!-- PWA / WebView -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --success:#2ecc71;
+  --danger:#c0392b;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:900px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+header{
+  padding:18px 22px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  color:#fff;
+}
+header strong{font-size:16px;display:block}
+header span{font-size:12px;opacity:.9}
+
+/* CONTENT */
+.content{padding:26px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card h2{
+  margin:0 0 14px;
+  font-size:18px;
+}
+
+/* FORM */
+.field{margin-bottom:16px}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+input, textarea, select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #dde3ef;
+  font-size:14px;
+  font-family:inherit;
+}
+textarea{resize:vertical;min-height:90px}
+
+/* ACTIONS */
+.actions{
+  margin-top:22px;
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.btn{
+  flex:1;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+}
+.primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
+.secondary{background:#eef2f8;color:var(--primary)}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <strong>Rapport médical</strong>
+  <span id="subTitle">Consultation terminée</span>
+</header>
+
+<div class="content">
+  <div class="card">
+    <h2>Compte rendu de consultation</h2>
+
+    <div class="field">
+      <label>Motif de consultation</label>
+      <textarea id="motif" placeholder="Motif principal de la consultation"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Diagnostic</label>
+      <textarea id="diagnostic" placeholder="Diagnostic médical"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Traitement / Recommandations</label>
+      <textarea id="traitement" placeholder="Traitement proposé ou recommandations"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Suivi recommandé</label>
+      <select id="suivi">
+        <option value="">— Sélectionner —</option>
+        <option value="aucun">Aucun suivi nécessaire</option>
+        <option value="teleconsultation">Téléconsultation de suivi</option>
+        <option value="presentiel">Consultation présentielle</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" id="ordonnance">
+        Ordonnance nécessaire
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn secondary" id="saveDraft">Enregistrer brouillon</button>
+      <button class="btn primary" id="submitReport">Soumettre le rapport</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  © 2026 CizaHealth+ — CIZA GROUP<br>
+  Rapport médical professionnel
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, serverTimestamp
+}
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
+
+const motif = document.getElementById("motif");
+const diagnostic = document.getElementById("diagnostic");
+const traitement = document.getElementById("traitement");
+const suivi = document.getElementById("suivi");
+const ordonnance = document.getElementById("ordonnance");
+
+const saveDraftBtn = document.getElementById("saveDraft");
+const submitBtn = document.getElementById("submitReport");
+
+let requestData = null;
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  if(!requestId){
+    alert("Erreur : consultation introuvable");
+    return;
+  }
+
+  const reportRef = doc(db,"reports",requestId);
+
+  try{
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Demande introuvable");
+      return;
+    }
+    requestData = reqSnap.data();
+  }catch(e){
+    alert("Erreur réseau");
+    return;
+  }
+
+  saveDraftBtn.onclick = async()=>{
+    await setDoc(reportRef,{
+      requestId,
+      proUid:user.uid,
+      motif:motif.value,
+      diagnostic:diagnostic.value,
+      traitement:traitement.value,
+      suivi:suivi.value,
+      ordonnance:ordonnance.checked,
+      status:"draft",
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    alert("Brouillon enregistré");
+  };
+
+  submitBtn.onclick = async()=>{
+    if(!diagnostic.value){
+      alert("Le diagnostic est obligatoire");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Envoi…";
+
+    await setDoc(reportRef,{
+      requestId,
+      proUid:user.uid,
+      motif:motif.value,
+      diagnostic:diagnostic.value,
+      traitement:traitement.value,
+      suivi:suivi.value,
+      ordonnance:ordonnance.checked,
+      status:"submitted",
+      submittedAt:serverTimestamp()
+    },{merge:true});
+
+    if(ordonnance.checked){
+      const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
+
+      await setDoc(doc(db,"prescriptions",requestId),{
+        requestId,
+        patientUid: requestData.patientUid,
+        patientName: requestData.patientName || "",
+        proUid: user.uid,
+        proName: user.displayName || "",
+        code: rxCode,
+        medications: [],
+        used: false,
+        status: "active",
+        createdAt: serverTimestamp()
+      });
+    }
+
+    location.href="dashboard-pro.html";
+  };
+});
+</script>
+
+</body>
+</html>
