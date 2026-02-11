@@ -34,41 +34,56 @@ body{
   flex-direction:column;
 }
 header{
-  padding:18px 22px;
+  padding:20px;
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
 }
+header strong{font-size:18px;display:block}
+header span{font-size:13px;opacity:.9}
 .content{padding:26px}
 .card{
-  background:#fff;
+  background:var(--card);
   border-radius:var(--radius);
   padding:22px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-.field{margin-bottom:16px}
-label{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
-textarea,select{
+.field{margin-bottom:18px}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+textarea, select{
   width:100%;
   padding:14px;
   border-radius:14px;
   border:1px solid #dde3ef;
+  font-size:14px;
   font-family:inherit;
 }
+textarea{resize:vertical;min-height:90px}
 .actions{
   margin-top:22px;
-  display:flex;
-  gap:14px;
 }
 .btn{
-  flex:1;
+  width:100%;
   padding:16px;
   border:none;
   border-radius:999px;
   font-weight:700;
+  font-size:15px;
   cursor:pointer;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
 }
-.primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
-.secondary{background:#eef2f8;color:#123c8a}
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
 </style>
 </head>
 
@@ -77,7 +92,7 @@ textarea,select{
 
 <header>
   <strong>Rapport médical</strong>
-  <span>Consultation terminée</span>
+  <span>Compte rendu professionnel</span>
 </header>
 
 <div class="content">
@@ -94,39 +109,50 @@ textarea,select{
     </div>
 
     <div class="field">
-      <label>Traitement / recommandations</label>
+      <label>Traitement / Recommandations</label>
       <textarea id="traitement"></textarea>
     </div>
 
     <div class="field">
-      <label>Suivi</label>
+      <label>Suivi recommandé</label>
       <select id="suivi">
-        <option value="">—</option>
+        <option value="">— Sélectionner —</option>
         <option value="aucun">Aucun</option>
         <option value="teleconsultation">Téléconsultation</option>
-        <option value="presentiel">Présentiel</option>
+        <option value="presentiel">Consultation présentielle</option>
       </select>
     </div>
 
-    <label>
-      <input type="checkbox" id="ordonnance">
-      Ordonnance nécessaire
-    </label>
+    <div class="field">
+      <label>
+        <input type="checkbox" id="ordonnance">
+        Ordonnance nécessaire
+      </label>
+    </div>
 
     <div class="actions">
-      <button class="btn secondary" id="saveDraft">Brouillon</button>
-      <button class="btn primary" id="submitReport">Soumettre</button>
+      <button class="btn" id="submitBtn">
+        Soumettre le rapport
+      </button>
     </div>
 
   </div>
+</div>
+
+<div class="footer">
+  © 2026 CizaHealth+ — CIZA GROUP
 </div>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
 const requestId = params.get("requestId");
@@ -136,13 +162,16 @@ const diagnostic = document.getElementById("diagnostic");
 const traitement = document.getElementById("traitement");
 const suivi = document.getElementById("suivi");
 const ordonnance = document.getElementById("ordonnance");
-
-const submitBtn = document.getElementById("submitReport");
-const draftBtn = document.getElementById("saveDraft");
+const submitBtn = document.getElementById("submitBtn");
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user || !requestId){
+  if(!user){
     location.href="login.html";
+    return;
+  }
+
+  if(!requestId){
+    alert("Consultation introuvable");
     return;
   }
 
@@ -151,47 +180,52 @@ onAuthStateChanged(auth, async(user)=>{
     alert("Demande introuvable");
     return;
   }
-  const req = reqSnap.data();
 
-  const reportRef = doc(db,"reports",requestId);
-
-  draftBtn.onclick = async()=>{
-    await setDoc(reportRef,{
-      requestId,
-      patientUid: req.patientUid,
-      proUid: user.uid,
-      motif: motif.value,
-      diagnostic: diagnostic.value,
-      traitement: traitement.value,
-      suivi: suivi.value,
-      ordonnance: ordonnance.checked,
-      status:"draft",
-      updatedAt: serverTimestamp()
-    },{merge:true});
-    alert("Brouillon enregistré");
-  };
+  const reqData = reqSnap.data();
 
   submitBtn.onclick = async()=>{
     if(!diagnostic.value){
-      alert("Diagnostic obligatoire");
+      alert("Le diagnostic est obligatoire");
       return;
     }
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Envoi…";
 
-    await setDoc(reportRef,{
-      requestId,
-      patientUid: req.patientUid,
+    /* =====================
+       ENREGISTRE REPORT
+    ===================== */
+    await setDoc(doc(db,"reports",requestId),{
+      requestId: requestId,
+      patientUid: reqData.patientUid,   // 🔥 IMPORTANT
       proUid: user.uid,
       motif: motif.value,
       diagnostic: diagnostic.value,
       traitement: traitement.value,
       suivi: suivi.value,
       ordonnance: ordonnance.checked,
-      status:"submitted",
-      createdAt: serverTimestamp()
-    },{merge:true});
+      submittedAt: serverTimestamp()
+    });
+
+    /* =====================
+       ORDONNANCE
+    ===================== */
+    if(ordonnance.checked){
+
+      const code = "RX-" +
+        Math.random().toString(36)
+        .substring(2,8)
+        .toUpperCase();
+
+      await setDoc(doc(db,"prescriptions",requestId),{
+        requestId: requestId,
+        patientUid: reqData.patientUid,
+        proUid: user.uid,
+        code: code,
+        used: false,
+        createdAt: serverTimestamp()
+      });
+    }
 
     location.href="dashboard-pro.html";
   };
