@@ -5,17 +5,17 @@
 <title>CizaHealth+ | Rapport médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<!-- PWA / WebView -->
+<!-- PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
-  --primary:#123c8a;
-  --primary-dark:#0b2c66;
+  --blue:#123c8a;
+  --blue-dark:#0b2c66;
   --bg:#f4f7fb;
-  --card:#ffffff;
+  --card:#fff;
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:22px;
@@ -36,10 +36,10 @@ body{
 }
 header{
   padding:18px 22px;
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  background:linear-gradient(90deg,var(--blue),var(--blue-dark));
   color:#fff;
 }
-header strong{font-size:16px;display:block}
+header strong{display:block;font-size:16px}
 header span{font-size:12px;opacity:.9}
 .content{padding:26px}
 .card{
@@ -50,8 +50,13 @@ header span{font-size:12px;opacity:.9}
 }
 .card h2{margin:0 0 14px;font-size:18px}
 .field{margin-bottom:16px}
-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
-textarea,select{
+label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+textarea, select{
   width:100%;
   padding:14px;
   border-radius:14px;
@@ -64,7 +69,6 @@ textarea{min-height:90px}
   margin-top:22px;
   display:flex;
   gap:14px;
-  flex-wrap:wrap;
 }
 .btn{
   flex:1;
@@ -75,8 +79,14 @@ textarea{min-height:90px}
   font-size:15px;
   cursor:pointer;
 }
-.primary{background:linear-gradient(135deg,#123c8a,#1b4fa3);color:#fff}
-.secondary{background:#eef2f8;color:var(--primary)}
+.primary{
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+}
+.secondary{
+  background:#eef2f8;
+  color:var(--blue);
+}
 .footer{
   margin-top:auto;
   padding:22px;
@@ -92,12 +102,12 @@ textarea{min-height:90px}
 
 <header>
   <strong>Rapport médical</strong>
-  <span>Consultation terminée</span>
+  <span>Compte rendu professionnel</span>
 </header>
 
 <div class="content">
   <div class="card">
-    <h2>Compte rendu de consultation</h2>
+    <h2>Consultation médicale</h2>
 
     <div class="field">
       <label>Motif de consultation</label>
@@ -105,21 +115,21 @@ textarea{min-height:90px}
     </div>
 
     <div class="field">
-      <label>Diagnostic</label>
-      <textarea id="diagnostic"></textarea>
+      <label>Diagnostic (OMS)</label>
+      <textarea id="diagnostic" required></textarea>
     </div>
 
     <div class="field">
-      <label>Traitement / Recommandations</label>
+      <label>Traitement / recommandations</label>
       <textarea id="traitement"></textarea>
     </div>
 
     <div class="field">
       <label>Suivi recommandé</label>
       <select id="suivi">
-        <option value="">— Sélectionner —</option>
-        <option value="aucun">Aucun suivi</option>
-        <option value="teleconsultation">Téléconsultation de suivi</option>
+        <option value="">—</option>
+        <option value="aucun">Aucun</option>
+        <option value="teleconsultation">Téléconsultation</option>
         <option value="presentiel">Consultation présentielle</option>
       </select>
     </div>
@@ -140,7 +150,7 @@ textarea{min-height:90px}
 
 <div class="footer">
   © 2026 CizaHealth+ — CIZA GROUP<br>
-  Rapport médical professionnel
+  Rapport médical conforme OMS
 </div>
 
 </div>
@@ -158,9 +168,8 @@ const diagnostic = document.getElementById("diagnostic");
 const traitement = document.getElementById("traitement");
 const suivi = document.getElementById("suivi");
 const ordonnance = document.getElementById("ordonnance");
-
-const saveDraftBtn = document.getElementById("saveDraft");
 const submitBtn = document.getElementById("submitReport");
+const draftBtn = document.getElementById("saveDraft");
 
 let requestData = null;
 
@@ -170,21 +179,16 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  try{
-    const reqSnap = await getDoc(doc(db,"requests",requestId));
-    if(!reqSnap.exists()){
-      alert("Demande introuvable");
-      return;
-    }
-    requestData = reqSnap.data();
-  }catch(e){
-    alert("Erreur Firestore (request)");
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()){
+    alert("Consultation introuvable");
     return;
   }
 
+  requestData = reqSnap.data();
   const reportRef = doc(db,"reports",requestId);
 
-  saveDraftBtn.onclick = async()=>{
+  draftBtn.onclick = async()=>{
     await setDoc(reportRef,{
       requestId,
       patientUid: requestData.patientUid,
@@ -194,7 +198,7 @@ onAuthStateChanged(auth, async(user)=>{
       traitement: traitement.value,
       suivi: suivi.value,
       ordonnance: ordonnance.checked,
-      status: "draft",
+      status:"draft",
       updatedAt: serverTimestamp()
     },{merge:true});
     alert("Brouillon enregistré");
@@ -202,7 +206,7 @@ onAuthStateChanged(auth, async(user)=>{
 
   submitBtn.onclick = async()=>{
     if(!diagnostic.value){
-      alert("Le diagnostic est obligatoire");
+      alert("Diagnostic obligatoire");
       return;
     }
 
@@ -219,32 +223,12 @@ onAuthStateChanged(auth, async(user)=>{
         traitement: traitement.value,
         suivi: suivi.value,
         ordonnance: ordonnance.checked,
-        status: "submitted",
-        createdAt: serverTimestamp(),
-        submittedAt: serverTimestamp()
+        status:"submitted",
+        createdAt: serverTimestamp()
       },{merge:true});
 
-      if(ordonnance.checked){
-        const rxCode = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-        await setDoc(doc(db,"prescriptions",requestId),{
-          requestId,
-          patientUid: requestData.patientUid,
-          patientName: requestData.patientName || "",
-          proUid: user.uid,
-          proName: user.displayName || "",
-          code: rxCode,
-          medications: [],
-          used: false,
-          status: "active",
-          createdAt: serverTimestamp()
-        });
-      }
-
-      location.href = "dashboard-pro.html";
-
+      location.href="dashboard-pro.html";
     }catch(e){
-      console.error(e);
       alert("Erreur lors de l’envoi du rapport. Vérifie Firestore.");
       submitBtn.disabled = false;
       submitBtn.textContent = "Soumettre le rapport";
