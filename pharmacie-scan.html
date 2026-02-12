@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Validation ordonnance</title>
+<title>CizaHealth+ | Scan ordonnance</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -15,35 +15,26 @@ body{
   align-items:center;
   min-height:100vh;
 }
-.box{
+.container{
   background:white;
-  padding:30px;
+  padding:25px;
   border-radius:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,.1);
-  max-width:400px;
+  box-shadow:0 20px 50px rgba(0,0,0,.1);
   width:100%;
+  max-width:450px;
 }
-input{
+h3{text-align:center;margin-bottom:15px}
+#reader{
   width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #ddd;
-}
-button{
-  margin-top:15px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:#123c8a;
-  color:white;
-  font-weight:600;
+  border-radius:16px;
+  overflow:hidden;
 }
 .status{
-  margin-top:20px;
-  padding:12px;
-  border-radius:12px;
+  margin-top:15px;
+  padding:14px;
+  border-radius:14px;
   text-align:center;
+  font-weight:600;
 }
 .ok{background:#e9f7ef;color:#1b6b3a}
 .err{background:#fdecea;color:#8a1f1f}
@@ -51,18 +42,17 @@ button{
 </head>
 
 <body>
-<div class="box">
-<h3>Validation ordonnance</h3>
 
-<input id="codeInput" placeholder="Entrer le code RX">
-<button id="validateBtn">Valider</button>
-
+<div class="container">
+<h3>Scanner ordonnance</h3>
+<div id="reader"></div>
 <div id="result"></div>
-
 </div>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <script type="module">
-import { auth, db } from "./firebase.js";
+import { db } from "./firebase.js";
 import {
   collection, query, where, getDocs,
   doc, updateDoc, serverTimestamp
@@ -70,13 +60,11 @@ import {
 
 const result = document.getElementById("result");
 
-document.getElementById("validateBtn").onclick = async()=>{
+function showStatus(type,text){
+  result.innerHTML=`<div class="status ${type}">${text}</div>`;
+}
 
-  const code = document.getElementById("codeInput").value.trim();
-  if(!code){
-    alert("Entrer un code");
-    return;
-  }
+async function validateCode(code){
 
   const q = query(
     collection(db,"prescriptions"),
@@ -86,7 +74,7 @@ document.getElementById("validateBtn").onclick = async()=>{
   const snap = await getDocs(q);
 
   if(snap.empty){
-    result.innerHTML=`<div class="status err">Code invalide</div>`;
+    showStatus("err","Ordonnance invalide");
     return;
   }
 
@@ -94,7 +82,7 @@ document.getElementById("validateBtn").onclick = async()=>{
   const data = docSnap.data();
 
   if(data.used){
-    result.innerHTML=`<div class="status err">Ordonnance déjà utilisée</div>`;
+    showStatus("err","Ordonnance déjà utilisée");
     return;
   }
 
@@ -104,8 +92,27 @@ document.getElementById("validateBtn").onclick = async()=>{
     status:"used"
   });
 
-  result.innerHTML=`<div class="status ok">Ordonnance validée avec succès</div>`;
-};
+  showStatus("ok","Ordonnance validée ✔");
+}
+
+const html5QrCode = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices=>{
+  if(devices && devices.length){
+    const cameraId = devices[0].id;
+
+    html5QrCode.start(
+      cameraId,
+      { fps:10, qrbox:250 },
+      async (decodedText)=>{
+        html5QrCode.stop();
+        validateCode(decodedText);
+      }
+    );
+  }
+}).catch(err=>{
+  showStatus("err","Accès caméra refusé");
+});
 </script>
 
 </body>
