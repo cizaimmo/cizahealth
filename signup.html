@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Inscription</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <style>
 :root{
   --blue:#0a2a5e;
+  --blue-dark:#071f45;
   --bg:#f4f7fb;
   --text:#0a1a2f;
   --muted:#6b7a90;
@@ -21,22 +22,22 @@ body{
   color:var(--text);
 }
 .app{
-  max-width:420px;
+  max-width:480px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  padding:26px 22px;
+  padding:28px 22px 40px;
 }
 h1{
   font-size:22px;
   text-align:center;
-  margin-bottom:10px;
+  margin-bottom:6px;
 }
 .subtitle{
   text-align:center;
   font-size:14px;
   color:var(--muted);
-  margin-bottom:26px;
+  margin-bottom:24px;
 }
 label{
   display:block;
@@ -44,21 +45,32 @@ label{
   font-weight:600;
   font-size:13.5px;
 }
-input, select{
+input, select, textarea{
   width:100%;
   margin-top:8px;
   padding:14px;
   border-radius:14px;
   border:1.5px solid #e6ebf5;
   font-size:14px;
+  font-family:inherit;
+}
+textarea{
+  resize:vertical;
+  min-height:70px;
+}
+.sectionTitle{
+  margin-top:26px;
+  font-size:15px;
+  font-weight:700;
+  color:var(--blue);
 }
 button{
-  margin-top:28px;
+  margin-top:30px;
   width:100%;
   padding:16px;
   border:none;
   border-radius:18px;
-  background:var(--blue);
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
   color:#fff;
   font-weight:600;
   font-size:15px;
@@ -81,116 +93,152 @@ button:disabled{
 
 <div class="app">
 
-  <h1>Créer un compte patient</h1>
-  <div class="subtitle">
-    Informations nécessaires à votre dossier médical
-  </div>
+<h1>Créer un compte patient</h1>
+<div class="subtitle">
+Informations nécessaires à votre dossier médical sécurisé
+</div>
 
-  <label>Nom complet</label>
-  <input id="fullName" placeholder="Nom et prénom">
+<label>Nom complet</label>
+<input id="fullName" placeholder="Nom et prénom">
 
-  <label>Genre</label>
-  <select id="gender">
-    <option value="">Sélectionner</option>
-    <option value="male">Homme</option>
-    <option value="female">Femme</option>
-    <option value="other">Autre</option>
-  </select>
+<label>Genre</label>
+<select id="gender">
+<option value="">Sélectionner</option>
+<option value="male">Homme</option>
+<option value="female">Femme</option>
+<option value="other">Autre</option>
+</select>
 
-  <label>Âge</label>
-  <input id="age" type="number" min="0" max="120" placeholder="Ex : 32">
+<label>Date de naissance</label>
+<input id="birthDate" type="date">
 
-  <label>Province</label>
-  <select id="province">
-    <option value="">Sélectionner</option>
-    <option>Bujumbura</option>
-    <option>Gitega</option>
-    <option>Ngozi</option>
-    <option>Kayanza</option>
-    <option>Muyinga</option>
-    <option>Rutana</option>
-  </select>
+<label>Pays</label>
+<select id="country">
+<option value="">Sélectionner</option>
+<option>Burundi</option>
+<option>Rwanda</option>
+<option>République Démocratique du Congo</option>
+<option>Tanzanie</option>
+<option>Kenya</option>
+<option>Ouganda</option>
+<option>Afrique du Sud</option>
+<option>Canada</option>
+<option>France</option>
+</select>
 
-  <label>Email</label>
-  <input id="email" type="email" placeholder="ex: nom@email.com">
+<label>Province / Région</label>
+<input id="province" placeholder="Ex : Bujumbura">
 
-  <label>Mot de passe</label>
-  <input id="password" type="password" placeholder="••••••••">
+<div class="sectionTitle">Informations médicales</div>
 
-  <button id="signupBtn">Créer mon compte</button>
+<label>Groupe sanguin</label>
+<select id="bloodType">
+<option value="">Sélectionner</option>
+<option>A+</option><option>A-</option>
+<option>B+</option><option>B-</option>
+<option>AB+</option><option>AB-</option>
+<option>O+</option><option>O-</option>
+</select>
 
-  <div class="note">
-    Après inscription, vous devrez vous connecter pour accéder
-    à votre espace patient.
-  </div>
+<label>Allergies connues</label>
+<textarea id="allergies" placeholder="Ex : Pénicilline"></textarea>
+
+<label>Maladies chroniques</label>
+<textarea id="conditions" placeholder="Ex : Diabète, Hypertension"></textarea>
+
+<label>Contact d’urgence</label>
+<input id="emergencyContact" placeholder="Nom + téléphone">
+
+<div class="sectionTitle">Connexion</div>
+
+<label>Email</label>
+<input id="email" type="email" placeholder="ex: nom@email.com">
+
+<label>Mot de passe</label>
+<input id="password" type="password" placeholder="••••••••">
+
+<button id="signupBtn">Créer mon compte</button>
+
+<div class="note">
+Après inscription, vous devrez vous connecter pour accéder à votre espace patient.
+</div>
 
 </div>
 
-<!-- 🔐 SIGNUP – FIREBASE PRODUCTION -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
-  createUserWithEmailAndPassword,
-  signOut
+createUserWithEmailAndPassword,
+signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, setDoc, serverTimestamp
+doc, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const btn = document.getElementById("signupBtn");
 
 btn.addEventListener("click", async () => {
 
-  const fullName = document.getElementById("fullName").value.trim();
-  const gender   = document.getElementById("gender").value;
-  const age      = Number(document.getElementById("age").value);
-  const province = document.getElementById("province").value;
-  const email    = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+const fullName = document.getElementById("fullName").value.trim();
+const gender = document.getElementById("gender").value;
+const birthDate = document.getElementById("birthDate").value;
+const country = document.getElementById("country").value;
+const province = document.getElementById("province").value;
+const bloodType = document.getElementById("bloodType").value;
+const allergies = document.getElementById("allergies").value.trim();
+const conditions = document.getElementById("conditions").value.trim();
+const emergencyContact = document.getElementById("emergencyContact").value.trim();
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value;
 
-  if(!fullName || !gender || !age || !province || !email || !password){
-    alert("Veuillez remplir tous les champs");
-    return;
-  }
+if(!fullName || !gender || !birthDate || !country || !province || !email || !password){
+alert("Veuillez remplir tous les champs obligatoires");
+return;
+}
 
-  btn.disabled = true;
-  btn.innerText = "Création du compte…";
+btn.disabled = true;
+btn.innerText = "Création du compte…";
 
-  try{
-    // 1️⃣ AUTH
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+try{
 
-    // 2️⃣ USERS
-    await setDoc(doc(db,"users",uid),{
-      role: "patient",
-      email,
-      status: "active",
-      createdAt: serverTimestamp()
-    });
+const cred = await createUserWithEmailAndPassword(auth, email, password);
+const uid = cred.user.uid;
 
-    // 3️⃣ PATIENTS (DOSSIER MÉDICAL)
-    await setDoc(doc(db,"patients",uid),{
-      userId: uid,
-      fullName,
-      gender,
-      age,
-      province,
-      patientId: "CZP-" + uid.slice(0,6).toUpperCase(),
-      createdAt: serverTimestamp()
-    });
+const patientId = "CZP-" + uid.slice(0,6).toUpperCase();
 
-    // 4️⃣ LOGOUT OBLIGATOIRE
-    await signOut(auth);
+await setDoc(doc(db,"users",uid),{
+role: "patient",
+email,
+status: "active",
+createdAt: serverTimestamp()
+});
 
-    alert("Compte créé avec succès. Veuillez vous connecter.");
-    window.location.href = "login.html";
+await setDoc(doc(db,"patients",uid),{
+userId: uid,
+fullName,
+gender,
+birthDate,
+country,
+province,
+bloodType,
+allergies,
+conditions,
+emergencyContact,
+patientId,
+createdAt: serverTimestamp()
+});
 
-  }catch(e){
-    alert(e.message);
-    btn.disabled = false;
-    btn.innerText = "Créer mon compte";
-  }
+await signOut(auth);
+
+alert("Compte créé avec succès. Veuillez vous connecter.");
+window.location.href = "login.html";
+
+}catch(e){
+alert(e.message);
+btn.disabled = false;
+btn.innerText = "Créer mon compte";
+}
+
 });
 </script>
 
