@@ -5,60 +5,170 @@
 <title>CizaHealth+ | Rapport médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<meta name="theme-color" content="#0b2c66">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
+:root{
+  --primary:#0b2c66;
+  --primary-soft:#eef3fb;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:20px;
+  --line:#e7edf7;
+}
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:#f4f7fb;
-  color:#0a1a2f;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
 }
-.container{
-  max-width:900px;
+
+.app{
+  max-width:920px;
   margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* HEADER */
+.header{
+  padding:18px 20px;
+  background:linear-gradient(90deg,#0b2c66,#123c8a);
+  color:#fff;
+}
+
+.header h1{
+  margin:0;
+  font-size:18px;
+}
+
+.header small{
+  opacity:.85;
+  font-size:12px;
+}
+
+/* CONTENT */
+.content{
   padding:20px;
 }
-h1{font-size:20px;margin-bottom:20px}
+
 .card{
-  background:#fff;
+  background:var(--card);
+  border-radius:var(--radius);
   padding:18px;
-  border-radius:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,.05);
+  box-shadow:0 12px 32px rgba(0,0,0,.06);
   margin-bottom:18px;
+  border:1px solid var(--line);
 }
-input, textarea, select{
+
+.card h3{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+label{
+  font-size:13px;
+  font-weight:600;
+  display:block;
+  margin-bottom:6px;
+}
+
+textarea, select{
   width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  margin-top:6px;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #dbe4f2;
+  font-family:inherit;
+  font-size:14px;
   margin-bottom:14px;
 }
-button{
-  padding:12px 18px;
-  border:none;
-  border-radius:12px;
-  background:#123c8a;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
+
+textarea{
+  resize:vertical;
+  min-height:90px;
 }
+
+/* MEDICATION BLOCK */
 .med-block{
-  border:1px solid #eee;
-  padding:12px;
-  border-radius:12px;
+  background:#f9fbff;
+  border:1px solid #e5ecf9;
+  border-radius:16px;
+  padding:14px;
   margin-bottom:12px;
+}
+
+.med-block h4{
+  margin:0 0 10px;
+  font-size:13px;
+}
+
+/* BUTTONS */
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.btn{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-weight:700;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.primary{
+  background:linear-gradient(135deg,#0b2c66,#123c8a);
+  color:#fff;
+}
+
+.secondary{
+  background:var(--primary-soft);
+  color:var(--primary);
+}
+
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
 }
 </style>
 </head>
-<body>
 
-<div class="container">
-<h1>Rapport médical</h1>
+<body>
+<div class="app">
+
+<div class="header">
+  <h1>Rapport médical</h1>
+  <small>Compte rendu officiel CizaHealth+</small>
+</div>
+
+<div class="content">
 
 <div class="card">
+<h3>Informations consultation</h3>
+
 <label>Motif</label>
 <textarea id="motif"></textarea>
 
@@ -68,16 +178,12 @@ button{
 <label>Traitement global</label>
 <textarea id="traitement"></textarea>
 
-<label>Pays</label>
-<select id="country">
-<option value="BI">Burundi</option>
-<option value="RW">Rwanda</option>
-<option value="CD">RD Congo</option>
-<option value="KE">Kenya</option>
-<option value="UG">Uganda</option>
-<option value="TZ">Tanzania</option>
-<option value="ET">Ethiopia</option>
-<option value="SS">South Sudan</option>
+<label>Suivi recommandé</label>
+<select id="suivi">
+  <option value="">—</option>
+  <option value="aucun">Aucun</option>
+  <option value="teleconsultation">Téléconsultation</option>
+  <option value="presentiel">Présentiel</option>
 </select>
 
 <label>
@@ -85,121 +191,102 @@ button{
  Ordonnance nécessaire
 </label>
 
+</div>
+
+<div class="card" id="rxSection" style="display:none">
+<h3>Prescription détaillée</h3>
+
 <div id="medicationsContainer"></div>
 
-<button type="button" onclick="addMedication()">+ Ajouter médicament</button>
+<button type="button" class="btn secondary" onclick="addMedication()">
++ Ajouter médicament
+</button>
 
-<br><br>
-<button id="submitBtn" onclick="submitReport()">Envoyer rapport</button>
 </div>
+
+<div class="actions">
+<button class="btn primary" id="submitBtn">
+Envoyer rapport
+</button>
+</div>
+
+</div>
+
+<div class="footer">
+© 2026 CizaHealth+ — CIZA GROUP
+</div>
+
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
-  doc, getDoc, setDoc, serverTimestamp
+  doc, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const urlParams = new URLSearchParams(window.location.search);
-const requestId = urlParams.get("requestId");
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
+
+const needRx = document.getElementById("needRx");
+const rxSection = document.getElementById("rxSection");
 
 let medications = [];
+
+needRx.onchange = ()=>{
+  rxSection.style.display = needRx.checked ? "block" : "none";
+};
 
 window.addMedication = function(){
   const container = document.getElementById("medicationsContainer");
   const index = medications.length;
-
   medications.push({});
 
   const div = document.createElement("div");
   div.className="med-block";
-  div.innerHTML = `
-    <label>Nom médicament</label>
-    <input onchange="medications[${index}].name=this.value">
-
-    <label>DCI</label>
-    <input onchange="medications[${index}].dci=this.value">
-
-    <label>Dosage</label>
-    <input onchange="medications[${index}].dosage=this.value">
-
-    <label>Forme</label>
-    <input onchange="medications[${index}].form=this.value">
-
-    <label>Posologie</label>
-    <input onchange="medications[${index}].posology=this.value">
-
-    <label>Durée</label>
-    <input onchange="medications[${index}].duration=this.value">
-
-    <label>Instructions</label>
-    <input onchange="medications[${index}].instructions=this.value">
+  div.innerHTML=`
+    <h4>Médicament ${index+1}</h4>
+    <input placeholder="Nom" onchange="medications[${index}].name=this.value">
+    <input placeholder="Dosage" onchange="medications[${index}].dosage=this.value">
+    <input placeholder="Posologie" onchange="medications[${index}].posology=this.value">
+    <input placeholder="Durée" onchange="medications[${index}].duration=this.value">
   `;
   container.appendChild(div);
 };
 
-window.submitReport = async function(){
+document.getElementById("submitBtn").onclick = async()=>{
   const user = auth.currentUser;
   if(!user) return alert("Non connecté");
-  if(!requestId) return alert("Consultation introuvable");
 
-  const submitBtn = document.getElementById("submitBtn");
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Envoi...";
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "Envoi…";
 
-  try{
+  const data = {
+    requestId,
+    patientUid: null, // sera injecté plus tard via getDoc(request)
+    proUid: user.uid,
+    motif: motif.value,
+    diagnostic: diagnostic.value,
+    traitement: traitement.value,
+    suivi: suivi.value,
+    ordonnance: needRx.checked,
+    medications,
+    status:"submitted",
+    submittedAt: serverTimestamp()
+  };
 
-    // 🔹 IMPORTANT : récupérer la demande pour obtenir patientUid
-    const reqSnap = await getDoc(doc(db,"requests",requestId));
-    if(!reqSnap.exists()){
-      alert("Demande introuvable");
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Envoyer rapport";
-      return;
-    }
+  await setDoc(doc(db,"reports",requestId), data);
 
-    const requestData = reqSnap.data();
-
-    const data = {
-      requestId,
-      patientUid: requestData.patientUid,   // ✅ AJOUT CRUCIAL
-      proUid: user.uid,
-      motif: document.getElementById("motif").value,
-      diagnostic: document.getElementById("diagnostic").value,
-      traitement: document.getElementById("traitement").value,
-      ordonnance: document.getElementById("needRx").checked,
-      medications,
-      country: document.getElementById("country").value,
-      region: "East Africa",
-      status: "submitted",
-      submittedAt: serverTimestamp()
-    };
-
-    // 🔹 REPORT
-    await setDoc(doc(db,"reports",requestId),data);
-
-    // 🔹 PRESCRIPTION
-    if(data.ordonnance){
-      const code = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-      await setDoc(doc(db,"prescriptions",requestId),{
-        ...data,
-        code,
-        used:false,
-        createdAt:serverTimestamp(),
-        expiresAt:new Date(Date.now() + 14*24*60*60*1000)
-      });
-    }
-
-    alert("Rapport envoyé");
-    location.href="dashboard-pro.html";
-
-  }catch(e){
-    console.error(e);
-    alert("Erreur lors de l’envoi");
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Envoyer rapport";
+  if(needRx.checked){
+    await setDoc(doc(db,"prescriptions",requestId),{
+      ...data,
+      code:"RX-"+Math.random().toString(36).substring(2,8).toUpperCase(),
+      used:false,
+      createdAt:serverTimestamp()
+    });
   }
+
+  location.href="dashboard-pro.html";
 };
 </script>
 
