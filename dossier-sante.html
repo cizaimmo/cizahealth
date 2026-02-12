@@ -19,16 +19,13 @@
   --muted:#6b7a90;
   --radius:22px;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
 .app{
   max-width:1000px;
   margin:auto;
@@ -36,8 +33,6 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* HEADER */
 header{
   padding:18px 22px;
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
@@ -47,13 +42,8 @@ header{
   align-items:center;
 }
 header strong{font-size:16px}
-header a{
-  color:#fff;
-  text-decoration:none;
-  font-size:13px;
-}
+header a{color:#fff;text-decoration:none;font-size:13px}
 
-/* SEGMENT CONTROL */
 .segment{
   margin:20px auto;
   background:#eaf0fb;
@@ -73,20 +63,13 @@ header a{
   cursor:pointer;
   font-size:13px;
   color:var(--blue);
-  transition:.25s;
 }
 .segment button.active{
   background:linear-gradient(135deg,var(--blue),#1b4fa3);
   color:#fff;
-  box-shadow:0 4px 14px rgba(18,60,138,.25);
 }
 
-/* CONTENT */
-.content{
-  padding:20px;
-  flex:1;
-}
-
+.content{padding:20px;flex:1}
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -94,19 +77,8 @@ header a{
   box-shadow:0 10px 28px rgba(10,42,94,.08);
   margin-bottom:14px;
 }
-
-.card h3{
-  margin:0 0 10px;
-  font-size:15px;
-}
-
-.kv{
-  font-size:14px;
-  line-height:1.6;
-}
-
+.kv{font-size:14px;line-height:1.6}
 .muted{color:var(--muted);font-size:13px}
-
 .btn{
   margin-top:12px;
   padding:10px 14px;
@@ -117,15 +89,8 @@ header a{
   font-weight:700;
   cursor:pointer;
 }
-
 .hidden{display:none}
-
-.footer{
-  text-align:center;
-  font-size:12px;
-  color:#8a95a8;
-  padding:22px;
-}
+.footer{text-align:center;font-size:12px;color:#8a95a8;padding:22px}
 </style>
 </head>
 
@@ -141,39 +106,36 @@ header a{
   <button class="active" data-tab="identity">Identité</button>
   <button data-tab="reports">Rapports</button>
   <button data-tab="rx">Ordonnances</button>
-  <button data-tab="card">Carte</button>
 </div>
 
 <div class="content">
 
-  <!-- IDENTITÉ -->
-  <div id="identity" class="tab">
-    <div class="card">
-      <h3>Informations patient</h3>
-      <div class="kv" id="identityData">Chargement...</div>
-    </div>
-  </div>
+<!-- IDENTITÉ -->
+<div id="identity" class="tab">
 
-  <!-- RAPPORTS -->
-  <div id="reports" class="tab hidden">
-    <div id="reportsList"></div>
-  </div>
+<div class="card" style="text-align:center">
+<input type="file" id="photoInput" accept="image/*" hidden>
+<img id="profilePhoto"
+  src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+  style="width:120px;height:120px;border-radius:50%;object-fit:cover;
+  border:4px solid #eef3fb;cursor:pointer;margin-bottom:12px;">
+</div>
 
-  <!-- ORDONNANCES -->
-  <div id="rx" class="tab hidden">
-    <div id="rxList"></div>
-  </div>
+<div class="card">
+<h3>Informations patient</h3>
+<div class="kv" id="identityData">Chargement...</div>
+</div>
+</div>
 
-  <!-- CARTE -->
-  <div id="card" class="tab hidden">
-    <div class="card" style="text-align:center">
-      <h3>Carte médicale CizaHealth+</h3>
-      <img id="qrImg" style="width:200px;margin-top:12px;border-radius:18px">
-      <div class="muted" style="margin-top:10px">
-        QR sécurisé signé
-      </div>
-    </div>
-  </div>
+<!-- RAPPORTS -->
+<div id="reports" class="tab hidden">
+<div id="reportsList"></div>
+</div>
+
+<!-- ORDONNANCES -->
+<div id="rx" class="tab hidden">
+<div id="rxList"></div>
+</div>
 
 </div>
 
@@ -184,16 +146,20 @@ header a{
 </div>
 
 <script type="module">
-import { auth, db } from "./firebase.js";
+import { auth, db, storage } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc,
+  doc, getDoc, updateDoc,
   collection, query, where, orderBy, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  ref, uploadBytes, getDownloadURL
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* SEGMENT CONTROL */
+/* SEGMENT */
 document.querySelectorAll(".segment button").forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
@@ -204,10 +170,7 @@ document.querySelectorAll(".segment button").forEach(btn=>{
 });
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
+  if(!user){ location.href="login.html"; return; }
 
   /* IDENTITÉ */
   const pSnap = await getDoc(doc(db,"patients",user.uid));
@@ -220,6 +183,9 @@ onAuthStateChanged(auth, async(user)=>{
       <b>Âge :</b> ${p.age || "—"}<br>
       <b>Province :</b> ${p.province || "—"}
     `;
+    if(p.photoURL){
+      document.getElementById("profilePhoto").src = p.photoURL;
+    }
   }
 
   /* RAPPORTS */
@@ -250,40 +216,31 @@ onAuthStateChanged(auth, async(user)=>{
     });
   });
 
-  /* ORDONNANCES */
-  const qRx = query(
-    collection(db,"prescriptions"),
-    where("patientUid","==",user.uid),
-    orderBy("createdAt","desc")
+});
+
+/* PHOTO UPLOAD */
+const photoInput = document.getElementById("photoInput");
+const profilePhoto = document.getElementById("profilePhoto");
+
+profilePhoto.onclick=()=>photoInput.click();
+
+photoInput.onchange=async(e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const storageRef = ref(storage,
+    `patients/${auth.currentUser.uid}/profile.jpg`
   );
 
-  onSnapshot(qRx,(snap)=>{
-    const container = document.getElementById("rxList");
-    container.innerHTML="";
-    if(snap.empty){
-      container.innerHTML="<div class='muted'>Aucune ordonnance</div>";
-      return;
-    }
-    snap.forEach(docu=>{
-      const p = docu.data();
-      const div=document.createElement("div");
-      div.className="card";
-      div.innerHTML=`
-        <h3>Ordonnance</h3>
-        <div class="kv">
-          <b>Code :</b> ${p.code}<br>
-          <b>Statut :</b> ${p.used ? "Utilisée" : "Active"}
-        </div>
-        <button class="btn"
-        onclick="location.href='ordonnance.html?requestId=${p.requestId}'">
-        Voir ordonnance
-        </button>
-      `;
-      container.appendChild(div);
-    });
+  await uploadBytes(storageRef,file);
+  const url = await getDownloadURL(storageRef);
+
+  await updateDoc(doc(db,"patients",auth.currentUser.uid),{
+    photoURL:url
   });
 
-});
+  profilePhoto.src=url;
+};
 </script>
 
 </body>
