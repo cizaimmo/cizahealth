@@ -2,116 +2,202 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Scan ordonnance</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CizaHealth+ | Validation ordonnance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
 <style>
+:root{
+  --blue:#123c8a;
+  --blue-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+  --ok:#1b6b3a;
+  --err:#8a1f1f;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Inter,system-ui;
-  background:#f4f7fb;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:600px;
+  margin:auto;
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
-.container{
-  background:white;
-  padding:25px;
-  border-radius:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,.1);
+header{
+  padding:18px 22px;
+  background:linear-gradient(90deg,var(--blue),var(--blue-dark));
+  color:#fff;
+}
+header strong{font-size:16px;display:block}
+
+.content{padding:22px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:18px;
+}
+input{
   width:100%;
-  max-width:450px;
-}
-h3{text-align:center;margin-bottom:15px}
-#reader{
-  width:100%;
-  border-radius:16px;
-  overflow:hidden;
-}
-.status{
-  margin-top:15px;
   padding:14px;
   border-radius:14px;
-  text-align:center;
-  font-weight:600;
+  border:1px solid #dde3ef;
+  font-size:14px;
+  margin-top:8px;
 }
-.ok{background:#e9f7ef;color:#1b6b3a}
-.err{background:#fdecea;color:#8a1f1f}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:16px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+.status{
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  font-size:13px;
+}
+.ok{background:#e9f7f0;color:var(--ok)}
+.err{background:#fdecea;color:var(--err)}
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<div class="container">
-<h3>Scanner ordonnance</h3>
-<div id="reader"></div>
-<div id="result"></div>
+<header>
+  <strong>Validation ordonnance</strong>
+</header>
+
+<div class="content">
+
+  <div class="card">
+    <label>Code ordonnance</label>
+    <input id="codeInput" placeholder="Ex : RX-AB12CD">
+    <button id="validateBtn">Valider l’ordonnance</button>
+    <div id="statusBox" class="status" style="display:none"></div>
+  </div>
+
 </div>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<div class="footer">
+  © 2026 CizaHealth+ — CIZA GROUP<br>
+  Interface pharmacie sécurisée
+</div>
+
+</div>
 
 <script type="module">
-import { db } from "./firebase.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, getDocs,
-  doc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  updateDoc, doc, getDoc, serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const result = document.getElementById("result");
+const codeInput = document.getElementById("codeInput");
+const validateBtn = document.getElementById("validateBtn");
+const statusBox = document.getElementById("statusBox");
 
-function showStatus(type,text){
-  result.innerHTML=`<div class="status ${type}">${text}</div>`;
+function showStatus(type, text){
+  statusBox.style.display="block";
+  statusBox.className="status "+type;
+  statusBox.textContent=text;
 }
 
-async function validateCode(code){
-
-  const q = query(
-    collection(db,"prescriptions"),
-    where("code","==",code)
-  );
-
-  const snap = await getDocs(q);
-
-  if(snap.empty){
-    showStatus("err","Ordonnance invalide");
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href="login.html";
     return;
   }
 
-  const docSnap = snap.docs[0];
-  const data = docSnap.data();
-
-  if(data.used){
-    showStatus("err","Ordonnance déjà utilisée");
+  // 🔐 Vérifier rôle pharmacie
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  if(!userSnap.exists() || userSnap.data().role !== "pharmacie"){
+    alert("Accès réservé aux pharmacies");
+    location.href="index.html";
     return;
   }
 
-  await updateDoc(doc(db,"prescriptions",docSnap.id),{
-    used:true,
-    usedAt: serverTimestamp(),
-    status:"used"
-  });
+  validateBtn.onclick = async()=>{
+    const code = codeInput.value.trim();
+    if(!code){
+      showStatus("err","Veuillez entrer un code.");
+      return;
+    }
 
-  showStatus("ok","Ordonnance validée ✔");
-}
+    validateBtn.disabled = true;
+    validateBtn.textContent = "Vérification…";
 
-const html5QrCode = new Html5Qrcode("reader");
+    try{
+      const q = query(
+        collection(db,"prescriptions"),
+        where("code","==",code)
+      );
 
-Html5Qrcode.getCameras().then(devices=>{
-  if(devices && devices.length){
-    const cameraId = devices[0].id;
+      const snap = await getDocs(q);
 
-    html5QrCode.start(
-      cameraId,
-      { fps:10, qrbox:250 },
-      async (decodedText)=>{
-        html5QrCode.stop();
-        validateCode(decodedText);
+      if(snap.empty){
+        showStatus("err","Code invalide ou introuvable.");
+        validateBtn.disabled=false;
+        validateBtn.textContent="Valider l’ordonnance";
+        return;
       }
-    );
-  }
-}).catch(err=>{
-  showStatus("err","Accès caméra refusé");
+
+      const docRef = snap.docs[0].ref;
+      const data = snap.docs[0].data();
+
+      if(data.used){
+        showStatus("err","Cette ordonnance a déjà été utilisée.");
+        validateBtn.disabled=false;
+        validateBtn.textContent="Valider l’ordonnance";
+        return;
+      }
+
+      // ✅ Marquer utilisée
+      await updateDoc(docRef,{
+        used:true,
+        validatedBy:user.uid,
+        validatedAt:serverTimestamp()
+      });
+
+      showStatus("ok","Ordonnance validée avec succès.");
+      validateBtn.textContent="Validée ✔";
+
+    }catch(e){
+      showStatus("err","Erreur réseau.");
+      validateBtn.disabled=false;
+      validateBtn.textContent="Valider l’ordonnance";
+    }
+  };
+
 });
 </script>
 
