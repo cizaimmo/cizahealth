@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Vérification d'identité</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:520px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  padding:20px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  color:#fff;
+}
+header strong{font-size:17px;display:block}
+header span{font-size:12px;opacity:.9}
+.content{padding:26px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+}
+.card h2{margin:0 0 14px;font-size:18px}
+.field{margin-bottom:18px}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+input, select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #dde3ef;
+  font-size:14px;
+}
+.btn{
+  margin-top:18px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#123c8a,#1b4fa3);
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+}
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+.note{
+  margin-top:14px;
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <strong>Vérification d’identité</strong>
+  <span>Sécurisation de votre dossier médical</span>
+</header>
+
+<div class="content">
+  <div class="card">
+    <h2>Confirmer vos informations</h2>
+
+    <div class="field">
+      <label>Date de naissance</label>
+      <input type="date" id="dob">
+    </div>
+
+    <div class="field">
+      <label>Pays</label>
+      <select id="country">
+        <option value="">Sélectionner</option>
+        <option>Burundi</option>
+        <option>Rwanda</option>
+        <option>République Démocratique du Congo</option>
+        <option>Tanzanie</option>
+        <option>Kenya</option>
+        <option>Ouganda</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Photo (optionnel pour future carte CizaHealth)</label>
+      <input type="file" id="photo" accept="image/*">
+    </div>
+
+    <button class="btn" id="verifyBtn">Vérifier mon identité</button>
+
+    <div class="note">
+      Ces informations sont utilisées uniquement pour sécuriser votre dossier
+      médical et prévenir toute usurpation d’identité.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  © 2026 CizaHealth+ — Vérification sécurisée
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, updateDoc, serverTimestamp
+}
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const btn = document.getElementById("verifyBtn");
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  btn.onclick = async()=>{
+
+    const dob = document.getElementById("dob").value;
+    const country = document.getElementById("country").value;
+
+    if(!dob || !country){
+      alert("Veuillez compléter tous les champs obligatoires.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Vérification…";
+
+    await updateDoc(doc(db,"patients",user.uid),{
+      identityVerified: true,
+      dateOfBirth: dob,
+      country: country,
+      identityVerifiedAt: serverTimestamp()
+    });
+
+    alert("Identité vérifiée avec succès.");
+    location.href="dashboard-client.html";
+  };
+});
+</script>
+
+</body>
+</html>
