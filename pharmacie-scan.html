@@ -1,62 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Scan Ordonnance - CizaHealth+</title>
+<title>CizaHealth+ | Validation ordonnance</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
-  font-family:Arial;
-  padding:20px;
+  margin:0;
+  font-family:Inter,system-ui;
+  background:#f4f7fb;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
 }
-.result{
-  margin-top:20px;
-  padding:15px;
+.box{
+  background:white;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,.1);
+  max-width:400px;
+  width:100%;
+}
+input{
+  width:100%;
+  padding:14px;
   border-radius:12px;
+  border:1px solid #ddd;
 }
-.ok{background:#e8f7ef;color:#1b6b3a}
+button{
+  margin-top:15px;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#123c8a;
+  color:white;
+  font-weight:600;
+}
+.status{
+  margin-top:20px;
+  padding:12px;
+  border-radius:12px;
+  text-align:center;
+}
+.ok{background:#e9f7ef;color:#1b6b3a}
 .err{background:#fdecea;color:#8a1f1f}
 </style>
 </head>
-<body>
 
-<h2>Scanner QR Patient</h2>
-<textarea id="qrInput" placeholder="Coller ici le JSON du QR"></textarea>
-<button onclick="verify()">Vérifier</button>
+<body>
+<div class="box">
+<h3>Validation ordonnance</h3>
+
+<input id="codeInput" placeholder="Entrer le code RX">
+<button id="validateBtn">Valider</button>
 
 <div id="result"></div>
 
-<script>
-async function sha256(message){
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+</div>
 
-async function verify(){
-  const SECRET = "CIZA_HEALTH_SECRET_2026";
-  const input = document.getElementById("qrInput").value;
-  const resultBox = document.getElementById("result");
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  collection, query, where, getDocs,
+  doc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  try{
-    const data = JSON.parse(input);
+const result = document.getElementById("result");
 
-    const raw = data.uid + data.card + data.ts + SECRET;
-    const checkSig = await sha256(raw);
+document.getElementById("validateBtn").onclick = async()=>{
 
-    if(checkSig === data.sig){
-      resultBox.className="result ok";
-      resultBox.innerText="Carte valide ✔";
-    }else{
-      resultBox.className="result err";
-      resultBox.innerText="Signature invalide ❌";
-    }
-  }catch(e){
-    resultBox.className="result err";
-    resultBox.innerText="QR invalide";
+  const code = document.getElementById("codeInput").value.trim();
+  if(!code){
+    alert("Entrer un code");
+    return;
   }
-}
+
+  const q = query(
+    collection(db,"prescriptions"),
+    where("code","==",code)
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    result.innerHTML=`<div class="status err">Code invalide</div>`;
+    return;
+  }
+
+  const docSnap = snap.docs[0];
+  const data = docSnap.data();
+
+  if(data.used){
+    result.innerHTML=`<div class="status err">Ordonnance déjà utilisée</div>`;
+    return;
+  }
+
+  await updateDoc(doc(db,"prescriptions",docSnap.id),{
+    used:true,
+    usedAt: serverTimestamp(),
+    status:"used"
+  });
+
+  result.innerHTML=`<div class="status ok">Ordonnance validée avec succès</div>`;
+};
 </script>
 
 </body>
