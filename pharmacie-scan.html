@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scan Ordonnance - CizaHealth+</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  font-family:Arial;
+  padding:20px;
+}
+.result{
+  margin-top:20px;
+  padding:15px;
+  border-radius:12px;
+}
+.ok{background:#e8f7ef;color:#1b6b3a}
+.err{background:#fdecea;color:#8a1f1f}
+</style>
+</head>
+<body>
+
+<h2>Scanner QR Patient</h2>
+<textarea id="qrInput" placeholder="Coller ici le JSON du QR"></textarea>
+<button onclick="verify()">Vérifier</button>
+
+<div id="result"></div>
+
+<script>
+async function sha256(message){
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verify(){
+  const SECRET = "CIZA_HEALTH_SECRET_2026";
+  const input = document.getElementById("qrInput").value;
+  const resultBox = document.getElementById("result");
+
+  try{
+    const data = JSON.parse(input);
+
+    const raw = data.uid + data.card + data.ts + SECRET;
+    const checkSig = await sha256(raw);
+
+    if(checkSig === data.sig){
+      resultBox.className="result ok";
+      resultBox.innerText="Carte valide ✔";
+    }else{
+      resultBox.className="result err";
+      resultBox.innerText="Signature invalide ❌";
+    }
+  }catch(e){
+    resultBox.className="result err";
+    resultBox.innerText="QR invalide";
+  }
+}
+</script>
+
+</body>
+</html>
