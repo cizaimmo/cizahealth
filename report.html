@@ -2,408 +2,203 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | Dossier médical</title>
+<title>CizaHealth+ | Rapport médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
-:root{
-  --blue:#123c8a;
-  --blue-dark:#0b2c66;
-  --bg:#f4f7fb;
-  --card:#ffffff;
-  --text:#0a1a2f;
-  --muted:#6b7a90;
-  --radius:22px;
-  --line:#e7edf7;
-  --pill:#eef3fb;
-  --ok:#1b6b3a;
-  --warn:#c58a00;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
-  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
-  color:var(--text);
+  background:#f4f7fb;
+  color:#0a1a2f;
 }
-.app{
-  max-width:1000px;
+.container{
+  max-width:900px;
   margin:auto;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
+  padding:20px;
 }
-header{
-  padding:18px 22px;
-  background:linear-gradient(90deg,var(--blue),var(--blue-dark));
-  color:#fff;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+h1{font-size:20px;margin-bottom:20px}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
+  margin-bottom:18px;
 }
-header strong{font-size:16px}
-header a{color:#fff;text-decoration:none;font-size:13px}
-
-.segment{
-  margin:20px auto;
-  background:#eaf0fb;
-  border-radius:999px;
-  padding:4px;
-  display:flex;
-  width:95%;
-  max-width:700px;
+input, textarea, select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  margin-top:6px;
+  margin-bottom:14px;
 }
-.segment button{
-  flex:1;
+button{
+  padding:12px 18px;
   border:none;
-  padding:12px;
-  border-radius:999px;
-  background:transparent;
+  border-radius:12px;
+  background:#123c8a;
+  color:#fff;
   font-weight:600;
   cursor:pointer;
-  font-size:13px;
-  color:var(--blue);
 }
-.segment button.active{
-  background:linear-gradient(135deg,var(--blue),#1b4fa3);
-  color:#fff;
-}
-
-.content{padding:20px;flex:1}
-
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
-  margin-bottom:14px;
-  border:1px solid rgba(231,237,247,.9);
-}
-
-.kv{font-size:14px;line-height:1.6}
-.muted{color:var(--muted);font-size:13px}
-.btn{
-  margin-top:12px;
-  padding:10px 14px;
-  border:none;
-  border-radius:14px;
-  background:#eef3fb;
-  color:var(--blue);
-  font-weight:700;
-  cursor:pointer;
-}
-.hidden{display:none}
-.footer{text-align:center;font-size:12px;color:#8a95a8;padding:22px}
-
-/* REPORT CARDS */
-.reportTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-.reportMeta{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:0;
-}
-.reportMeta strong{
-  display:block;
-  font-size:15px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.pills{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:2px;
-}
-.pill{
-  background:var(--pill);
-  color:var(--blue);
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:12px;
-  font-weight:800;
-}
-.pill.ok{color:var(--ok)}
-.pill.warn{color:var(--warn)}
-.hr{height:1px;background:var(--line);margin:14px 0}
-.reportDetails{
-  display:none;
-  margin-top:12px;
-}
-.reportDetails.open{display:block}
-.kline{
-  font-size:13.5px;
-  line-height:1.65;
-}
-.kline span{color:var(--muted)}
-.actionsRow{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-.btnSmall{
-  border:none;
-  border-radius:14px;
-  padding:10px 12px;
-  font-weight:800;
-  cursor:pointer;
-  background:#eef3fb;
-  color:var(--blue);
-}
-.btnPrimary{
-  background:linear-gradient(135deg,var(--blue),#1b4fa3);
-  color:#fff;
-}
-.btnDanger{
-  background:#0b2c66;
-  color:#fff;
+.med-block{
+  border:1px solid #eee;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:12px;
 }
 </style>
 </head>
-
 <body>
-<div class="app">
 
-<header>
-  <strong>Dossier médical</strong>
-  <a href="dashboard-client.html">← Retour</a>
-</header>
-
-<div class="segment">
-  <button class="active" data-tab="identity">Identité</button>
-  <button data-tab="reports">Rapports</button>
-  <button data-tab="rx">Ordonnances</button>
-</div>
-
-<div class="content">
-
-<!-- IDENTITÉ -->
-<div id="identity" class="tab">
-
-<div class="card" style="text-align:center">
-<input type="file" id="photoInput" accept="image/*" hidden>
-<img id="profilePhoto"
-  src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-  style="width:120px;height:120px;border-radius:50%;object-fit:cover;
-  border:4px solid #eef3fb;cursor:pointer;margin-bottom:12px;">
-<div class="muted">Touchez la photo pour la mettre à jour</div>
-</div>
+<div class="container">
+<h1>Rapport médical</h1>
 
 <div class="card">
-<h3 style="margin:0 0 10px;font-size:15px">Informations patient</h3>
-<div class="kv" id="identityData">Chargement...</div>
-</div>
-</div>
+<label>Motif</label>
+<textarea id="motif"></textarea>
 
-<!-- RAPPORTS -->
-<div id="reports" class="tab hidden">
-  <div id="reportsList"></div>
-</div>
+<label>Diagnostic</label>
+<textarea id="diagnostic"></textarea>
 
-<!-- ORDONNANCES -->
-<div id="rx" class="tab hidden">
-  <div class="card">
-    <h3 style="margin:0 0 10px;font-size:15px">Ordonnances</h3>
-    <div class="muted" id="rxList">En cours d’activation…</div>
-  </div>
-</div>
+<label>Traitement global</label>
+<textarea id="traitement"></textarea>
 
-</div>
+<label>Pays</label>
+<select id="country">
+<option value="BI">Burundi</option>
+<option value="RW">Rwanda</option>
+<option value="CD">RD Congo</option>
+<option value="KE">Kenya</option>
+<option value="UG">Uganda</option>
+<option value="TZ">Tanzania</option>
+<option value="ET">Ethiopia</option>
+<option value="SS">South Sudan</option>
+</select>
 
-<div class="footer">
-© 2026 CizaHealth+ — CIZA GROUP
-</div>
+<label>
+<input type="checkbox" id="needRx">
+ Ordonnance nécessaire
+</label>
 
+<div id="medicationsContainer"></div>
+
+<button type="button" onclick="addMedication()">+ Ajouter médicament</button>
+
+<br><br>
+<button id="submitBtn" onclick="submitReport()">Envoyer rapport</button>
+</div>
 </div>
 
 <script type="module">
-import { auth, db, storage } from "./firebase.js";
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { auth, db } from "./firebase.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where, orderBy, onSnapshot
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import {
-  ref, uploadBytes, getDownloadURL
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+  doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* SEGMENT */
-document.querySelectorAll(".segment button").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
-    document.getElementById(btn.dataset.tab).classList.remove("hidden");
-  };
-});
+const urlParams = new URLSearchParams(window.location.search);
+const requestId = urlParams.get("requestId");
 
-function esc(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
+let medications = [];
 
-function fmtDate(ts){
+window.addMedication = function(){
+  const container = document.getElementById("medicationsContainer");
+  const index = medications.length;
+
+  medications.push({});
+
+  const div = document.createElement("div");
+  div.className="med-block";
+  div.innerHTML = `
+    <label>Nom médicament</label>
+    <input onchange="medications[${index}].name=this.value">
+
+    <label>DCI</label>
+    <input onchange="medications[${index}].dci=this.value">
+
+    <label>Dosage</label>
+    <input onchange="medications[${index}].dosage=this.value">
+
+    <label>Forme</label>
+    <input onchange="medications[${index}].form=this.value">
+
+    <label>Posologie</label>
+    <input onchange="medications[${index}].posology=this.value">
+
+    <label>Durée</label>
+    <input onchange="medications[${index}].duration=this.value">
+
+    <label>Instructions</label>
+    <input onchange="medications[${index}].instructions=this.value">
+  `;
+  container.appendChild(div);
+};
+
+window.submitReport = async function(){
+  const user = auth.currentUser;
+  if(!user) return alert("Non connecté");
+  if(!requestId) return alert("Consultation introuvable");
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Envoi...";
+
   try{
-    const d = ts?.toDate ? ts.toDate() : null;
-    if(!d) return "—";
-    return d.toLocaleString("fr-FR",{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-  }catch(e){
-    return "—";
-  }
-}
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="login.html"; return; }
-
-  /* IDENTITÉ */
-  const pSnap = await getDoc(doc(db,"patients",user.uid));
-  if(pSnap.exists()){
-    const p = pSnap.data();
-    document.getElementById("identityData").innerHTML=`
-      <b>Nom :</b> ${esc(p.fullName || "—")}<br>
-      <b>ID :</b> ${esc(p.patientId || "—")}<br>
-      <b>Genre :</b> ${esc(p.gender || "—")}<br>
-      <b>Âge :</b> ${esc(p.age || "—")}<br>
-      <b>Province :</b> ${esc(p.province || "—")}
-    `;
-    if(p.photoURL){
-      document.getElementById("profilePhoto").src = p.photoURL;
-    }
-  }
-
-  /* RAPPORTS (DYNAMIQUE) */
-  const qReports = query(
-    collection(db,"reports"),
-    where("patientUid","==",user.uid),
-    orderBy("submittedAt","desc")
-  );
-
-  onSnapshot(qReports,(snap)=>{
-    const container = document.getElementById("reportsList");
-    container.innerHTML="";
-
-    if(snap.empty){
-      container.innerHTML="<div class='card'><div class='muted'>Aucun rapport disponible</div></div>";
+    // 🔹 IMPORTANT : récupérer la demande pour obtenir patientUid
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Demande introuvable");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Envoyer rapport";
       return;
     }
 
-    snap.forEach(docu=>{
-      const r = docu.data();
+    const requestData = reqSnap.data();
 
-      const dateTxt = fmtDate(r.submittedAt || r.createdAt || r.updatedAt);
-      const hasRx = r.ordonnance === true;
+    const data = {
+      requestId,
+      patientUid: requestData.patientUid,   // ✅ AJOUT CRUCIAL
+      proUid: user.uid,
+      motif: document.getElementById("motif").value,
+      diagnostic: document.getElementById("diagnostic").value,
+      traitement: document.getElementById("traitement").value,
+      ordonnance: document.getElementById("needRx").checked,
+      medications,
+      country: document.getElementById("country").value,
+      region: "East Africa",
+      status: "submitted",
+      submittedAt: serverTimestamp()
+    };
 
-      const suiviTxt =
-        r.suivi === "teleconsultation" ? "Suivi : Téléconsultation" :
-        r.suivi === "presentiel" ? "Suivi : Présentiel" :
-        r.suivi === "aucun" ? "Suivi : Aucun" :
-        (r.suivi ? `Suivi : ${r.suivi}` : "Suivi : —");
+    // 🔹 REPORT
+    await setDoc(doc(db,"reports",requestId),data);
 
-      const div=document.createElement("div");
-      div.className="card";
+    // 🔹 PRESCRIPTION
+    if(data.ordonnance){
+      const code = "RX-" + Math.random().toString(36).substring(2,8).toUpperCase();
 
-      div.innerHTML=`
-        <div class="reportTop">
-          <div class="reportMeta">
-            <strong>Consultation médicale</strong>
-            <div class="muted">${esc(dateTxt)}</div>
-            <div class="pills">
-              <span class="pill">${esc(suiviTxt)}</span>
-              <span class="pill ${hasRx ? "warn" : "ok"}">${hasRx ? "Ordonnance : Oui" : "Ordonnance : Non"}</span>
-              <span class="pill">${esc(r.status || "submitted")}</span>
-            </div>
-          </div>
-          <button class="btnSmall btnPrimary" data-action="toggle">Voir</button>
-        </div>
+      await setDoc(doc(db,"prescriptions",requestId),{
+        ...data,
+        code,
+        used:false,
+        createdAt:serverTimestamp(),
+        expiresAt:new Date(Date.now() + 14*24*60*60*1000)
+      });
+    }
 
-        <div class="hr"></div>
+    alert("Rapport envoyé");
+    location.href="dashboard-pro.html";
 
-        <div class="kv">
-          <b>Diagnostic :</b><br>
-          ${esc(r.diagnostic || "—")}
-        </div>
-
-        <div class="reportDetails" data-details>
-          <div class="hr"></div>
-
-          <div class="kline">
-            <span>Motif :</span><br>
-            ${esc(r.motif || "—")}
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="kline">
-            <span>Traitement / Recommandations :</span><br>
-            ${esc(r.traitement || "—")}
-          </div>
-
-          <div class="actionsRow">
-            ${hasRx ? `<button class="btnSmall btnDanger" data-action="rx">Voir l’ordonnance</button>` : ``}
-          </div>
-        </div>
-      `;
-
-      const toggleBtn = div.querySelector('[data-action="toggle"]');
-      const details = div.querySelector('[data-details]');
-
-      toggleBtn.onclick = ()=>{
-        const open = details.classList.toggle("open");
-        toggleBtn.textContent = open ? "Masquer" : "Voir";
-      };
-
-      const rxBtn = div.querySelector('[data-action="rx"]');
-      if(rxBtn){
-        rxBtn.onclick = ()=>{
-          // Si tu utilises requestId comme ID du report/prescription, on tente r.requestId sinon doc id
-          const rid = r.requestId || docu.id;
-          location.href = `ordonnance.html?requestId=${encodeURIComponent(rid)}`;
-        };
-      }
-
-      container.appendChild(div);
-    });
-  });
-
-});
-
-/* PHOTO UPLOAD */
-const photoInput = document.getElementById("photoInput");
-const profilePhoto = document.getElementById("profilePhoto");
-
-profilePhoto.onclick=()=>photoInput.click();
-
-photoInput.onchange=async(e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-
-  try{
-    const storageRef = ref(storage, `patients/${auth.currentUser.uid}/profile.jpg`);
-    await uploadBytes(storageRef,file);
-    const url = await getDownloadURL(storageRef);
-
-    await updateDoc(doc(db,"patients",auth.currentUser.uid),{ photoURL:url });
-    profilePhoto.src=url;
-  }catch(err){
-    alert("Impossible de mettre à jour la photo. Vérifie Storage rules / config.");
+  }catch(e){
+    console.error(e);
+    alert("Erreur lors de l’envoi");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Envoyer rapport";
   }
 };
 </script>
