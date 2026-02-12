@@ -5,7 +5,6 @@
 <title>CizaHealth+ | Dossier médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<!-- PWA / WebView -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -20,13 +19,16 @@
   --muted:#6b7a90;
   --radius:22px;
 }
+
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
+
 .app{
   max-width:1000px;
   margin:auto;
@@ -40,19 +42,51 @@ header{
   padding:18px 22px;
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
   color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-header strong{font-size:16px;display:block}
-header span{font-size:12px;opacity:.9}
+header strong{font-size:16px}
+header a{
+  color:#fff;
+  text-decoration:none;
+  font-size:13px;
+}
+
+/* SEGMENT CONTROL */
+.segment{
+  margin:20px auto;
+  background:#eaf0fb;
+  border-radius:999px;
+  padding:4px;
+  display:flex;
+  width:95%;
+  max-width:700px;
+}
+.segment button{
+  flex:1;
+  border:none;
+  padding:12px;
+  border-radius:999px;
+  background:transparent;
+  font-weight:600;
+  cursor:pointer;
+  font-size:13px;
+  color:var(--blue);
+  transition:.25s;
+}
+.segment button.active{
+  background:linear-gradient(135deg,var(--blue),#1b4fa3);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(18,60,138,.25);
+}
 
 /* CONTENT */
-.content{padding:22px}
-.section{margin-bottom:26px}
-.section h2{
-  font-size:18px;
-  margin:0 0 14px;
+.content{
+  padding:20px;
+  flex:1;
 }
 
-/* CARD */
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -60,45 +94,37 @@ header span{font-size:12px;opacity:.9}
   box-shadow:0 10px 28px rgba(10,42,94,.08);
   margin-bottom:14px;
 }
-.card small{color:var(--muted);font-size:12px}
+
 .card h3{
-  margin:6px 0 10px;
+  margin:0 0 10px;
   font-size:15px;
 }
-.kv{
-  font-size:13.5px;
-  line-height:1.6;
-  color:var(--text);
-}
-.kv span{color:var(--muted)}
 
-/* BUTTON */
+.kv{
+  font-size:14px;
+  line-height:1.6;
+}
+
+.muted{color:var(--muted);font-size:13px}
+
 .btn{
   margin-top:12px;
-  padding:12px 16px;
+  padding:10px 14px;
   border:none;
-  border-radius:16px;
+  border-radius:14px;
   background:#eef3fb;
   color:var(--blue);
   font-weight:700;
   cursor:pointer;
 }
 
-/* EMPTY */
-.empty{
-  padding:22px;
-  text-align:center;
-  color:var(--muted);
-  font-size:14px;
-}
+.hidden{display:none}
 
-/* FOOTER */
 .footer{
-  margin-top:auto;
-  padding:22px;
   text-align:center;
   font-size:12px;
   color:#8a95a8;
+  padding:22px;
 }
 </style>
 </head>
@@ -108,28 +134,51 @@ header span{font-size:12px;opacity:.9}
 
 <header>
   <strong>Dossier médical</strong>
-  <span>Historique de vos consultations et documents</span>
+  <a href="dashboard-client.html">← Retour</a>
 </header>
+
+<div class="segment">
+  <button class="active" data-tab="identity">Identité</button>
+  <button data-tab="reports">Rapports</button>
+  <button data-tab="rx">Ordonnances</button>
+  <button data-tab="card">Carte</button>
+</div>
 
 <div class="content">
 
+  <!-- IDENTITÉ -->
+  <div id="identity" class="tab">
+    <div class="card">
+      <h3>Informations patient</h3>
+      <div class="kv" id="identityData">Chargement...</div>
+    </div>
+  </div>
+
   <!-- RAPPORTS -->
-  <div class="section">
-    <h2>Rapports médicaux</h2>
+  <div id="reports" class="tab hidden">
     <div id="reportsList"></div>
   </div>
 
   <!-- ORDONNANCES -->
-  <div class="section">
-    <h2>Ordonnances</h2>
+  <div id="rx" class="tab hidden">
     <div id="rxList"></div>
+  </div>
+
+  <!-- CARTE -->
+  <div id="card" class="tab hidden">
+    <div class="card" style="text-align:center">
+      <h3>Carte médicale CizaHealth+</h3>
+      <img id="qrImg" style="width:200px;margin-top:12px;border-radius:18px">
+      <div class="muted" style="margin-top:10px">
+        QR sécurisé signé
+      </div>
+    </div>
   </div>
 
 </div>
 
 <div class="footer">
-  © 2026 CizaHealth+ — CIZA GROUP<br>
-  Dossier patient sécurisé • Accès personnel
+© 2026 CizaHealth+ — CIZA GROUP
 </div>
 
 </div>
@@ -137,30 +186,43 @@ header span{font-size:12px;opacity:.9}
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
+  doc, getDoc,
   collection, query, where, orderBy, onSnapshot
 }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const reportsList = document.getElementById("reportsList");
-const rxList = document.getElementById("rxList");
+/* SEGMENT CONTROL */
+document.querySelectorAll(".segment button").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
+    document.getElementById(btn.dataset.tab).classList.remove("hidden");
+  };
+});
 
-function fmtDate(ts){
-  try{
-    const d = ts?.toDate ? ts.toDate() : null;
-    if(!d) return "—";
-    return d.toLocaleDateString("fr-FR",{year:"numeric",month:"short",day:"numeric"});
-  }catch(e){ return "—"; }
-}
-
-onAuthStateChanged(auth,(user)=>{
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
 
-  /* 📄 RAPPORTS */
+  /* IDENTITÉ */
+  const pSnap = await getDoc(doc(db,"patients",user.uid));
+  if(pSnap.exists()){
+    const p = pSnap.data();
+    document.getElementById("identityData").innerHTML=`
+      <b>Nom :</b> ${p.fullName || "—"}<br>
+      <b>ID :</b> ${p.patientId || "—"}<br>
+      <b>Genre :</b> ${p.gender || "—"}<br>
+      <b>Âge :</b> ${p.age || "—"}<br>
+      <b>Province :</b> ${p.province || "—"}
+    `;
+  }
+
+  /* RAPPORTS */
   const qReports = query(
     collection(db,"reports"),
     where("patientUid","==",user.uid),
@@ -168,9 +230,10 @@ onAuthStateChanged(auth,(user)=>{
   );
 
   onSnapshot(qReports,(snap)=>{
-    reportsList.innerHTML="";
+    const container = document.getElementById("reportsList");
+    container.innerHTML="";
     if(snap.empty){
-      reportsList.innerHTML=`<div class="empty">Aucun rapport médical disponible.</div>`;
+      container.innerHTML="<div class='muted'>Aucun rapport disponible</div>";
       return;
     }
     snap.forEach(docu=>{
@@ -178,21 +241,16 @@ onAuthStateChanged(auth,(user)=>{
       const div=document.createElement("div");
       div.className="card";
       div.innerHTML=`
-        <small>${fmtDate(r.submittedAt)}</small>
-        <h3>Consultation médicale</h3>
+        <h3>Consultation</h3>
         <div class="kv">
-          <span>Diagnostic :</span><br>
-          ${r.diagnostic || "—"}
+          <b>Diagnostic :</b><br>${r.diagnostic || "—"}
         </div>
-        <button class="btn" onclick="location.href='rapport-view.html?requestId=${r.requestId || docu.id}'">
-          Voir le rapport
-        </button>
       `;
-      reportsList.appendChild(div);
+      container.appendChild(div);
     });
   });
 
-  /* 💊 ORDONNANCES */
+  /* ORDONNANCES */
   const qRx = query(
     collection(db,"prescriptions"),
     where("patientUid","==",user.uid),
@@ -200,9 +258,10 @@ onAuthStateChanged(auth,(user)=>{
   );
 
   onSnapshot(qRx,(snap)=>{
-    rxList.innerHTML="";
+    const container = document.getElementById("rxList");
+    container.innerHTML="";
     if(snap.empty){
-      rxList.innerHTML=`<div class="empty">Aucune ordonnance disponible.</div>`;
+      container.innerHTML="<div class='muted'>Aucune ordonnance</div>";
       return;
     }
     snap.forEach(docu=>{
@@ -210,17 +269,17 @@ onAuthStateChanged(auth,(user)=>{
       const div=document.createElement("div");
       div.className="card";
       div.innerHTML=`
-        <small>${fmtDate(p.createdAt)}</small>
         <h3>Ordonnance</h3>
         <div class="kv">
-          <span>Code :</span> <b>${p.code || "—"}</b><br>
-          <span>Statut :</span> ${p.used ? "Utilisée" : "Active"}
+          <b>Code :</b> ${p.code}<br>
+          <b>Statut :</b> ${p.used ? "Utilisée" : "Active"}
         </div>
-        <button class="btn" onclick="location.href='ordonnance.html?requestId=${p.requestId || docu.id}'">
-          Voir l’ordonnance
+        <button class="btn"
+        onclick="location.href='ordonnance.html?requestId=${p.requestId}'">
+        Voir ordonnance
         </button>
       `;
-      rxList.appendChild(div);
+      container.appendChild(div);
     });
   });
 
