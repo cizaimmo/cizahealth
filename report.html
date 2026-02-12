@@ -21,47 +21,28 @@
   --radius:20px;
   --line:#e7edf7;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
 .app{
   max-width:920px;
   margin:auto;
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  padding-bottom:env(safe-area-inset-bottom);
 }
-
-/* HEADER */
 .header{
   padding:18px 20px;
   background:linear-gradient(90deg,#0b2c66,#123c8a);
   color:#fff;
 }
-
-.header h1{
-  margin:0;
-  font-size:18px;
-}
-
-.header small{
-  opacity:.85;
-  font-size:12px;
-}
-
-/* CONTENT */
-.content{
-  padding:20px;
-}
-
+.header h1{margin:0;font-size:18px}
+.header small{opacity:.85;font-size:12px}
+.content{padding:20px}
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -70,19 +51,8 @@ body{
   margin-bottom:18px;
   border:1px solid var(--line);
 }
-
-.card h3{
-  margin:0 0 14px;
-  font-size:15px;
-}
-
-label{
-  font-size:13px;
-  font-weight:600;
-  display:block;
-  margin-bottom:6px;
-}
-
+.card h3{margin:0 0 14px;font-size:15px}
+label{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
 textarea, select{
   width:100%;
   padding:14px;
@@ -92,13 +62,7 @@ textarea, select{
   font-size:14px;
   margin-bottom:14px;
 }
-
-textarea{
-  resize:vertical;
-  min-height:90px;
-}
-
-/* MEDICATION BLOCK */
+textarea{resize:vertical;min-height:90px}
 .med-block{
   background:#f9fbff;
   border:1px solid #e5ecf9;
@@ -106,20 +70,8 @@ textarea{
   padding:14px;
   margin-bottom:12px;
 }
-
-.med-block h4{
-  margin:0 0 10px;
-  font-size:13px;
-}
-
-/* BUTTONS */
-.actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-top:16px;
-}
-
+.med-block h4{margin:0 0 10px;font-size:13px}
+.actions{display:flex;gap:12px;margin-top:16px}
 .btn{
   flex:1;
   padding:14px;
@@ -129,23 +81,15 @@ textarea{
   cursor:pointer;
   font-size:14px;
 }
-
 .primary{
   background:linear-gradient(135deg,#0b2c66,#123c8a);
   color:#fff;
 }
-
 .secondary{
   background:var(--primary-soft);
   color:var(--primary);
 }
-
-.btn:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
-
-/* FOOTER */
+.btn:disabled{opacity:.6;cursor:not-allowed}
 .footer{
   margin-top:auto;
   padding:22px;
@@ -180,7 +124,6 @@ textarea{
 
 <label>Suivi recommandé</label>
 <select id="suivi">
-  <option value="">—</option>
   <option value="aucun">Aucun</option>
   <option value="teleconsultation">Téléconsultation</option>
   <option value="presentiel">Présentiel</option>
@@ -190,18 +133,14 @@ textarea{
 <input type="checkbox" id="needRx">
  Ordonnance nécessaire
 </label>
-
 </div>
 
 <div class="card" id="rxSection" style="display:none">
 <h3>Prescription détaillée</h3>
-
 <div id="medicationsContainer"></div>
-
 <button type="button" class="btn secondary" onclick="addMedication()">
 + Ajouter médicament
 </button>
-
 </div>
 
 <div class="actions">
@@ -221,7 +160,7 @@ Envoyer rapport
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
-  doc, setDoc, serverTimestamp
+  doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
@@ -229,6 +168,7 @@ const requestId = params.get("requestId");
 
 const needRx = document.getElementById("needRx");
 const rxSection = document.getElementById("rxSection");
+const submitBtn = document.getElementById("submitBtn");
 
 let medications = [];
 
@@ -253,40 +193,66 @@ window.addMedication = function(){
   container.appendChild(div);
 };
 
-document.getElementById("submitBtn").onclick = async()=>{
+submitBtn.onclick = async()=>{
+
   const user = auth.currentUser;
   if(!user) return alert("Non connecté");
+  if(!requestId) return alert("Request invalide");
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "Envoi…";
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Envoi…";
 
-  const data = {
-    requestId,
-    patientUid: null, // sera injecté plus tard via getDoc(request)
-    proUid: user.uid,
-    motif: motif.value,
-    diagnostic: diagnostic.value,
-    traitement: traitement.value,
-    suivi: suivi.value,
-    ordonnance: needRx.checked,
-    medications,
-    status:"submitted",
-    submittedAt: serverTimestamp()
-  };
+  try{
 
-  await setDoc(doc(db,"reports",requestId), data);
+    // 🔥 Récupérer la request pour obtenir patientUid
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()){
+      alert("Request introuvable");
+      submitBtn.disabled=false;
+      submitBtn.innerText="Envoyer rapport";
+      return;
+    }
 
-  if(needRx.checked){
-    await setDoc(doc(db,"prescriptions",requestId),{
-      ...data,
-      code:"RX-"+Math.random().toString(36).substring(2,8).toUpperCase(),
-      used:false,
-      createdAt:serverTimestamp()
-    });
+    const reqData = reqSnap.data();
+
+    const reportData = {
+      requestId,
+      patientUid: reqData.patientUid,
+      proUid: user.uid,
+      motif: motif.value,
+      diagnostic: diagnostic.value,
+      traitement: traitement.value,
+      suivi: suivi.value,
+      ordonnance: needRx.checked,
+      medications,
+      status:"submitted",
+      submittedAt: serverTimestamp()
+    };
+
+    // ✅ Sauvegarde report
+    await setDoc(doc(db,"reports",requestId), reportData);
+
+    // ✅ Si ordonnance activée
+    if(needRx.checked){
+      await setDoc(doc(db,"prescriptions",requestId),{
+        requestId,
+        patientUid: reqData.patientUid,
+        proUid: user.uid,
+        medications,
+        code:"RX-"+Math.random().toString(36).substring(2,8).toUpperCase(),
+        used:false,
+        createdAt:serverTimestamp()
+      });
+    }
+
+    location.href="dashboard-pro.html";
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur lors de l’envoi");
+    submitBtn.disabled=false;
+    submitBtn.innerText="Envoyer rapport";
   }
-
-  location.href="dashboard-pro.html";
 };
 </script>
 
