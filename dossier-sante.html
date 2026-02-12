@@ -18,6 +18,10 @@
   --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:22px;
+  --line:#e7edf7;
+  --pill:#eef3fb;
+  --ok:#1b6b3a;
+  --warn:#c58a00;
 }
 *{box-sizing:border-box}
 body{
@@ -70,13 +74,16 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 }
 
 .content{padding:20px;flex:1}
+
 .card{
   background:var(--card);
   border-radius:var(--radius);
   padding:18px;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
   margin-bottom:14px;
+  border:1px solid rgba(231,237,247,.9);
 }
+
 .kv{font-size:14px;line-height:1.6}
 .muted{color:var(--muted);font-size:13px}
 .btn{
@@ -91,6 +98,77 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 }
 .hidden{display:none}
 .footer{text-align:center;font-size:12px;color:#8a95a8;padding:22px}
+
+/* REPORT CARDS */
+.reportTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.reportMeta{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.reportMeta strong{
+  display:block;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.pills{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:2px;
+}
+.pill{
+  background:var(--pill);
+  color:var(--blue);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:800;
+}
+.pill.ok{color:var(--ok)}
+.pill.warn{color:var(--warn)}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.reportDetails{
+  display:none;
+  margin-top:12px;
+}
+.reportDetails.open{display:block}
+.kline{
+  font-size:13.5px;
+  line-height:1.65;
+}
+.kline span{color:var(--muted)}
+.actionsRow{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.btnSmall{
+  border:none;
+  border-radius:14px;
+  padding:10px 12px;
+  font-weight:800;
+  cursor:pointer;
+  background:#eef3fb;
+  color:var(--blue);
+}
+.btnPrimary{
+  background:linear-gradient(135deg,var(--blue),#1b4fa3);
+  color:#fff;
+}
+.btnDanger{
+  background:#0b2c66;
+  color:#fff;
+}
 </style>
 </head>
 
@@ -119,22 +197,26 @@ header a{color:#fff;text-decoration:none;font-size:13px}
   src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
   style="width:120px;height:120px;border-radius:50%;object-fit:cover;
   border:4px solid #eef3fb;cursor:pointer;margin-bottom:12px;">
+<div class="muted">Touchez la photo pour la mettre à jour</div>
 </div>
 
 <div class="card">
-<h3>Informations patient</h3>
+<h3 style="margin:0 0 10px;font-size:15px">Informations patient</h3>
 <div class="kv" id="identityData">Chargement...</div>
 </div>
 </div>
 
 <!-- RAPPORTS -->
 <div id="reports" class="tab hidden">
-<div id="reportsList"></div>
+  <div id="reportsList"></div>
 </div>
 
 <!-- ORDONNANCES -->
 <div id="rx" class="tab hidden">
-<div id="rxList"></div>
+  <div class="card">
+    <h3 style="margin:0 0 10px;font-size:15px">Ordonnances</h3>
+    <div class="muted" id="rxList">En cours d’activation…</div>
+  </div>
 </div>
 
 </div>
@@ -169,6 +251,25 @@ document.querySelectorAll(".segment button").forEach(btn=>{
   };
 });
 
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function fmtDate(ts){
+  try{
+    const d = ts?.toDate ? ts.toDate() : null;
+    if(!d) return "—";
+    return d.toLocaleString("fr-FR",{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+  }catch(e){
+    return "—";
+  }
+}
+
 onAuthStateChanged(auth, async(user)=>{
   if(!user){ location.href="login.html"; return; }
 
@@ -177,18 +278,18 @@ onAuthStateChanged(auth, async(user)=>{
   if(pSnap.exists()){
     const p = pSnap.data();
     document.getElementById("identityData").innerHTML=`
-      <b>Nom :</b> ${p.fullName || "—"}<br>
-      <b>ID :</b> ${p.patientId || "—"}<br>
-      <b>Genre :</b> ${p.gender || "—"}<br>
-      <b>Âge :</b> ${p.age || "—"}<br>
-      <b>Province :</b> ${p.province || "—"}
+      <b>Nom :</b> ${esc(p.fullName || "—")}<br>
+      <b>ID :</b> ${esc(p.patientId || "—")}<br>
+      <b>Genre :</b> ${esc(p.gender || "—")}<br>
+      <b>Âge :</b> ${esc(p.age || "—")}<br>
+      <b>Province :</b> ${esc(p.province || "—")}
     `;
     if(p.photoURL){
       document.getElementById("profilePhoto").src = p.photoURL;
     }
   }
 
-  /* RAPPORTS */
+  /* RAPPORTS (DYNAMIQUE) */
   const qReports = query(
     collection(db,"reports"),
     where("patientUid","==",user.uid),
@@ -198,20 +299,86 @@ onAuthStateChanged(auth, async(user)=>{
   onSnapshot(qReports,(snap)=>{
     const container = document.getElementById("reportsList");
     container.innerHTML="";
+
     if(snap.empty){
-      container.innerHTML="<div class='muted'>Aucun rapport disponible</div>";
+      container.innerHTML="<div class='card'><div class='muted'>Aucun rapport disponible</div></div>";
       return;
     }
+
     snap.forEach(docu=>{
       const r = docu.data();
+
+      const dateTxt = fmtDate(r.submittedAt || r.createdAt || r.updatedAt);
+      const hasRx = r.ordonnance === true;
+
+      const suiviTxt =
+        r.suivi === "teleconsultation" ? "Suivi : Téléconsultation" :
+        r.suivi === "presentiel" ? "Suivi : Présentiel" :
+        r.suivi === "aucun" ? "Suivi : Aucun" :
+        (r.suivi ? `Suivi : ${r.suivi}` : "Suivi : —");
+
       const div=document.createElement("div");
       div.className="card";
+
       div.innerHTML=`
-        <h3>Consultation</h3>
+        <div class="reportTop">
+          <div class="reportMeta">
+            <strong>Consultation médicale</strong>
+            <div class="muted">${esc(dateTxt)}</div>
+            <div class="pills">
+              <span class="pill">${esc(suiviTxt)}</span>
+              <span class="pill ${hasRx ? "warn" : "ok"}">${hasRx ? "Ordonnance : Oui" : "Ordonnance : Non"}</span>
+              <span class="pill">${esc(r.status || "submitted")}</span>
+            </div>
+          </div>
+          <button class="btnSmall btnPrimary" data-action="toggle">Voir</button>
+        </div>
+
+        <div class="hr"></div>
+
         <div class="kv">
-          <b>Diagnostic :</b><br>${r.diagnostic || "—"}
+          <b>Diagnostic :</b><br>
+          ${esc(r.diagnostic || "—")}
+        </div>
+
+        <div class="reportDetails" data-details>
+          <div class="hr"></div>
+
+          <div class="kline">
+            <span>Motif :</span><br>
+            ${esc(r.motif || "—")}
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="kline">
+            <span>Traitement / Recommandations :</span><br>
+            ${esc(r.traitement || "—")}
+          </div>
+
+          <div class="actionsRow">
+            ${hasRx ? `<button class="btnSmall btnDanger" data-action="rx">Voir l’ordonnance</button>` : ``}
+          </div>
         </div>
       `;
+
+      const toggleBtn = div.querySelector('[data-action="toggle"]');
+      const details = div.querySelector('[data-details]');
+
+      toggleBtn.onclick = ()=>{
+        const open = details.classList.toggle("open");
+        toggleBtn.textContent = open ? "Masquer" : "Voir";
+      };
+
+      const rxBtn = div.querySelector('[data-action="rx"]');
+      if(rxBtn){
+        rxBtn.onclick = ()=>{
+          // Si tu utilises requestId comme ID du report/prescription, on tente r.requestId sinon doc id
+          const rid = r.requestId || docu.id;
+          location.href = `ordonnance.html?requestId=${encodeURIComponent(rid)}`;
+        };
+      }
+
       container.appendChild(div);
     });
   });
@@ -228,18 +395,16 @@ photoInput.onchange=async(e)=>{
   const file = e.target.files[0];
   if(!file) return;
 
-  const storageRef = ref(storage,
-    `patients/${auth.currentUser.uid}/profile.jpg`
-  );
+  try{
+    const storageRef = ref(storage, `patients/${auth.currentUser.uid}/profile.jpg`);
+    await uploadBytes(storageRef,file);
+    const url = await getDownloadURL(storageRef);
 
-  await uploadBytes(storageRef,file);
-  const url = await getDownloadURL(storageRef);
-
-  await updateDoc(doc(db,"patients",auth.currentUser.uid),{
-    photoURL:url
-  });
-
-  profilePhoto.src=url;
+    await updateDoc(doc(db,"patients",auth.currentUser.uid),{ photoURL:url });
+    profilePhoto.src=url;
+  }catch(err){
+    alert("Impossible de mettre à jour la photo. Vérifie Storage rules / config.");
+  }
 };
 </script>
 
