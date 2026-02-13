@@ -97,12 +97,13 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc, onSnapshot
+  doc, updateDoc, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params = new URLSearchParams(location.search);
-let requestId = params.get("requestId") || localStorage.getItem("ciza_active_requestId") || null;
+let requestId =
+  new URLSearchParams(location.search).get("requestId") ||
+  localStorage.getItem("ciza_active_requestId") || null;
 
 const $proPhoto = document.getElementById("proPhoto");
 const $proName = document.getElementById("proName");
@@ -111,9 +112,8 @@ const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
 
-/* =====================
-   UI STATES
-===================== */
+/* ================= UI STATES ================= */
+
 function showSearching(){
   $proName.innerText = "Recherche du médecin…";
   $proMeta.innerText = "";
@@ -131,102 +131,75 @@ function showInCall(){
   $spin.style.display = "none";
 }
 
-/* =====================
-   LOAD PRO
-===================== */
-async function loadPro(proUid){
-  if(!proUid) return;
+/* ================= LISTEN REQUEST ================= */
 
-  let data = null;
-
-  const userSnap = await getDoc(doc(db,"users",proUid));
-  if(userSnap.exists()) data = userSnap.data();
-
-  if(!data) return;
-
-  $proName.innerText = data.fullName || "Médecin CizaHealth+";
-  $proMeta.innerText =
-    (data.speciality || "Médecin") +
-    (data.province ? " • " + data.province : "");
-
-  if(data.photoURL){
-    $proPhoto.src = data.photoURL;
-  }
-}
-
-/* =====================
-   LISTENER
-===================== */
 function listenRequest(id){
+const ref = doc(db,"requests",id);
 
-  const ref = doc(db,"requests",id);
+onSnapshot(ref,(snap)=>{
+if(!snap.exists()) return;
 
-  onSnapshot(ref, async(snap)=>{
+const r=snap.data();
+const status=(r.status||"").toLowerCase();
 
-    if(!snap.exists()){
-      // ❌ On ne redirige plus
-      return;
-    }
-
-    const r = snap.data();
-    const status = (r.status || "").toLowerCase();
-    const proUid = r.assignedProUid || "";
-
-    if(status === "pending"){
-      showSearching();
-      return;
-    }
-
-    if(status === "assigned"){
-      await loadPro(proUid);
-      showAssigned();
-      return;
-    }
-
-    if(status === "in_call"){
-      showInCall();
-      setTimeout(()=>{
-        location.href = "call.html?requestId="+id;
-      },1000);
-      return;
-    }
-
-    if(status === "cancelled" || status === "ended"){
-      localStorage.removeItem("ciza_active_requestId");
-      location.href = "dashboard-client.html";
-    }
-
-  }, (err)=>{
-    console.error("REQUEST ERROR:", err);
-  });
+/* 🔎 PENDING */
+if(status==="pending"){
+showSearching();
+return;
 }
 
-/* =====================
-   AUTH
-===================== */
+/* 🟢 ASSIGNED */
+if(status==="assigned"){
+$proName.innerText=r.assignedProName||"Médecin";
+$proMeta.innerText=
+(r.assignedProSpeciality||"Médecin")+" • "+
+(r.assignedProProvince||"");
+
+if(r.assignedProPhoto){
+$proPhoto.src=r.assignedProPhoto;
+}
+
+showAssigned();
+return;
+}
+
+/* 📞 CALL */
+if(status==="in_call"){
+showInCall();
+location.href="call.html?requestId="+id;
+}
+
+/* ❌ FIN */
+if(status==="cancelled" || status==="ended"){
+localStorage.removeItem("ciza_active_requestId");
+location.href="dashboard-client.html";
+}
+
+});
+}
+
+/* ================= AUTH ================= */
+
 onAuthStateChanged(auth,(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
+if(!user){
+location.href="login.html";
+return;
+}
 
-  showSearching();
+if(!requestId){
+location.href="dashboard-client.html";
+return;
+}
 
-  if(!requestId){
-    // ❌ On reste sur écran au lieu de rediriger
-    return;
-  }
+localStorage.setItem("ciza_active_requestId",requestId);
+listenRequest(requestId);
 
-  localStorage.setItem("ciza_active_requestId",requestId);
-  listenRequest(requestId);
+$cancel.onclick=async()=>{
+await updateDoc(doc(db,"requests",requestId),{
+status:"cancelled"
+});
+};
 
-  $cancel.onclick = async()=>{
-    if(!requestId) return;
-
-    await updateDoc(doc(db,"requests",requestId),{
-      status:"cancelled"
-    });
-  };
 });
 </script>
 
