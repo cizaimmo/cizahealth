@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | En attente du médecin</title>
+<title>CizaHealth+ | État de la demande</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -97,18 +97,16 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where, limit, onSnapshot
+  doc, updateDoc,
+  collection, query, where, limit,
+  onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-   VARIABLES
-========================= */
 
 let requestId =
   new URLSearchParams(location.search).get("requestId") ||
   localStorage.getItem("ciza_active_requestId") ||
+  sessionStorage.getItem("lastRequestId") ||
   null;
 
 const $proPhoto = document.getElementById("proPhoto");
@@ -118,40 +116,41 @@ const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
 
-/* =========================
-   UI STATES
-========================= */
+/* ===================== UI ===================== */
 
 function showSearching(){
-  $proName.innerText = "Recherche du médecin…";
-  $proMeta.innerText = "";
-  $status.innerText = "Recherche d’un médecin disponible…";
-  $spin.style.display = "block";
+  $proPhoto.src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+  $proName.innerText="Recherche du médecin…";
+  $proMeta.innerText="";
+  $status.innerText="Recherche d’un médecin disponible…";
+  $spin.style.display="block";
 }
 
 function showAssigned(r){
-  $proName.innerText = r.assignedProName || "Médecin";
-  $proMeta.innerText =
-    (r.assignedProSpeciality || "Médecin") +
-    " • " +
+  $proName.innerText=r.assignedProName || "Médecin";
+  $proMeta.innerText=
+    (r.assignedProSpeciality || "Médecin") + " • " +
     (r.assignedProProvince || "");
 
   if(r.assignedProPhoto){
-    $proPhoto.src = r.assignedProPhoto;
+    $proPhoto.src=r.assignedProPhoto;
   }
 
-  $status.innerText = "Médecin trouvé. Préparation de la consultation…";
-  $spin.style.display = "none";
+  $status.innerText="Médecin trouvé. En attente de l’appel…";
+  $spin.style.display="none";
+}
+
+function showRefused(){
+  $status.innerText="Votre demande a été refusée. Recherche d’un autre médecin…";
+  $spin.style.display="block";
 }
 
 function showInCall(){
-  $status.innerText = "Consultation en cours…";
-  $spin.style.display = "none";
+  $status.innerText="Consultation en cours…";
+  $spin.style.display="none";
 }
 
-/* =========================
-   LISTEN REQUEST
-========================= */
+/* ===================== LISTENER ===================== */
 
 function listenRequest(id){
 
@@ -160,49 +159,47 @@ function listenRequest(id){
   onSnapshot(ref,(snap)=>{
     if(!snap.exists()) return;
 
-    const r = snap.data();
-    const status = (r.status || "").toLowerCase();
+    const r=snap.data();
+    const status=(r.status||"").toLowerCase();
 
-    /* PENDING */
     if(status==="pending"){
       showSearching();
       return;
     }
 
-    /* ASSIGNED */
     if(status==="assigned"){
       showAssigned(r);
       return;
     }
 
-    /* CALL */
+    if(status==="refused"){
+      showRefused();
+      return;
+    }
+
     if(status==="in_call"){
       showInCall();
       setTimeout(()=>{
         location.href="call.html?requestId="+id;
       },1000);
+      return;
     }
 
-    /* FIN */
     if(status==="cancelled" || status==="ended"){
       localStorage.removeItem("ciza_active_requestId");
       location.href="dashboard-client.html";
     }
 
   });
-
 }
 
-/* =========================
-   FIND LAST ACTIVE REQUEST
-========================= */
+/* ===================== FIND REQUEST ===================== */
 
 function findLatestRequest(uid){
 
   const q = query(
     collection(db,"requests"),
     where("patientUid","==",uid),
-    where("status","in",["pending","assigned","in_call"]),
     limit(1)
   );
 
@@ -217,12 +214,9 @@ function findLatestRequest(uid){
     localStorage.setItem("ciza_active_requestId",requestId);
     listenRequest(requestId);
   });
-
 }
 
-/* =========================
-   AUTH
-========================= */
+/* ===================== AUTH ===================== */
 
 onAuthStateChanged(auth,(user)=>{
   if(!user){
