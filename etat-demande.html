@@ -2,124 +2,121 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CizaHealth+ | État de la demande</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CizaHealth+ | En attente du médecin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="theme-color" content="#0b2c66">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
-  --primary:#123c8a;
-  --primary-dark:#0b2c66;
+  --blue:#123c8a;
+  --blue-dark:#0b2c66;
   --bg:#f4f7fb;
-  --text:#0a1a2f;
+  --card:#ffffff;
   --muted:#6b7a90;
   --radius:24px;
 }
-*{box-sizing:border-box}
 
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
-  color:var(--text);
 }
 
 .app{
-  max-width:900px;
+  max-width:500px;
   margin:auto;
+  padding:24px;
   min-height:100vh;
-  background:#fff;
-  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
-}
-
-.header{
-  padding:16px 22px;
-  border-bottom:1px solid #eef1f6;
-}
-.header img{height:46px}
-
-.hero{
-  padding:34px 26px;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  color:#fff;
-  text-align:center;
-}
-.hero h1{margin:0 0 10px;font-size:24px}
-.hero p{font-size:15px;opacity:.95}
-
-.content{
-  padding:32px 26px;
-  text-align:center;
+  justify-content:center;
 }
 
 .card{
+  background:white;
   border-radius:var(--radius);
-  padding:30px;
-  background:#fff;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  padding:24px;
+  text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.08);
+}
+
+.photo{
+  width:110px;
+  height:110px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid #eef3fb;
+  margin-bottom:16px;
+}
+
+.name{
+  font-size:18px;
+  font-weight:700;
+}
+
+.meta{
+  font-size:14px;
+  color:var(--muted);
+  margin-top:4px;
 }
 
 .status{
-  font-size:19px;
-  font-weight:800;
-  margin-bottom:10px;
-}
-.sub{
-  font-size:14.5px;
-  color:var(--muted);
-  line-height:1.7;
+  margin-top:18px;
+  font-size:14px;
+  color:var(--blue);
+  font-weight:600;
 }
 
-.loader{
-  margin:24px auto 0;
-  width:44px;
-  height:44px;
+.spinner{
+  margin:20px auto;
+  width:40px;
+  height:40px;
+  border:4px solid #e5ecf9;
+  border-top:4px solid var(--blue);
   border-radius:50%;
-  border:4px solid #e3e8f2;
-  border-top-color:var(--primary);
   animation:spin 1s linear infinite;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
 
-.footer{
-  margin-top:auto;
-  padding:26px;
-  border-top:1px solid #eef1f6;
-  text-align:center;
-  font-size:12px;
-  color:#8a95a8;
+@keyframes spin{
+  to{transform:rotate(360deg);}
 }
-.footer img{height:42px;margin-bottom:8px}
+
+.btn{
+  margin-top:20px;
+  padding:12px 16px;
+  border:none;
+  border-radius:16px;
+  background:#eef3fb;
+  color:var(--blue);
+  font-weight:700;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-<div class="header">
-  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-</div>
+<div class="card">
+  <img id="proPhoto"
+    src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    class="photo">
 
-<div class="hero">
-  <h1 id="heroTitle">Demande en cours</h1>
-  <p id="heroDesc">Nous recherchons un professionnel de santé disponible.</p>
-</div>
+  <div class="name" id="proName">Recherche du médecin…</div>
+  <div class="meta" id="proMeta"></div>
 
-<div class="content">
-  <div class="card">
-    <div class="status" id="statusLabel">Recherche en cours…</div>
-    <div class="sub" id="statusDesc">
-      Veuillez rester sur cet écran.  
-      Un professionnel va prendre votre consultation.
-    </div>
-    <div class="loader" id="loader"></div>
+  <div class="spinner"></div>
+
+  <div class="status">
+    Le médecin prépare votre consultation…
   </div>
-</div>
 
-<div class="footer">
-  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  <div>© 2026 CizaHealth+ — CIZA GROUP</div>
+  <button class="btn" id="cancelBtn">
+    Annuler la demande
+  </button>
 </div>
 
 </div>
@@ -127,84 +124,65 @@ body{
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where,
-  orderBy, limit, onSnapshot, doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, getDoc, updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const heroTitle = document.getElementById("heroTitle");
-const heroDesc = document.getElementById("heroDesc");
-const statusLabel = document.getElementById("statusLabel");
-const statusDesc = document.getElementById("statusDesc");
-const loader = document.getElementById("loader");
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
 
-let callListenerUnsub = null;
-
-onAuthStateChanged(auth,(user)=>{
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
 
-  // 🔑 Dernière demande du patient
-  const reqQuery = query(
-    collection(db,"requests"),
-    where("patientUid","==",user.uid),
-    orderBy("createdAt","desc"),
-    limit(1)
-  );
+  if(!requestId){
+    alert("Consultation introuvable");
+    return;
+  }
 
-  onSnapshot(reqQuery,(snap)=>{
-    if(snap.empty) return;
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()){
+    alert("Demande introuvable");
+    return;
+  }
 
-    const reqDoc = snap.docs[0];
-    const r = reqDoc.data();
-    const requestId = reqDoc.id;
+  const requestData = reqSnap.data();
+  const proUid = requestData.assignedProUid;
 
-    /* ⏳ EN ATTENTE */
-    if(r.status === "pending"){
-      heroTitle.textContent = "Demande en cours";
-      heroDesc.textContent = "Recherche d’un professionnel disponible.";
-      statusLabel.textContent = "Recherche en cours…";
-      statusDesc.textContent = "Merci de patienter quelques instants.";
-      loader.style.display = "block";
-    }
+  if(!proUid){
+    document.getElementById("proName").innerText =
+      "En attente d’un médecin disponible…";
+    return;
+  }
 
-    /* ✅ ASSIGNÉ */
-    if(r.status === "assigned"){
-      heroTitle.textContent = "Consultation acceptée";
-      heroDesc.textContent = "Votre professionnel est prêt.";
-      statusLabel.textContent = "Veuillez attendre l’appel";
-      statusDesc.textContent =
-        r.assignedProName
-          ? `Dr ${r.assignedProName} va vous appeler.`
-          : "Le professionnel va vous appeler.";
-      loader.style.display = "none";
+  const proSnap = await getDoc(doc(db,"users",proUid));
+  if(!proSnap.exists()) return;
 
-      listenCallDoc(requestId);
-    }
-  });
+  const pro = proSnap.data();
+
+  document.getElementById("proName").innerText =
+    pro.fullName || "Médecin CizaHealth+";
+
+  document.getElementById("proMeta").innerText =
+    `${pro.specialty || "Médecin"} • ${pro.province || ""}`;
+
+  if(pro.photoURL){
+    document.getElementById("proPhoto").src = pro.photoURL;
+  }
+
+  /* Annulation */
+  document.getElementById("cancelBtn").onclick = async()=>{
+    await updateDoc(doc(db,"requests",requestId),{
+      status:"cancelled"
+    });
+    location.href="dashboard-client.html";
+  };
 });
-
-/* 🔔 ÉCOUTE DIRECTE DU DOCUMENT D’APPEL */
-function listenCallDoc(requestId){
-  if(callListenerUnsub) return;
-
-  const callRef = doc(db,"callSessions",requestId);
-
-  callListenerUnsub = onSnapshot(callRef,(snap)=>{
-    if(!snap.exists()) return;
-
-    const call = snap.data();
-
-    // ✅ LE PRO A CLIQUÉ SUR “DÉMARRER”
-    if(call.status === "calling" && call.offer){
-      location.href = `call.html?requestId=${requestId}`;
-    }
-  });
-}
 </script>
-  
+
 </body>
 </html>
