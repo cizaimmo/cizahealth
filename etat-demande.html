@@ -65,13 +65,6 @@ body{
   font-weight:700;
   cursor:pointer;
 }
-.btn:disabled{opacity:.6;}
-.small{
-  margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.5;
-}
 </style>
 </head>
 
@@ -92,14 +85,8 @@ body{
 Recherche d’un médecin disponible…
 </div>
 
-<div class="small" id="debugLine"></div>
-
 <button class="btn" id="cancelBtn">
 Annuler la demande
-</button>
-
-<button class="btn" id="backBtn" style="display:none">
-Retour dashboard
 </button>
 
 </div>
@@ -110,14 +97,14 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc, onSnapshot,
-  collection, query, where, orderBy, limit, getDocs
+  doc, getDoc, updateDoc,
+  collection, query, where, limit, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let requestId =
   new URLSearchParams(location.search).get("requestId") ||
-  localStorage.getItem("ciza_active_requestId") || "";
+  localStorage.getItem("ciza_active_requestId") || null;
 
 const $proPhoto = document.getElementById("proPhoto");
 const $proName = document.getElementById("proName");
@@ -125,12 +112,6 @@ const $proMeta = document.getElementById("proMeta");
 const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
-const $back = document.getElementById("backBtn");
-const $debug = document.getElementById("debugLine");
-
-function debug(msg){
-  $debug.textContent = msg || "";
-}
 
 function showSearching(){
   $proName.innerText = "Recherche du médecin…";
@@ -149,38 +130,24 @@ function showInCall(){
   $spin.style.display = "none";
 }
 
-function showProblem(message){
-  $spin.style.display = "none";
-  $proName.innerText = "Impossible d’afficher l’état";
-  $proMeta.innerText = "";
-  $status.innerText = message || "Erreur de lecture.";
-  $cancel.style.display = "none";
-  $back.style.display = "inline-block";
-  $back.onclick = ()=>location.href="dashboard-client.html";
-}
-
 async function loadPro(proUid){
   if(!proUid) return;
 
   let data = null;
 
-  try{
-    const proSnap = await getDoc(doc(db,"professionals",proUid));
-    if(proSnap.exists()) data = proSnap.data();
-  }catch(e){}
+  const proSnap = await getDoc(doc(db,"professionals",proUid));
+  if(proSnap.exists()) data = proSnap.data();
 
   if(!data){
-    try{
-      const userSnap = await getDoc(doc(db,"users",proUid));
-      if(userSnap.exists()) data = userSnap.data();
-    }catch(e){}
+    const userSnap = await getDoc(doc(db,"users",proUid));
+    if(userSnap.exists()) data = userSnap.data();
   }
 
   if(!data) return;
 
   $proName.innerText = data.fullName || "Médecin CizaHealth+";
   $proMeta.innerText =
-    (data.specialty || data.speciality || "Médecin") +
+    (data.specialty || "Médecin") +
     (data.province ? " • " + data.province : "");
 
   if(data.photoURL){
@@ -188,95 +155,67 @@ async function loadPro(proUid){
   }
 }
 
-/* Cherche automatiquement le dernier request du patient (si requestId vide) */
-async function findLatestRequestIdForPatient(uid){
-  try{
-    const q = query(
-      collection(db,"requests"),
-      where("patientUid","==",uid),
-      orderBy("createdAt","desc"),
-      limit(1)
-    );
-    const snap = await getDocs(q);
-    if(snap.empty) return "";
-    return snap.docs[0].id;
-  }catch(e){
-    // fallback (si pas de createdAt ou index)
-    try{
-      const q2 = query(
-        collection(db,"requests"),
-        where("patientUid","==",uid),
-        limit(1)
-      );
-      const snap2 = await getDocs(q2);
-      if(snap2.empty) return "";
-      return snap2.docs[0].id;
-    }catch(e2){
-      return "";
-    }
-  }
-}
-
-let unsub = null;
-
 function listenRequest(id){
-  if(unsub) { try{unsub();}catch(e){} }
   const ref = doc(db,"requests",id);
 
-  unsub = onSnapshot(ref, async(snap)=>{
-
+  onSnapshot(ref, async(snap)=>{
     if(!snap.exists()){
-      // IMPORTANT: ne redirige plus — on affiche le problème
-      showProblem("Demande introuvable. Vérifie que l’ID existe et que les règles autorisent la lecture.");
-      debug("requestId=" + id + " (doc absent)");
-      return;
+      return; // 🔥 on ne redirige plus automatiquement
     }
 
     const r = snap.data();
     const status = (r.status || "").toLowerCase();
     const proUid = r.assignedProUid || "";
 
-    debug("requestId=" + id + " • status=" + (r.status || "—"));
-
-    if(status === "pending" || status === ""){
+    if(status === "pending"){
       showSearching();
       return;
     }
 
-    if(status === "assigned" || status === "accepted" || status === "matched"){
+    if(status === "assigned"){
       await loadPro(proUid);
       showAssigned();
       return;
     }
 
-    if(status === "in_call" || status === "incall" || status === "started"){
+    if(status === "in_call"){
       showInCall();
       localStorage.setItem("ciza_active_requestId", id);
       setTimeout(()=>{
-        location.href = "call.html?requestId="+encodeURIComponent(id);
-      }, 700);
+        location.href = "call.html?requestId="+id;
+      }, 1000);
       return;
     }
 
-    if(status === "cancelled" || status === "canceled" || status === "ended" || status === "closed"){
+    if(status === "cancelled" || status === "ended"){
       localStorage.removeItem("ciza_active_requestId");
-      showProblem("Cette demande est terminée ou annulée.");
-      debug("requestId=" + id + " • status=" + status);
-      return;
+      location.href = "dashboard-client.html";
     }
 
-    // fallback statut inconnu
-    showSearching();
-
-  }, (err)=>{
-    console.error("REQUEST LISTENER ERROR:", err);
-    // IMPORTANT: ne redirige plus — on affiche l’erreur
-    showProblem("Erreur de lecture (accès refusé ou réseau). Ouvre Console pour voir le détail.");
-    debug("requestId=" + id + " • " + (err?.code || "error"));
   });
 }
 
-onAuthStateChanged(auth, async(user)=>{
+function findLatestRequest(uid){
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",uid),
+    where("status","in",["pending","assigned","in_call"]),
+    limit(1)
+  );
+
+  onSnapshot(q,(snap)=>{
+    if(snap.empty){
+      return;
+    }
+
+    const docu = snap.docs[0];
+    requestId = docu.id;
+    localStorage.setItem("ciza_active_requestId",requestId);
+    listenRequest(requestId);
+  });
+}
+
+onAuthStateChanged(auth,(user)=>{
   if(!user){
     location.href="login.html";
     return;
@@ -284,35 +223,19 @@ onAuthStateChanged(auth, async(user)=>{
 
   showSearching();
 
-  // Si pas de requestId, on essaie de le retrouver automatiquement
-  if(!requestId){
-    debug("requestId manquant → recherche dernière demande…");
-    const found = await findLatestRequestIdForPatient(user.uid);
-    if(!found){
-      showProblem("Aucune demande active trouvée.");
-      debug("requestId vide + aucune demande");
-      return;
-    }
-    requestId = found;
+  if(requestId){
+    localStorage.setItem("ciza_active_requestId",requestId);
+    listenRequest(requestId);
+  }else{
+    findLatestRequest(user.uid);
   }
-
-  localStorage.setItem("ciza_active_requestId",requestId);
-  listenRequest(requestId);
 
   $cancel.onclick = async()=>{
     if(!requestId) return;
 
-    $cancel.disabled = true;
-
-    try{
-      await updateDoc(doc(db,"requests",requestId),{
-        status:"cancelled"
-      });
-    }catch(e){
-      console.error(e);
-      $cancel.disabled = false;
-      alert("Impossible d’annuler. Vérifie les règles Firestore.");
-    }
+    await updateDoc(doc(db,"requests",requestId),{
+      status:"cancelled"
+    });
   };
 });
 </script>
