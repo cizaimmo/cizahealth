@@ -3,46 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | En attente du médecin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<meta name="theme-color" content="#0b2c66">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --blue:#123c8a;
-  --blue-dark:#0b2c66;
   --bg:#f4f7fb;
   --card:#ffffff;
   --muted:#6b7a90;
   --radius:24px;
 }
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
 }
-
 .app{
   max-width:500px;
   margin:auto;
   padding:24px;
   min-height:100vh;
   display:flex;
-  flex-direction:column;
-  justify-content:center;
+  align-items:center;
 }
-
 .card{
   background:white;
   border-radius:var(--radius);
   padding:24px;
   text-align:center;
   box-shadow:0 20px 50px rgba(0,0,0,.08);
+  width:100%;
 }
-
 .photo{
   width:110px;
   height:110px;
@@ -51,25 +42,9 @@ body{
   border:4px solid #eef3fb;
   margin-bottom:16px;
 }
-
-.name{
-  font-size:18px;
-  font-weight:700;
-}
-
-.meta{
-  font-size:14px;
-  color:var(--muted);
-  margin-top:4px;
-}
-
-.status{
-  margin-top:18px;
-  font-size:14px;
-  color:var(--blue);
-  font-weight:600;
-}
-
+.name{font-size:18px;font-weight:700;}
+.meta{font-size:14px;color:var(--muted);margin-top:4px;}
+.status{margin-top:18px;font-size:14px;color:var(--blue);font-weight:600;}
 .spinner{
   margin:20px auto;
   width:40px;
@@ -79,11 +54,7 @@ body{
   border-radius:50%;
   animation:spin 1s linear infinite;
 }
-
-@keyframes spin{
-  to{transform:rotate(360deg);}
-}
-
+@keyframes spin{to{transform:rotate(360deg);}}
 .btn{
   margin-top:20px;
   padding:12px 16px;
@@ -94,32 +65,32 @@ body{
   font-weight:700;
   cursor:pointer;
 }
-.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn:disabled{opacity:.6;}
 </style>
 </head>
 
 <body>
 <div class="app">
-
 <div class="card">
-  <img id="proPhoto"
-    src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-    class="photo">
 
-  <div class="name" id="proName">Recherche du médecin…</div>
-  <div class="meta" id="proMeta"></div>
+<img id="proPhoto"
+  src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+  class="photo">
 
-  <div class="spinner" id="spin"></div>
+<div class="name" id="proName">Recherche du médecin…</div>
+<div class="meta" id="proMeta"></div>
 
-  <div class="status" id="statusText">
-    Recherche d’un médecin disponible…
-  </div>
+<div class="spinner" id="spin"></div>
 
-  <button class="btn" id="cancelBtn">
-    Annuler la demande
-  </button>
+<div class="status" id="statusText">
+Recherche d’un médecin disponible…
 </div>
 
+<button class="btn" id="cancelBtn">
+Annuler la demande
+</button>
+
+</div>
 </div>
 
 <script type="module">
@@ -127,13 +98,13 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where, limit, onSnapshot
+  doc, getDoc, updateDoc, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const params = new URLSearchParams(location.search);
-let requestId = params.get("requestId") || localStorage.getItem("ciza_active_requestId") || "";
+let requestId =
+  new URLSearchParams(location.search).get("requestId") ||
+  localStorage.getItem("ciza_active_requestId") || "";
 
 const $proPhoto = document.getElementById("proPhoto");
 const $proName = document.getElementById("proName");
@@ -142,138 +113,130 @@ const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
 
-function setSearching(){
+/* =====================
+   UI STATES
+===================== */
+function showSearching(){
   $proName.innerText = "Recherche du médecin…";
   $proMeta.innerText = "";
   $status.innerText = "Recherche d’un médecin disponible…";
   $spin.style.display = "block";
 }
 
-function setAssignedLoading(){
-  $status.innerText = "Le médecin prépare votre consultation…";
-  $spin.style.display = "block";
-}
-
-function setReady(){
+function showAssigned(){
+  $status.innerText = "Médecin trouvé. Préparation de la consultation…";
   $spin.style.display = "none";
 }
 
-async function loadProCard(proUid){
+function showInCall(){
+  $status.innerText = "Consultation en cours…";
+  $spin.style.display = "none";
+}
+
+/* =====================
+   LOAD PRO CARD
+===================== */
+async function loadPro(proUid){
   if(!proUid) return;
 
-  let proData = null;
+  let data = null;
 
-  const snap1 = await getDoc(doc(db,"professionals",proUid));
-  if(snap1.exists()) proData = snap1.data();
+  const proSnap = await getDoc(doc(db,"professionals",proUid));
+  if(proSnap.exists()) data = proSnap.data();
 
-  if(!proData){
-    const snap2 = await getDoc(doc(db,"users",proUid));
-    if(snap2.exists()) proData = snap2.data();
+  if(!data){
+    const userSnap = await getDoc(doc(db,"users",proUid));
+    if(userSnap.exists()) data = userSnap.data();
   }
 
-  if(!proData) return;
+  if(!data) return;
 
-  $proName.innerText = proData.fullName || "Médecin CizaHealth+";
+  $proName.innerText = data.fullName || "Médecin CizaHealth+";
   $proMeta.innerText =
-    (proData.specialty || "Médecin") +
-    (proData.province ? " • " + proData.province : "");
+    (data.specialty || "Médecin") +
+    (data.province ? " • " + data.province : "");
 
-  if(proData.photoURL){
-    $proPhoto.src = proData.photoURL;
+  if(data.photoURL){
+    $proPhoto.src = data.photoURL;
   }
 }
 
-function listenToRequestByDocId(docId){
-  const ref = doc(db,"requests",docId);
+/* =====================
+   LISTEN REQUEST
+===================== */
+function listenRequest(id){
 
-  return onSnapshot(ref, async(snap)=>{
+  const ref = doc(db,"requests",id);
+
+  onSnapshot(ref, async(snap)=>{
+
     if(!snap.exists()){
       location.href = "dashboard-client.html";
       return;
     }
 
     const r = snap.data();
-    const st = (r.status || "").toLowerCase();
+    const status = (r.status || "").toLowerCase();
     const proUid = r.assignedProUid || "";
 
-    if(!proUid && st === "pending"){
-      setSearching();
+    /* 🔎 STILL PENDING */
+    if(status === "pending"){
+      showSearching();
+      return;
     }
 
-    if(proUid && st === "assigned"){
-      setAssignedLoading();
-      await loadProCard(proUid);
-      setReady();
+    /* 🟢 ASSIGNED */
+    if(status === "assigned"){
+      await loadPro(proUid);
+      showAssigned();
+      return;
     }
 
-    if(st === "in_call"){
-      localStorage.setItem("ciza_active_requestId", docId);
-      location.href = `call.html?requestId=${docId}`;
+    /* 📞 IN CALL */
+    if(status === "in_call"){
+      showInCall();
+      localStorage.setItem("ciza_active_requestId", id);
+      setTimeout(()=>{
+        location.href = "call.html?requestId="+id;
+      }, 1200);
+      return;
     }
 
-    if(st === "cancelled" || st === "ended"){
+    /* ❌ CANCELLED OR ENDED */
+    if(status === "cancelled" || status === "ended"){
       localStorage.removeItem("ciza_active_requestId");
       location.href = "dashboard-client.html";
     }
 
   }, (err)=>{
-    console.error(err);
-    alert("Erreur lecture request. Vérifie rules.");
+    console.error("REQUEST LISTENER ERROR:", err);
   });
 }
 
-function listenToLatestActiveRequestForPatient(uid){
-
-  const q = query(
-    collection(db,"requests"),
-    where("patientUid","==",uid),
-    limit(1)
-  );
-
-  return onSnapshot(q, (snap)=>{
-    if(snap.empty){
-      location.href = "dashboard-client.html";
-      return;
-    }
-
-    const docu = snap.docs[0];
-    requestId = docu.id;
-    localStorage.setItem("ciza_active_requestId", requestId);
-    listenToRequestByDocId(requestId);
-
-  }, (err)=>{
-    console.error(err);
-    alert("Impossible de lire la demande.");
-  });
-}
-
-onAuthStateChanged(auth, async(user)=>{
+/* =====================
+   AUTH
+===================== */
+onAuthStateChanged(auth,(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
 
-  setSearching();
-
-  if(requestId){
-    localStorage.setItem("ciza_active_requestId", requestId);
-    listenToRequestByDocId(requestId);
-  }else{
-    listenToLatestActiveRequestForPatient(user.uid);
+  if(!requestId){
+    location.href="dashboard-client.html";
+    return;
   }
 
+  localStorage.setItem("ciza_active_requestId",requestId);
+  listenRequest(requestId);
+
   $cancel.onclick = async()=>{
-    if(!requestId) return;
-
-    $cancel.disabled = true;
-
     try{
       await updateDoc(doc(db,"requests",requestId),{
         status:"cancelled"
       });
     }catch(e){
       console.error(e);
-      $cancel.disabled = false;
     }
   };
 });
