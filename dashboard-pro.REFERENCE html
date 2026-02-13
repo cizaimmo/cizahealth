@@ -31,8 +31,6 @@ body{
   display:flex;
   flex-direction:column;
 }
-
-/* ===== HEADER ===== */
 header{
   position:sticky;
   top:0;
@@ -50,57 +48,11 @@ header{
   gap:12px;
 }
 .brand img{height:38px}
-.brand span{font-size:12px;opacity:.85}
-
+.brand .meta span{font-size:12px;opacity:.85}
 .topRight{
   display:flex;
   align-items:center;
   gap:12px;
-}
-.switch{
-  position:relative;
-  width:46px;
-  height:24px;
-}
-.switch input{display:none}
-.slider{
-  position:absolute;
-  inset:0;
-  background:#ccc;
-  border-radius:999px;
-  cursor:pointer;
-}
-.slider:before{
-  content:"";
-  position:absolute;
-  width:18px;height:18px;
-  left:3px;top:3px;
-  background:#fff;
-  border-radius:50%;
-  transition:.2s;
-}
-.switch input:checked + .slider{
-  background:#2ecc71;
-}
-.switch input:checked + .slider:before{
-  transform:translateX(22px);
-}
-
-.logout{
-  border:none;
-  background:none;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.iconBtn{
-  background:#fff;
-  border:none;
-  border-radius:12px;
-  padding:8px 10px;
-  font-weight:700;
-  cursor:pointer;
 }
 .badge{
   background:#e74c3c;
@@ -110,10 +62,24 @@ header{
   font-size:12px;
   margin-left:4px;
 }
-
-/* ===== CONTENT ===== */
+.status{
+  font-size:12px;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#ccc;
+}
+.status.online{background:#2ecc71;color:#fff}
+.status.offline{background:#bdc3c7;color:#2c3e50}
+.logout{
+  border:none;
+  background:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
 .content{padding:24px;display:grid;gap:24px}
-
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .card{
   background:#fff;
   border-radius:var(--radius);
@@ -121,8 +87,10 @@ header{
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
 .card h3{margin:0 0 8px}
-.small{font-size:12px;color:var(--muted)}
-
+.big{
+  font-size:28px;
+  font-weight:800;
+}
 .request{
   border:1px solid #eef1f6;
   border-radius:16px;
@@ -131,17 +99,6 @@ header{
 }
 .request.pending{border-left:6px solid var(--orange)}
 .request.assigned{border-left:6px solid var(--green)}
-
-.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.tag{
-  font-size:12px;
-  background:#f2f5fb;
-  border:1px solid #e6ebf5;
-  padding:4px 10px;
-  border-radius:999px;
-  color:var(--muted);
-}
-
 .actions{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -160,18 +117,7 @@ header{
 .refuse{background:var(--red)}
 .chat{background:#123c8a}
 .call{background:#6c5ce7}
-.actions button:disabled{opacity:.6}
-
-.timer{
-  font-size:13px;
-  font-weight:700;
-  margin-top:6px;
-}
-.timer.warn{color:var(--red)}
-
 .empty{color:var(--muted);font-size:14px}
-
-/* FOOTER */
 footer{
   margin-top:auto;
   padding:18px;
@@ -189,48 +135,58 @@ footer{
 <header>
   <div class="brand">
     <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div>
-      <strong>CizaHealth+</strong><br>
-      <span>Dashboard Professionnel</span>
+    <div class="meta">
+      <strong id="proName">—</strong><br>
+      <span id="proMeta">—</span>
     </div>
   </div>
 
   <div class="topRight">
-    <button class="iconBtn" id="notifBtn">🔔 <span id="notifCount" class="badge">0</span></button>
-
-    <label class="switch">
-      <input type="checkbox" id="onlineToggle">
-      <span class="slider"></span>
-    </label>
-
+    <div id="onlineBadge" class="status offline">OFFLINE</div>
+    <button>🔔 <span id="notifCount" class="badge">0</span></button>
     <button class="logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>
 
 <div class="content">
 
-<div class="card">
-  <h3>🟡 Requêtes en attente</h3>
-  <div class="small">Première acceptation valide • expiration automatique</div>
-  <div id="pendingList" class="empty">Chargement…</div>
+  <!-- STATS -->
+  <div class="grid3">
+    <div class="card">
+      <h3>🟢 Acceptées</h3>
+      <div id="countAccepted" class="big">0</div>
+    </div>
+    <div class="card">
+      <h3>🔴 Refusées</h3>
+      <div id="countRefused" class="big">0</div>
+    </div>
+    <div class="card">
+      <h3>🔵 Consultations</h3>
+      <div id="countConsultations" class="big">0</div>
+    </div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="card">
+    <h3>🟡 Requêtes en attente</h3>
+    <div id="pendingList" class="empty">Chargement…</div>
+  </div>
+
+  <!-- ASSIGNED -->
+  <div class="card">
+    <h3>🟢 Requêtes acceptées</h3>
+    <div id="assignedList" class="empty">Aucune demande</div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="card">
+    <h3>🔔 Notifications</h3>
+    <div id="notificationsList" class="empty">Aucune notification</div>
+  </div>
+
 </div>
 
-<div class="card">
-  <h3>🟢 Requêtes acceptées</h3>
-  <div id="assignedList" class="empty">Aucune demande</div>
-</div>
-
-<div class="card">
-  <h3>🔔 Notifications</h3>
-  <div id="notificationsList" class="empty">Aucune notification</div>
-</div>
-
-</div>
-
-<footer>
-© 2026 <strong>CizaHealth+</strong> — Plateforme de santé sécurisée
-</footer>
-
+<footer>© 2026 <strong>CizaHealth+</strong></footer>
 </div>
 
 <script type="module">
@@ -239,129 +195,153 @@ import { onAuthStateChanged, signOut }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, onSnapshot,
-  updateDoc, doc, addDoc, serverTimestamp
+  updateDoc, doc, setDoc, serverTimestamp, getDoc, orderBy
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-logoutBtn.onclick=async()=>{
+let heartbeat = null;
+
+logoutBtn.onclick = async ()=>{
+  if(heartbeat) clearInterval(heartbeat);
   await signOut(auth);
   location.href="/cizahealth/index.html";
 };
 
-function timeLeft(ts){
-  const diff = ts.toDate() - Date.now();
-  if(diff<=0) return "Expirée";
-  const m = Math.floor(diff/60000);
-  const s = Math.floor((diff%60000)/1000);
-  return `${m}:${String(s).padStart(2,"0")}`;
-}
-
-onAuthStateChanged(auth,user=>{
+onAuthStateChanged(auth, async user=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  /* ONLINE / OFFLINE */
-  onlineToggle.onchange=()=>{
-    updateDoc(doc(db,"users",user.uid),{
-      online:onlineToggle.checked,
-      onlineUpdatedAt:serverTimestamp()
-    });
-  };
+  /* ===== LOAD PRO INFO ===== */
+  const proSnap = await getDoc(doc(db,"users",user.uid));
+  if(proSnap.exists()){
+    const p = proSnap.data();
+    proName.textContent = p.fullName || "—";
+    proMeta.textContent = `${p.role||"—"} • ${p.speciality||"—"} • ${p.service||"—"} • ${p.province||"—"}`;
+  }
 
-  /* 🔔 PENDING – MULTI PRO */
+  /* ===== HEARTBEAT ===== */
+  heartbeat = setInterval(()=>{
+    updateDoc(doc(db,"users",user.uid),{
+      lastOnlineAt: serverTimestamp()
+    });
+  },15000);
+
+  /* ===== ONLINE BADGE ===== */
+  onSnapshot(doc(db,"users",user.uid),snap=>{
+    if(!snap.exists()) return;
+    const last = snap.data().lastOnlineAt?.toMillis?.();
+    if(last && Date.now()-last <= 30000){
+      onlineBadge.textContent="ONLINE";
+      onlineBadge.className="status online";
+    }else{
+      onlineBadge.textContent="OFFLINE";
+      onlineBadge.className="status offline";
+    }
+  });
+
+  /* ===== NOTIFICATIONS ===== */
   onSnapshot(
-    query(collection(db,"requests"),
-      where("status","==","pending")
+    query(collection(db,"notifications"),
+      where("receiverId","==",user.uid),
+      orderBy("createdAt","desc")
     ),
     snap=>{
-      pendingList.innerHTML="";
-      if(snap.empty) return pendingList.innerHTML='<div class="empty">Aucune requête</div>';
-
+      notifCount.textContent = snap.docs.filter(d=>!d.data().read).length;
+      notificationsList.innerHTML="";
+      if(snap.empty){
+        notificationsList.innerHTML='<div class="empty">Aucune notification</div>';
+        return;
+      }
       snap.forEach(d=>{
-        const r=d.data();
+        const n=d.data();
         const div=document.createElement("div");
-        div.className="request pending";
+        div.textContent = n.title || "Notification";
+        notificationsList.appendChild(div);
+      });
+    }
+  );
 
-        const expires = r.expiresAt ? timeLeft(r.expiresAt) : "—";
-        const warn = r.expiresAt && (r.expiresAt.toDate()-Date.now()<30000);
+  /* ===== STATS ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid)
+  ),snap=>{
+    countAccepted.textContent = snap.docs.filter(d=>d.data().status==="assigned").length;
+    countConsultations.textContent = snap.docs.length;
+  });
 
-        div.innerHTML=`
-<strong>${r.serviceType||"Service médical"}</strong><br>
-<span class="small">${r.symptoms||"—"}</span>
+  onSnapshot(query(collection(db,"requests"),
+    where("refusedBy","==",user.uid)
+  ),snap=>{
+    countRefused.textContent = snap.size;
+  });
 
-<div class="tags">
-  <span class="tag">Province : ${r.province||"—"}</span>
-  <span class="tag">Âge : ${r.patientAge||"—"}</span>
-</div>
-
-<div class="timer ${warn?"warn":""}">⏱ Expire dans : ${expires}</div>
-
+  /* ===== PENDING ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("status","==","pending")
+  ),snap=>{
+    pendingList.innerHTML="";
+    if(snap.empty){
+      pendingList.innerHTML='<div class="empty">Aucune requête</div>';
+      return;
+    }
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request pending";
+      div.innerHTML=`
+<strong>${r.serviceType||"Service médical"}</strong>
 <div class="actions">
   <button class="accept">Accepter</button>
-  <button class="refuse">Refuser</button>
-  <button class="chat" disabled>Chat</button>
-</div>
-`;
+</div>`;
+      div.querySelector(".accept").onclick=async()=>{
+        await updateDoc(doc(db,"requests",d.id),{
+          status:"assigned",
+          assignedProUid:user.uid,
+          assignedAt:serverTimestamp()
+        });
+      };
+      pendingList.appendChild(div);
+    });
+  });
 
-        div.querySelector(".accept").onclick=()=>{
-          updateDoc(doc(db,"requests",d.id),{
-            status:"assigned",
-            assignedProUid:user.uid,
-            assignedAt:serverTimestamp()
-          });
-        };
-
-        div.querySelector(".refuse").onclick=()=>{
-          updateDoc(doc(db,"requests",d.id),{
-            status:"refused",
-            refusedBy:user.uid,
-            refusedAt:serverTimestamp()
-          });
-        };
-
-        pendingList.appendChild(div);
-      });
+  /* ===== ASSIGNED ===== */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid)
+  ),snap=>{
+    assignedList.innerHTML="";
+    if(snap.empty){
+      assignedList.innerHTML='<div class="empty">Aucune demande</div>';
+      return;
     }
-  );
-
-  /* 🟢 ASSIGNED */
-  onSnapshot(
-    query(collection(db,"requests"),
-      where("assignedProUid","==",user.uid)
-    ),
-    snap=>{
-      assignedList.innerHTML="";
-      if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
-
-      snap.forEach(d=>{
-        const r=d.data();
-        const div=document.createElement("div");
-        div.className="request assigned";
-        div.innerHTML=`
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request assigned";
+      div.innerHTML=`
 <strong>${r.serviceType}</strong>
-<div class="tags">
-  <span class="tag">En consultation</span>
-</div>
-
 <div class="actions">
-  <button class="call">☎️ Appeler</button>
+  <button class="call">📞 Appeler</button>
   <button class="chat">💬 Chat</button>
-</div>
-`;
-        div.querySelector(".call").onclick=()=>{
-          addDoc(collection(db,"callSessions"),{
-            requestId:d.id,
-            proUid:user.uid,
-            status:"ringing",
-            createdAt:serverTimestamp()
-          });
-        };
-        div.querySelector(".chat").onclick=()=>{
-          alert("Chat interne activé");
-        };
-        assignedList.appendChild(div);
-      });
-    }
-  );
+</div>`;
+      div.querySelector(".call").onclick=async()=>{
+        await setDoc(doc(db,"callSessions",d.id),{
+          requestId:d.id,
+          proUid:user.uid,
+          status:"ringing",
+          createdAt:serverTimestamp()
+        },{merge:true});
+        location.href=\`/cizahealth/call.html?requestId=\${d.id}&role=pro\`;
+      };
+      div.querySelector(".chat").onclick=async()=>{
+        await setDoc(doc(db,"chats",d.id),{
+          requestId:d.id,
+          createdAt:serverTimestamp()
+        },{merge:true});
+        location.href=\`/cizahealth/chat.html?requestId=\${d.id}&role=pro\`;
+      };
+      assignedList.appendChild(div);
+    });
+  });
+
 });
 </script>
 
