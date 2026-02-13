@@ -18,16 +18,15 @@
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;background:var(--bg);color:var(--text)}
-.app{max-width:1300px;margin:auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
-header{background:linear-gradient(90deg,#123c8a,#0b2c66);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
-.brand{display:flex;align-items:center;gap:14px}
-.brand img.photo{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #fff}
+.app{max-width:1200px;margin:auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
+header{background:linear-gradient(90deg,#123c8a,#0b2c66);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:48px;width:48px;border-radius:50%;object-fit:cover}
+.status{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:999px;font-size:13px;font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;background:#e74c3c}
 .content{padding:24px;display:grid;gap:24px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
 .request{border:1px solid #eef1f6;border-radius:16px;padding:16px;margin-bottom:14px}
-.request.pending{border-left:6px solid var(--orange)}
-.request.assigned{border-left:6px solid var(--green)}
 .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .actions button{padding:12px;border:none;border-radius:14px;font-weight:800;color:#fff;cursor:pointer}
 .accept{background:var(--green)}
@@ -36,9 +35,7 @@ header{background:linear-gradient(90deg,#123c8a,#0b2c66);color:#fff;padding:18px
 .call{background:#6c5ce7}
 .report{background:#0b2c66}
 .empty{color:var(--muted);font-size:14px}
-.big{font-size:26px;font-weight:800}
-footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:center;font-size:12px;color:#6b7a90}
-.badge{background:#e74c3c;color:#fff;border-radius:999px;padding:3px 9px;font-size:12px}
+.badge{background:#e74c3c;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;display:none}
 </style>
 </head>
 
@@ -47,44 +44,47 @@ footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:cent
 
 <header>
   <div class="brand">
-    <img id="proPhoto" class="photo"
+    <img id="proPhoto"
       src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
     <div>
       <strong id="proName">—</strong><br>
       <span id="proMeta">—</span>
     </div>
   </div>
-  <div>
-    <span>🔔 <span id="notifCount" class="badge">0</span></span>
+
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="status">
+      <span id="onlineDot" class="dot"></span>
+      <span id="onlineText">Hors ligne</span>
+    </div>
+
+    <button id="notifBtn" style="position:relative;border:none;background:#fff;padding:8px 12px;border-radius:12px;font-weight:700;cursor:pointer">
+      🔔
+      <span id="notifCount" class="badge">0</span>
+    </button>
+
     <button id="logoutBtn">Déconnexion</button>
   </div>
 </header>
 
 <div class="content">
 
-<!-- STATS -->
-<div class="grid4">
-  <div class="card"><h3>Acceptées</h3><div id="statAccepted" class="big">0</div></div>
-  <div class="card"><h3>Refusées</h3><div id="statRefused" class="big">0</div></div>
-  <div class="card"><h3>Actives</h3><div id="statActive" class="big">0</div></div>
-  <div class="card"><h3>Rapports</h3><div id="statReports" class="big">0</div></div>
-</div>
-
-<!-- PENDING -->
 <div class="card">
   <h3>🟡 Requêtes en attente</h3>
   <div id="pendingList" class="empty">Chargement…</div>
 </div>
 
-<!-- ASSIGNED -->
 <div class="card">
   <h3>🟢 Requêtes acceptées</h3>
   <div id="assignedList" class="empty">Aucune demande</div>
 </div>
 
+<div class="card">
+  <h3>🔔 Notifications</h3>
+  <div id="notificationsList" class="empty">Aucune notification</div>
 </div>
 
-<footer>© 2026 CizaHealth+</footer>
+</div>
 </div>
 
 <script type="module">
@@ -94,123 +94,116 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection, query, where, onSnapshot,
   doc, updateDoc, serverTimestamp,
-  getDoc
+  getDoc, addDoc
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const logoutBtn=document.getElementById("logoutBtn");
-logoutBtn.onclick=async()=>{
+const proPhoto=document.getElementById("proPhoto");
+const proName=document.getElementById("proName");
+const proMeta=document.getElementById("proMeta");
+const onlineDot=document.getElementById("onlineDot");
+const onlineText=document.getElementById("onlineText");
+const notifCount=document.getElementById("notifCount");
+const notificationsList=document.getElementById("notificationsList");
+const pendingList=document.getElementById("pendingList");
+const assignedList=document.getElementById("assignedList");
+
+document.getElementById("logoutBtn").onclick=async()=>{
   await signOut(auth);
   location.href="/cizahealth/index.html";
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user) return location.href="/cizahealth/index.html";
+if(!user) return location.href="/cizahealth/index.html";
 
-  const proSnap=await getDoc(doc(db,"users",user.uid));
-  if(!proSnap.exists()) return;
-  const p=proSnap.data();
+const snap=await getDoc(doc(db,"users",user.uid));
+const p=snap.data();
 
-  const fullName=p.fullName||"Médecin";
-  const speciality=p.speciality||"Médecin";
-  const province=p.province||"";
-  const photo=p.photoURL||"";
+proName.textContent=p.fullName||"Médecin";
+proMeta.textContent=`${p.speciality||"Médecin"} • ${p.province||""}`;
+if(p.photoURL) proPhoto.src=p.photoURL;
 
-  document.getElementById("proName").textContent=fullName;
-  document.getElementById("proMeta").textContent=`${speciality} • ${province}`;
-  if(photo) document.getElementById("proPhoto").src=photo;
+/* ONLINE */
+setInterval(()=>{
+updateDoc(doc(db,"users",user.uid),{lastOnlineAt:serverTimestamp()});
+},15000);
 
-  /* 🔔 NOTIFICATIONS */
-  onSnapshot(query(collection(db,"notifications"),where("receiverId","==",user.uid)),snap=>{
-    document.getElementById("notifCount").textContent=snap.size;
-  });
+onSnapshot(doc(db,"users",user.uid),s=>{
+const last=s.data()?.lastOnlineAt?.toMillis?.();
+const online=last && Date.now()-last<30000;
+onlineDot.style.background=online?"#2ecc71":"#e74c3c";
+onlineText.textContent=online?"En ligne":"Hors ligne";
+});
 
-  /* 🟡 PENDING MATCHING PAR PROVINCE */
-  onSnapshot(
-    query(collection(db,"requests"),
-      where("status","==","pending"),
-      where("province","==",province)
-    ),
-    snap=>{
-      const container=document.getElementById("pendingList");
-      container.innerHTML="";
-      if(snap.empty){container.innerHTML='<div class="empty">Aucune requête</div>';return;}
+/* PENDING PROVINCE */
+onSnapshot(query(collection(db,"requests"),
+where("status","==","pending"),
+where("province","==",p.province)),
+snap=>{
+pendingList.innerHTML="";
+if(snap.empty){pendingList.innerHTML='<div class="empty">Aucune requête</div>';return;}
 
-      snap.forEach(d=>{
-        const r=d.data();
-        const div=document.createElement("div");
-        div.className="request pending";
-        div.innerHTML=`
+snap.forEach(d=>{
+const r=d.data();
+const div=document.createElement("div");
+div.className="request";
+div.innerHTML=`
 <strong>${r.fullName||"Patient"}</strong>
-<div class="empty">${r.province||""}</div>
 <div class="actions">
 <button class="accept">Accepter</button>
 <button class="refuse">Refuser</button>
 <button class="chat" disabled>Chat</button>
 </div>`;
 
-        div.querySelector(".accept").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
-            status:"assigned",
-            assignedProUid:user.uid,
-            assignedProName:fullName,
-            assignedProSpeciality:speciality,
-            assignedProProvince:province,
-            assignedProPhoto:photo,
-            assignedAt:serverTimestamp()
-          });
-        };
+div.querySelector(".accept").onclick=async()=>{
+await updateDoc(doc(db,"requests",d.id),{
+status:"assigned",
+assignedProUid:user.uid,
+assignedProName:p.fullName,
+assignedProSpeciality:p.speciality,
+assignedProProvince:p.province,
+assignedProPhoto:p.photoURL||"",
+assignedAt:serverTimestamp()
+});
+};
 
-        div.querySelector(".refuse").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
-            status:"refused",
-            refusedBy:user.uid,
-            refusedAt:serverTimestamp()
-          });
-        };
+div.querySelector(".refuse").onclick=async()=>{
+await updateDoc(doc(db,"requests",d.id),{
+status:"refused",
+refusedBy:user.uid
+});
+};
 
-        container.appendChild(div);
-      });
-    }
-  );
+pendingList.appendChild(div);
+});
+});
 
-  /* 🟢 ASSIGNED */
-  onSnapshot(
-    query(collection(db,"requests"),
-      where("assignedProUid","==",user.uid)
-    ),
-    snap=>{
-      const container=document.getElementById("assignedList");
-      container.innerHTML="";
-      let active=0;
-
-      snap.forEach(d=>{
-        const r=d.data();
-        if(r.status==="assigned"||r.status==="in_call"){
-          active++;
-          const div=document.createElement("div");
-          div.className="request assigned";
-          div.innerHTML=`
+/* ASSIGNED */
+onSnapshot(query(collection(db,"requests"),
+where("assignedProUid","==",user.uid)),
+snap=>{
+assignedList.innerHTML="";
+snap.forEach(d=>{
+const r=d.data();
+if(r.status==="assigned"){
+const div=document.createElement("div");
+div.className="request";
+div.innerHTML=`
 <strong>Consultation</strong>
 <div class="actions">
 <button class="call">📞 Appeler</button>
 <button class="chat">💬 Chat</button>
 <button class="report">📝 Rapport</button>
 </div>`;
-          div.querySelector(".call").onclick=()=>location.href=`/cizahealth/call.html?requestId=${d.id}&role=pro`;
-          div.querySelector(".chat").onclick=()=>location.href=`/cizahealth/chat.html?requestId=${d.id}&role=pro`;
-          div.querySelector(".report").onclick=()=>location.href=`/cizahealth/report.html?requestId=${d.id}&role=pro`;
-          container.appendChild(div);
-        }
-      });
-
-      document.getElementById("statActive").textContent=active;
-      document.getElementById("statAccepted").textContent=active;
-    }
-  );
+div.querySelector(".call").onclick=()=>{
+location.href=`call.html?requestId=${d.id}`;
+};
+assignedList.appendChild(div);
+}
+});
+});
 
 });
 </script>
-
 </body>
 </html>
