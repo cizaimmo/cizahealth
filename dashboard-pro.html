@@ -2,287 +2,316 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CizaHealth+ | Dashboard Professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
-  --primary:#0E3A8A;
-  --primary-dark:#0A2F6A;
-  --success:#1B6B3A;
-  --warning:#F39C12;
-  --danger:#C0392B;
-  --bg:#F4F7FB;
-  --card:#FFFFFF;
-  --text:#0A1A2F;
-  --muted:#6B7A90;
+  --blue:#123c8a;
+  --green:#1b6b3a;
+  --red:#c0392b;
+  --orange:#e67e22;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
   --radius:20px;
 }
-
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:var(--bg);
   color:var(--text);
 }
-
-/* HEADER */
-header{
-  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
-  color:#fff;
-  padding:18px 24px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.brand{
+.app{
+  max-width:1200px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
   display:flex;
   flex-direction:column;
 }
 
-.status{
+/* ===== HEADER ===== */
+header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:linear-gradient(90deg,#123c8a,#0b2c66);
+  color:#fff;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.brand{
   display:flex;
   align-items:center;
-  gap:8px;
-  font-weight:700;
+  gap:12px;
 }
+.brand img{height:38px}
+.brand span{font-size:12px;opacity:.85}
 
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:red;
+.topRight{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
-.dot.online{background:#2ecc71}
-
-.notif-btn{
+.switch{
   position:relative;
+  width:46px;
+  height:24px;
+}
+.switch input{display:none}
+.slider{
+  position:absolute;
+  inset:0;
+  background:#ccc;
+  border-radius:999px;
+  cursor:pointer;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:18px;height:18px;
+  left:3px;top:3px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s;
+}
+.switch input:checked + .slider{
+  background:#2ecc71;
+}
+.switch input:checked + .slider:before{
+  transform:translateX(22px);
+}
+
+.logout{
+  border:none;
+  background:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.iconBtn{
   background:#fff;
   border:none;
-  padding:8px 14px;
   border-radius:12px;
-  cursor:pointer;
+  padding:8px 10px;
   font-weight:700;
+  cursor:pointer;
 }
 .badge{
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:var(--danger);
+  background:#e74c3c;
   color:#fff;
-  font-size:11px;
-  padding:3px 6px;
   border-radius:999px;
+  padding:2px 8px;
+  font-size:12px;
+  margin-left:4px;
 }
 
-/* MAIN */
-main{
-  max-width:1200px;
-  margin:auto;
-  padding:24px;
-}
+/* ===== CONTENT ===== */
+.content{padding:24px;display:grid;gap:24px}
 
-/* KPI */
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:16px;
-}
-
-.kpi{
-  background:#fff;
-  padding:18px;
-  border-radius:var(--radius);
-  box-shadow:0 10px 26px rgba(10,42,94,.08);
-}
-.kpi h4{
-  margin:0;
-  font-size:13px;
-  color:var(--muted);
-}
-.kpi .value{
-  margin-top:6px;
-  font-size:28px;
-  font-weight:900;
-}
-
-/* CARDS */
 .card{
   background:#fff;
-  padding:20px;
   border-radius:var(--radius);
-  box-shadow:0 10px 26px rgba(10,42,94,.08);
-  margin-top:24px;
+  padding:20px;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
+.card h3{margin:0 0 8px}
+.small{font-size:12px;color:var(--muted)}
 
 .request{
-  border:1px solid #EEF1F6;
-  padding:16px;
+  border:1px solid #eef1f6;
   border-radius:16px;
-  margin-bottom:12px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.request.pending{border-left:6px solid var(--orange)}
+.request.assigned{border-left:6px solid var(--green)}
+
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag{
+  font-size:12px;
+  background:#f2f5fb;
+  border:1px solid #e6ebf5;
+  padding:4px 10px;
+  border-radius:999px;
+  color:var(--muted);
 }
 
 .actions{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-top:10px;
+  gap:10px;
+  margin-top:12px;
 }
-
 .actions button{
+  padding:12px;
   border:none;
-  padding:10px;
-  border-radius:10px;
-  font-weight:700;
+  border-radius:14px;
+  font-weight:800;
   color:#fff;
   cursor:pointer;
 }
+.accept{background:var(--green)}
+.refuse{background:var(--red)}
+.chat{background:#123c8a}
+.call{background:#6c5ce7}
+.actions button:disabled{opacity:.6}
 
-.accept{background:var(--success)}
-.refuse{background:var(--danger)}
-.call{background:#6C5CE7}
-.chat{background:var(--primary)}
+.timer{
+  font-size:13px;
+  font-weight:700;
+  margin-top:6px;
+}
+.timer.warn{color:var(--red)}
+
+.empty{color:var(--muted);font-size:14px}
+
+/* FOOTER */
+footer{
+  margin-top:auto;
+  padding:18px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#6b7a90;
+}
 </style>
 </head>
 
 <body>
+<div class="app">
 
 <header>
   <div class="brand">
-    <strong id="proName">—</strong>
-    <small id="proMeta">—</small>
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      <strong>CizaHealth+</strong><br>
+      <span>Dashboard Professionnel</span>
+    </div>
   </div>
 
-  <div class="status">
-    <div id="statusDot" class="dot"></div>
-    <span id="statusText">Hors ligne</span>
-  </div>
+  <div class="topRight">
+    <button class="iconBtn" id="notifBtn">🔔 <span id="notifCount" class="badge">0</span></button>
 
-  <button class="notif-btn">
-    🔔
-    <span id="notifBadge" class="badge" style="display:none">0</span>
-  </button>
+    <label class="switch">
+      <input type="checkbox" id="onlineToggle">
+      <span class="slider"></span>
+    </label>
+
+    <button class="logout" id="logoutBtn">Déconnexion</button>
+  </div>
 </header>
 
-<main>
+<div class="content">
 
-<section class="kpis">
-  <div class="kpi"><h4>Demandes</h4><div class="value" id="kpiPending">0</div></div>
-  <div class="kpi"><h4>Actives</h4><div class="value" id="kpiActive">0</div></div>
-  <div class="kpi"><h4>Terminées</h4><div class="value" id="kpiDone">0</div></div>
-  <div class="kpi"><h4>Revenus</h4><div class="value" id="kpiRevenue">0</div></div>
-</section>
+<div class="card">
+  <h3>🟡 Requêtes en attente</h3>
+  <div class="small">Première acceptation valide • expiration automatique</div>
+  <div id="pendingList" class="empty">Chargement…</div>
+</div>
 
-<section class="card">
-  <h3>🟡 Demandes en attente</h3>
-  <div id="pendingList"></div>
-</section>
+<div class="card">
+  <h3>🟢 Requêtes acceptées</h3>
+  <div id="assignedList" class="empty">Aucune demande</div>
+</div>
 
-<section class="card">
-  <h3>🟢 Consultations actives</h3>
-  <div id="activeList"></div>
-</section>
+<div class="card">
+  <h3>🔔 Notifications</h3>
+  <div id="notificationsList" class="empty">Aucune notification</div>
+</div>
 
-</main>
+</div>
+
+<footer>
+© 2026 <strong>CizaHealth+</strong> — Plateforme de santé sécurisée
+</footer>
+
+</div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
+import { onAuthStateChanged, signOut }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where,
-  onSnapshot, serverTimestamp
+  collection, query, where, onSnapshot,
+  updateDoc, doc, addDoc, serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const proName=document.getElementById("proName");
-const proMeta=document.getElementById("proMeta");
-const statusDot=document.getElementById("statusDot");
-const statusText=document.getElementById("statusText");
-const notifBadge=document.getElementById("notifBadge");
+logoutBtn.onclick=async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
 
-const pendingList=document.getElementById("pendingList");
-const activeList=document.getElementById("activeList");
+function timeLeft(ts){
+  const diff = ts.toDate() - Date.now();
+  if(diff<=0) return "Expirée";
+  const m = Math.floor(diff/60000);
+  const s = Math.floor((diff%60000)/1000);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
 
-const kpiPending=document.getElementById("kpiPending");
-const kpiActive=document.getElementById("kpiActive");
-
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth,user=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  const userRef=doc(db,"users",user.uid);
-  const snap=await getDoc(userRef);
-  const p=snap.data();
+  /* ONLINE / OFFLINE */
+  onlineToggle.onchange=()=>{
+    updateDoc(doc(db,"users",user.uid),{
+      online:onlineToggle.checked,
+      onlineUpdatedAt:serverTimestamp()
+    });
+  };
 
-  proName.textContent=p.fullName;
-  proMeta.textContent=`${p.speciality} • ${p.province}`;
-
-  /* ONLINE HEARTBEAT */
-  setInterval(()=>{
-    updateDoc(userRef,{lastOnlineAt:serverTimestamp()});
-  },15000);
-
-  onSnapshot(userRef,s=>{
-    const last=s.data()?.lastOnlineAt?.toMillis?.();
-    const online=last && Date.now()-last<30000;
-    statusDot.classList.toggle("online",online);
-    statusText.textContent=online?"En ligne":"Hors ligne";
-  });
-
-  /* NOTIFICATIONS */
-  onSnapshot(
-    query(collection(db,"notifications"),
-      where("receiverId","==",user.uid),
-      where("read","==",false)),
-    snap=>{
-      if(snap.size>0){
-        notifBadge.style.display="block";
-        notifBadge.textContent=snap.size;
-      }else{
-        notifBadge.style.display="none";
-      }
-    }
-  );
-
-  /* MATCHING PROVINCE */
+  /* 🔔 PENDING – MULTI PRO */
   onSnapshot(
     query(collection(db,"requests"),
-      where("status","==","pending"),
-      where("province","==",p.province)
+      where("status","==","pending")
     ),
     snap=>{
       pendingList.innerHTML="";
-      kpiPending.textContent=snap.size;
+      if(snap.empty) return pendingList.innerHTML='<div class="empty">Aucune requête</div>';
 
       snap.forEach(d=>{
         const r=d.data();
         const div=document.createElement("div");
-        div.className="request";
+        div.className="request pending";
+
+        const expires = r.expiresAt ? timeLeft(r.expiresAt) : "—";
+        const warn = r.expiresAt && (r.expiresAt.toDate()-Date.now()<30000);
 
         div.innerHTML=`
-          <strong>${r.fullName}</strong><br>
-          <small>${r.motif || ""}</small>
-          <div class="actions">
-            <button class="accept">Accepter</button>
-            <button class="refuse">Refuser</button>
-            <button disabled class="chat">Chat</button>
-          </div>
-        `;
+<strong>${r.serviceType||"Service médical"}</strong><br>
+<span class="small">${r.symptoms||"—"}</span>
 
-        div.querySelector(".accept").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
+<div class="tags">
+  <span class="tag">Province : ${r.province||"—"}</span>
+  <span class="tag">Âge : ${r.patientAge||"—"}</span>
+</div>
+
+<div class="timer ${warn?"warn":""}">⏱ Expire dans : ${expires}</div>
+
+<div class="actions">
+  <button class="accept">Accepter</button>
+  <button class="refuse">Refuser</button>
+  <button class="chat" disabled>Chat</button>
+</div>
+`;
+
+        div.querySelector(".accept").onclick=()=>{
+          updateDoc(doc(db,"requests",d.id),{
             status:"assigned",
             assignedProUid:user.uid,
-            assignedProName:p.fullName,
             assignedAt:serverTimestamp()
           });
         };
 
-        div.querySelector(".refuse").onclick=async()=>{
-          await updateDoc(doc(db,"requests",d.id),{
+        div.querySelector(".refuse").onclick=()=>{
+          updateDoc(doc(db,"requests",d.id),{
             status:"refused",
             refusedBy:user.uid,
             refusedAt:serverTimestamp()
@@ -294,52 +323,45 @@ onAuthStateChanged(auth, async(user)=>{
     }
   );
 
-  /* CONSULTATIONS ACTIVES */
+  /* 🟢 ASSIGNED */
   onSnapshot(
     query(collection(db,"requests"),
       where("assignedProUid","==",user.uid)
     ),
     snap=>{
-      activeList.innerHTML="";
-      let count=0;
+      assignedList.innerHTML="";
+      if(snap.empty) return assignedList.innerHTML='<div class="empty">Aucune demande</div>';
 
       snap.forEach(d=>{
         const r=d.data();
-        if(r.status==="assigned"||r.status==="in_call"){
-          count++;
+        const div=document.createElement("div");
+        div.className="request assigned";
+        div.innerHTML=`
+<strong>${r.serviceType}</strong>
+<div class="tags">
+  <span class="tag">En consultation</span>
+</div>
 
-          const div=document.createElement("div");
-          div.className="request";
-
-          div.innerHTML=`
-            <strong>Consultation</strong>
-            <div class="actions">
-              <button class="call">📞</button>
-              <button class="chat">💬</button>
-              <button class="accept">📝</button>
-            </div>
-          `;
-
-          div.querySelector(".call").onclick=()=>{
-            location.href=`/cizahealth/call.html?requestId=${d.id}`;
-          };
-
-          div.querySelector(".chat").onclick=()=>{
-            location.href=`/cizahealth/chat.html?requestId=${d.id}`;
-          };
-
-          div.querySelector(".accept").onclick=()=>{
-            location.href=`/cizahealth/report.html?requestId=${d.id}`;
-          };
-
-          activeList.appendChild(div);
-        }
+<div class="actions">
+  <button class="call">☎️ Appeler</button>
+  <button class="chat">💬 Chat</button>
+</div>
+`;
+        div.querySelector(".call").onclick=()=>{
+          addDoc(collection(db,"callSessions"),{
+            requestId:d.id,
+            proUid:user.uid,
+            status:"ringing",
+            createdAt:serverTimestamp()
+          });
+        };
+        div.querySelector(".chat").onclick=()=>{
+          alert("Chat interne activé");
+        };
+        assignedList.appendChild(div);
       });
-
-      kpiActive.textContent=count;
     }
   );
-
 });
 </script>
 
