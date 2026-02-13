@@ -20,201 +20,181 @@
 }
 
 *{box-sizing:border-box}
-html,body{
+body{
   margin:0;
-  padding:0;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   background:var(--bg);
   color:var(--text);
 }
 
-.app{min-height:100vh;display:flex;flex-direction:column}
-
-/* ===== HEADER ===== */
 header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
-}
-.header-inner{
-  max-width:1440px;
-  margin:auto;
   padding:16px 20px;
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  gap:16px;
 }
-.brand{display:flex;align-items:center;gap:12px;flex:1}
-.brand img{height:38px}
-.brand strong{font-size:16px}
-.brand span{font-size:13px;opacity:.9}
 
-.status{display:flex;align-items:center;gap:6px;font-weight:700}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--danger)}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brand img{height:36px}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:red;
+}
+
 .dot.online{background:#2ecc71}
 
-.header-actions{display:flex;gap:10px}
-.icon-btn{
+.notif-btn{
+  position:relative;
   background:#fff;
   color:var(--primary);
   border:none;
-  border-radius:12px;
   padding:8px 12px;
+  border-radius:12px;
   font-weight:800;
+  cursor:pointer;
 }
+
 .badge{
+  position:absolute;
+  top:-6px;
+  right:-6px;
   background:var(--danger);
   color:#fff;
-  border-radius:999px;
-  padding:2px 7px;
   font-size:11px;
+  padding:3px 7px;
+  border-radius:999px;
 }
-.logout{background:none;border:none;color:#fff;font-weight:800;cursor:pointer}
 
-main{max-width:1440px;margin:auto;width:100%;padding:22px}
-
-/* ===== KPI ===== */
-.kpis{display:grid;gap:16px}
-@media(max-width:599px){.kpis{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:600px) and (max-width:1023px){.kpis{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1024px){.kpis{grid-template-columns:repeat(6,1fr)}}
-.kpi{
-  background:var(--card);
-  border-radius:var(--radius);
+main{
   padding:22px;
-  box-shadow:0 10px 30px rgba(10,42,94,.08);
+  max-width:1200px;
+  margin:auto;
 }
-.kpi h4{margin:0;font-size:13px;color:var(--muted)}
-.kpi .value{margin-top:8px;font-size:30px;font-weight:900}
 
-/* ===== CARDS ===== */
 .card{
   background:#fff;
   border-radius:var(--radius);
   padding:20px;
   box-shadow:0 10px 26px rgba(10,42,94,.08);
-  margin-top:24px;
+  margin-top:20px;
 }
 
 .request{
   border:1px solid #EEF1F6;
   border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
+  padding:16px;
+  margin-bottom:12px;
 }
-.request.pending{border-left:6px solid var(--warning)}
-.request.assigned{border-left:6px solid var(--success)}
 
-.title{font-weight:900}
-.meta{margin-top:6px;font-size:13px;color:var(--muted)}
 .actions{
+  margin-top:12px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:14px;
+  gap:8px;
 }
+
 .actions button{
-  min-height:46px;
   border:none;
-  border-radius:14px;
-  font-weight:800;
+  border-radius:12px;
+  padding:10px;
+  font-weight:700;
   color:#fff;
   cursor:pointer;
 }
+
 .accept{background:var(--success)}
 .refuse{background:var(--danger)}
-.chat{background:var(--primary)}
 .call{background:#6C5CE7}
+.chat{background:var(--primary)}
 </style>
 </head>
 
 <body>
-<div class="app">
 
 <header>
-  <div class="header-inner">
-    <div class="brand">
-      <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-      <div>
-        <strong id="proName">—</strong>
-        <span id="proMeta">—</span>
-      </div>
-    </div>
-
-    <div class="status">
-      <span id="statusDot" class="dot"></span>
-      <span id="statusText">Hors ligne</span>
-    </div>
-
-    <div class="header-actions">
-      <button class="icon-btn">🔔 <span class="badge" id="notifCount">0</span></button>
-      <button class="logout" id="logoutBtn">Déconnexion</button>
+  <div class="brand">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div>
+      <strong id="proName">—</strong><br>
+      <small id="proMeta">—</small>
     </div>
   </div>
+
+  <div class="status">
+    <div id="statusDot" class="dot"></div>
+    <span id="statusText">Hors ligne</span>
+  </div>
+
+  <button class="notif-btn">
+    🔔
+    <span id="notifBadge" class="badge" style="display:none">0</span>
+  </button>
 </header>
 
 <main>
 
-<section class="kpis">
-  <div class="kpi"><h4>Actives</h4><div class="value" id="kpiActive">0</div></div>
-  <div class="kpi"><h4>En attente</h4><div class="value" id="kpiPending">0</div></div>
-  <div class="kpi"><h4>Terminées</h4><div class="value">0</div></div>
-  <div class="kpi"><h4>Payées</h4><div class="value">0</div></div>
-  <div class="kpi"><h4>Gains</h4><div class="value">0</div></div>
-  <div class="kpi"><h4>Aujourd’hui</h4><div class="value">0</div></div>
-</section>
-
-<section class="card">
-  <h3>🟡 Requêtes en attente</h3>
+<div class="card">
+  <h3>🟡 Demandes en attente</h3>
   <div id="pendingList"></div>
-</section>
+</div>
 
-<section class="card">
+<div class="card">
   <h3>🟢 Consultations actives</h3>
   <div id="activeList"></div>
-</section>
+</div>
 
 </main>
-  
+
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc, collection,
-  query, where, onSnapshot, serverTimestamp
+  doc, getDoc, updateDoc,
+  collection, query, where,
+  onSnapshot, serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const proName=document.getElementById("proName");
-const proMeta=document.getElementById("proMeta");
-const statusDot=document.getElementById("statusDot");
-const statusText=document.getElementById("statusText");
-const logoutBtn=document.getElementById("logoutBtn");
-
-const pendingList=document.getElementById("pendingList");
-const activeList=document.getElementById("activeList");
-const kpiPending=document.getElementById("kpiPending");
-const kpiActive=document.getElementById("kpiActive");
-
-logoutBtn.onclick=async()=>{
-  await signOut(auth);
-  location.href="/cizahealth/index.html";
-};
+const proName = document.getElementById("proName");
+const proMeta = document.getElementById("proMeta");
+const statusDot = document.getElementById("statusDot");
+const statusText = document.getElementById("statusText");
+const notifBadge = document.getElementById("notifBadge");
+const pendingList = document.getElementById("pendingList");
+const activeList = document.getElementById("activeList");
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  const userRef=doc(db,"users",user.uid);
-  const snap=await getDoc(userRef);
-  const p=snap.data();
+  const userRef = doc(db,"users",user.uid);
+  const snap = await getDoc(userRef);
+  const p = snap.data();
 
-  proName.textContent=p.fullName || "Professionnel";
-  proMeta.textContent=`${p.speciality || "Médecin"} • ${p.province || ""}`;
+  proName.textContent = p.fullName || "Professionnel";
+  proMeta.textContent = `${p.speciality || "Médecin"} • ${p.province || ""}`;
 
-  /* 🔵 ONLINE STATUS */
-  setInterval(()=>updateDoc(userRef,{
-    lastOnlineAt:serverTimestamp()
-  }),15000);
+  /* ONLINE */
+  setInterval(()=>{
+    updateDoc(userRef,{lastOnlineAt:serverTimestamp()});
+  },15000);
 
   onSnapshot(userRef,s=>{
     const last=s.data()?.lastOnlineAt?.toMillis?.();
@@ -223,25 +203,38 @@ onAuthStateChanged(auth, async(user)=>{
     statusText.textContent=online?"En ligne":"Hors ligne";
   });
 
-  /* ===========================
-     🟡 REQUESTS PENDING
-  ============================ */
+  /* 🔔 NOTIFICATIONS */
+  onSnapshot(
+    query(collection(db,"notifications"),
+      where("receiverId","==",user.uid),
+      where("read","==",false)),
+    snap=>{
+      if(snap.size>0){
+        notifBadge.style.display="block";
+        notifBadge.textContent=snap.size;
+      }else{
+        notifBadge.style.display="none";
+      }
+    }
+  );
 
+  /* 🟡 MATCHING PAR PROVINCE */
   onSnapshot(
     query(collection(db,"requests"),
-      where("status","==","pending")),
+      where("status","==","pending"),
+      where("province","==",p.province)
+    ),
     snap=>{
       pendingList.innerHTML="";
-      kpiPending.textContent=snap.size;
-
       snap.forEach(d=>{
         const r=d.data();
+
         const div=document.createElement("div");
-        div.className="request pending";
+        div.className="request";
 
         div.innerHTML=`
-          <div class="title">Demande patient</div>
-          <div class="meta">${r.province || ""}</div>
+          <strong>${r.fullName || "Patient"}</strong><br>
+          <small>${r.province}</small>
           <div class="actions">
             <button class="accept">Accepter</button>
             <button class="refuse">Refuser</button>
@@ -271,32 +264,23 @@ onAuthStateChanged(auth, async(user)=>{
     }
   );
 
-  /* ===========================
-     🟢 CONSULTATIONS ACTIVES
-     assigned + in_call
-  ============================ */
-
+  /* 🟢 CONSULTATIONS ACTIVES */
   onSnapshot(
     query(collection(db,"requests"),
-      where("assignedProUid","==",user.uid)),
+      where("assignedProUid","==",user.uid)
+    ),
     snap=>{
-
       activeList.innerHTML="";
-      let activeCount=0;
-
       snap.forEach(d=>{
         const r=d.data();
-
         if(r.status==="assigned" || r.status==="in_call"){
 
-          activeCount++;
-
           const div=document.createElement("div");
-          div.className="request assigned";
+          div.className="request";
 
           div.innerHTML=`
-            <div class="title">Consultation</div>
-            <div class="meta">Statut : ${r.status}</div>
+            <strong>Consultation</strong><br>
+            <small>Statut : ${r.status}</small>
             <div class="actions">
               <button class="call">📞 Appel</button>
               <button class="chat">💬 Chat</button>
@@ -304,21 +288,14 @@ onAuthStateChanged(auth, async(user)=>{
             </div>
           `;
 
-          /* 📞 CALL */
-          div.querySelector(".call").onclick=async()=>{
-            await updateDoc(doc(db,"requests",d.id),{
-              status:"in_call",
-              startedAt:serverTimestamp()
-            });
+          div.querySelector(".call").onclick=()=>{
             location.href=`/cizahealth/call.html?requestId=${d.id}`;
           };
 
-          /* 💬 CHAT */
           div.querySelector(".chat").onclick=()=>{
             location.href=`/cizahealth/chat.html?requestId=${d.id}`;
           };
 
-          /* 📝 REPORT */
           div.querySelector(".accept").onclick=()=>{
             location.href=`/cizahealth/report.html?requestId=${d.id}`;
           };
@@ -326,14 +303,11 @@ onAuthStateChanged(auth, async(user)=>{
           activeList.appendChild(div);
         }
       });
-
-      kpiActive.textContent=activeCount;
     }
   );
 
 });
 </script>
 
-</div>
 </body>
 </html>
