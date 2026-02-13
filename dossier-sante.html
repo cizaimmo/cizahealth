@@ -5,31 +5,30 @@
 <title>CizaHealth+ | Dossier médical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<meta name="theme-color" content="#0b2c66">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
   --blue:#123c8a;
   --blue-dark:#0b2c66;
+  --gold:#d4af37;
   --bg:#f4f7fb;
   --card:#ffffff;
-  --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:22px;
   --line:#e7edf7;
-  --pill:#eef3fb;
-  --ok:#1b6b3a;
-  --warn:#c58a00;
 }
+
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
-  color:var(--text);
 }
+
 .app{
   max-width:1000px;
   margin:auto;
@@ -37,6 +36,8 @@ body{
   display:flex;
   flex-direction:column;
 }
+
+/* HEADER */
 header{
   padding:18px 22px;
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
@@ -48,6 +49,7 @@ header{
 header strong{font-size:16px}
 header a{color:#fff;text-decoration:none;font-size:13px}
 
+/* SEGMENT */
 .segment{
   margin:20px auto;
   background:#eaf0fb;
@@ -55,7 +57,7 @@ header a{color:#fff;text-decoration:none;font-size:13px}
   padding:4px;
   display:flex;
   width:95%;
-  max-width:700px;
+  max-width:750px;
 }
 .segment button{
   flex:1;
@@ -73,101 +75,46 @@ header a{color:#fff;text-decoration:none;font-size:13px}
   color:#fff;
 }
 
+/* CONTENT */
 .content{padding:20px;flex:1}
 
 .card{
-  background:var(--card);
+  background:white;
   border-radius:var(--radius);
   padding:18px;
-  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  box-shadow:0 15px 40px rgba(0,0,0,.06);
   margin-bottom:14px;
-  border:1px solid rgba(231,237,247,.9);
+  border:1px solid var(--line);
 }
 
 .kv{font-size:14px;line-height:1.6}
 .muted{color:var(--muted);font-size:13px}
-.btn{
-  margin-top:12px;
-  padding:10px 14px;
-  border:none;
-  border-radius:14px;
-  background:#eef3fb;
-  color:var(--blue);
-  font-weight:700;
-  cursor:pointer;
-}
 .hidden{display:none}
-.footer{text-align:center;font-size:12px;color:#8a95a8;padding:22px}
 
-/* REPORT CARDS */
-.reportTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-.reportMeta{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:0;
-}
-.reportMeta strong{
-  display:block;
-  font-size:15px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.pills{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:2px;
-}
-.pill{
-  background:var(--pill);
-  color:var(--blue);
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:12px;
-  font-weight:800;
-}
-.pill.ok{color:var(--ok)}
-.pill.warn{color:var(--warn)}
-.hr{height:1px;background:var(--line);margin:14px 0}
-.reportDetails{
-  display:none;
-  margin-top:12px;
-}
-.reportDetails.open{display:block}
-.kline{
-  font-size:13.5px;
-  line-height:1.65;
-}
-.kline span{color:var(--muted)}
-.actionsRow{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-.btnSmall{
-  border:none;
-  border-radius:14px;
-  padding:10px 12px;
-  font-weight:800;
+/* PHOTO */
+.profile{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid #eef3fb;
   cursor:pointer;
-  background:#eef3fb;
-  color:var(--blue);
 }
-.btnPrimary{
-  background:linear-gradient(135deg,var(--blue),#1b4fa3);
-  color:#fff;
+
+/* QR */
+.qrWrap{text-align:center;margin-top:12px}
+.qrWrap img{
+  width:200px;
+  background:white;
+  padding:12px;
+  border-radius:18px;
 }
-.btnDanger{
-  background:#0b2c66;
-  color:#fff;
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+  padding:22px;
 }
 </style>
 </head>
@@ -176,47 +123,54 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 <div class="app">
 
 <header>
-  <strong>Dossier médical</strong>
-  <a href="dashboard-client.html">← Retour</a>
+<strong>Dossier médical</strong>
+<a href="dashboard-client.html">← Retour</a>
 </header>
 
 <div class="segment">
-  <button class="active" data-tab="identity">Identité</button>
-  <button data-tab="reports">Rapports</button>
-  <button data-tab="rx">Ordonnances</button>
+<button class="active" data-tab="identity">Identité</button>
+<button data-tab="reports">Rapports</button>
+<button data-tab="rx">Ordonnances</button>
+<button data-tab="card">Carte</button>
 </div>
 
 <div class="content">
 
-<!-- IDENTITÉ -->
+<!-- IDENTITE -->
 <div id="identity" class="tab">
-
 <div class="card" style="text-align:center">
-<input type="file" id="photoInput" accept="image/*" hidden>
+<input type="file" id="photoInput" hidden accept="image/*">
 <img id="profilePhoto"
-  src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-  style="width:120px;height:120px;border-radius:50%;object-fit:cover;
-  border:4px solid #eef3fb;cursor:pointer;margin-bottom:12px;">
-<div class="muted">Touchez la photo pour la mettre à jour</div>
+src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+class="profile">
+<div class="muted">Touchez la photo pour modifier</div>
 </div>
 
 <div class="card">
-<h3 style="margin:0 0 10px;font-size:15px">Informations patient</h3>
-<div class="kv" id="identityData">Chargement...</div>
+<h3>Informations patient</h3>
+<div id="identityData" class="kv">Chargement…</div>
 </div>
 </div>
 
-<!-- RAPPORTS -->
+<!-- REPORTS -->
 <div id="reports" class="tab hidden">
-  <div id="reportsList"></div>
+<div id="reportsList"></div>
 </div>
 
-<!-- ORDONNANCES -->
+<!-- RX -->
 <div id="rx" class="tab hidden">
-  <div class="card">
-    <h3 style="margin:0 0 10px;font-size:15px">Ordonnances</h3>
-    <div class="muted" id="rxList">En cours d’activation…</div>
-  </div>
+<div id="rxList"></div>
+</div>
+
+<!-- CARD -->
+<div id="card" class="tab hidden">
+<div class="card">
+<h3>Carte médicale sécurisée</h3>
+<div id="cardNumber"></div>
+<div class="qrWrap">
+<img id="qrImg">
+</div>
+</div>
 </div>
 
 </div>
@@ -232,180 +186,146 @@ import { auth, db, storage } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where, orderBy, onSnapshot
+doc, getDoc,
+collection, query, where, orderBy, onSnapshot, updateDoc
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
-  ref, uploadBytes, getDownloadURL
+ref, uploadBytes, getDownloadURL
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /* SEGMENT */
 document.querySelectorAll(".segment button").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
-    document.getElementById(btn.dataset.tab).classList.remove("hidden");
-  };
+btn.onclick=()=>{
+document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
+document.getElementById(btn.dataset.tab).classList.remove("hidden");
+};
 });
 
-function esc(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function fmtDate(ts){
-  try{
-    const d = ts?.toDate ? ts.toDate() : null;
-    if(!d) return "—";
-    return d.toLocaleString("fr-FR",{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-  }catch(e){
-    return "—";
-  }
+/* SHA256 */
+async function sha256(message){
+const msgBuffer=new TextEncoder().encode(message);
+const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+return Array.from(new Uint8Array(hashBuffer))
+.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="login.html"; return; }
+if(!user){location.href="login.html";return;}
 
-  /* IDENTITÉ */
-  const pSnap = await getDoc(doc(db,"patients",user.uid));
-  if(pSnap.exists()){
-    const p = pSnap.data();
-    document.getElementById("identityData").innerHTML=`
-      <b>Nom :</b> ${esc(p.fullName || "—")}<br>
-      <b>ID :</b> ${esc(p.patientId || "—")}<br>
-      <b>Genre :</b> ${esc(p.gender || "—")}<br>
-      <b>Âge :</b> ${esc(p.age || "—")}<br>
-      <b>Province :</b> ${esc(p.province || "—")}
-    `;
-    if(p.photoURL){
-      document.getElementById("profilePhoto").src = p.photoURL;
-    }
-  }
+const pSnap=await getDoc(doc(db,"patients",user.uid));
+if(!pSnap.exists()) return;
 
-  /* RAPPORTS (DYNAMIQUE) */
-  const qReports = query(
-    collection(db,"reports"),
-    where("patientUid","==",user.uid),
-    orderBy("submittedAt","desc")
-  );
+const p=pSnap.data();
 
-  onSnapshot(qReports,(snap)=>{
-    const container = document.getElementById("reportsList");
-    container.innerHTML="";
+/* IDENTITE */
+document.getElementById("identityData").innerHTML=`
+<b>Nom :</b> ${p.fullName || "—"}<br>
+<b>ID :</b> ${p.patientId || "—"}<br>
+<b>Genre :</b> ${p.gender || "—"}<br>
+<b>Âge :</b> ${p.age || "—"}<br>
+<b>Province :</b> ${p.province || "—"}
+`;
 
-    if(snap.empty){
-      container.innerHTML="<div class='card'><div class='muted'>Aucun rapport disponible</div></div>";
-      return;
-    }
-
-    snap.forEach(docu=>{
-      const r = docu.data();
-
-      const dateTxt = fmtDate(r.submittedAt || r.createdAt || r.updatedAt);
-      const hasRx = r.ordonnance === true;
-
-      const suiviTxt =
-        r.suivi === "teleconsultation" ? "Suivi : Téléconsultation" :
-        r.suivi === "presentiel" ? "Suivi : Présentiel" :
-        r.suivi === "aucun" ? "Suivi : Aucun" :
-        (r.suivi ? `Suivi : ${r.suivi}` : "Suivi : —");
-
-      const div=document.createElement("div");
-      div.className="card";
-
-      div.innerHTML=`
-        <div class="reportTop">
-          <div class="reportMeta">
-            <strong>Consultation médicale</strong>
-            <div class="muted">${esc(dateTxt)}</div>
-            <div class="pills">
-              <span class="pill">${esc(suiviTxt)}</span>
-              <span class="pill ${hasRx ? "warn" : "ok"}">${hasRx ? "Ordonnance : Oui" : "Ordonnance : Non"}</span>
-              <span class="pill">${esc(r.status || "submitted")}</span>
-            </div>
-          </div>
-          <button class="btnSmall btnPrimary" data-action="toggle">Voir</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="kv">
-          <b>Diagnostic :</b><br>
-          ${esc(r.diagnostic || "—")}
-        </div>
-
-        <div class="reportDetails" data-details>
-          <div class="hr"></div>
-
-          <div class="kline">
-            <span>Motif :</span><br>
-            ${esc(r.motif || "—")}
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="kline">
-            <span>Traitement / Recommandations :</span><br>
-            ${esc(r.traitement || "—")}
-          </div>
-
-          <div class="actionsRow">
-            ${hasRx ? `<button class="btnSmall btnDanger" data-action="rx">Voir l’ordonnance</button>` : ``}
-          </div>
-        </div>
-      `;
-
-      const toggleBtn = div.querySelector('[data-action="toggle"]');
-      const details = div.querySelector('[data-details]');
-
-      toggleBtn.onclick = ()=>{
-        const open = details.classList.toggle("open");
-        toggleBtn.textContent = open ? "Masquer" : "Voir";
-      };
-
-      const rxBtn = div.querySelector('[data-action="rx"]');
-      if(rxBtn){
-        rxBtn.onclick = ()=>{
-          // Si tu utilises requestId comme ID du report/prescription, on tente r.requestId sinon doc id
-          const rid = r.requestId || docu.id;
-          location.href = `ordonnance.html?requestId=${encodeURIComponent(rid)}`;
-        };
-      }
-
-      container.appendChild(div);
-    });
-  });
-
-});
+if(p.photoURL){
+document.getElementById("profilePhoto").src=p.photoURL;
+}
 
 /* PHOTO UPLOAD */
-const photoInput = document.getElementById("photoInput");
-const profilePhoto = document.getElementById("profilePhoto");
-
-profilePhoto.onclick=()=>photoInput.click();
-
-photoInput.onchange=async(e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-
-  try{
-    const storageRef = ref(storage, `patients/${auth.currentUser.uid}/profile.jpg`);
-    await uploadBytes(storageRef,file);
-    const url = await getDownloadURL(storageRef);
-
-    await updateDoc(doc(db,"patients",auth.currentUser.uid),{ photoURL:url });
-    profilePhoto.src=url;
-  }catch(err){
-    alert("Impossible de mettre à jour la photo. Vérifie Storage rules / config.");
-  }
+document.getElementById("profilePhoto").onclick=()=>{
+document.getElementById("photoInput").click();
 };
+
+document.getElementById("photoInput").onchange=async(e)=>{
+const file=e.target.files[0];
+if(!file) return;
+const storageRef=ref(storage,`patients/${user.uid}/profile.jpg`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+await updateDoc(doc(db,"patients",user.uid),{photoURL:url});
+document.getElementById("profilePhoto").src=url;
+};
+
+/* REPORTS */
+const qReports=query(
+collection(db,"reports"),
+where("patientUid","==",user.uid),
+orderBy("submittedAt","desc")
+);
+
+onSnapshot(qReports,(snap)=>{
+const container=document.getElementById("reportsList");
+container.innerHTML="";
+if(snap.empty){
+container.innerHTML="<div class='card'><div class='muted'>Aucun rapport</div></div>";
+return;
+}
+snap.forEach(docu=>{
+const r=docu.data();
+const div=document.createElement("div");
+div.className="card";
+div.innerHTML=`
+<h3>Consultation</h3>
+<div class="kv">
+<b>Diagnostic :</b><br>${r.diagnostic || "—"}<br><br>
+<b>Traitement :</b><br>${r.traitement || "—"}
+</div>
+`;
+container.appendChild(div);
+});
+});
+
+/* RX */
+const qRx=query(
+collection(db,"prescriptions"),
+where("patientUid","==",user.uid),
+orderBy("createdAt","desc")
+);
+
+onSnapshot(qRx,(snap)=>{
+const container=document.getElementById("rxList");
+container.innerHTML="";
+if(snap.empty){
+container.innerHTML="<div class='card'><div class='muted'>Aucune ordonnance</div></div>";
+return;
+}
+snap.forEach(docu=>{
+const p=docu.data();
+const div=document.createElement("div");
+div.className="card";
+div.innerHTML=`
+<h3>Ordonnance</h3>
+<div class="kv">
+<b>Code :</b> ${p.code}<br>
+<b>Statut :</b> ${p.used ? "Utilisée" : "Active"}
+</div>
+`;
+container.appendChild(div);
+});
+});
+
+/* CARTE */
+const cardNumber="CZ-H-"+user.uid.slice(0,4).toUpperCase();
+document.getElementById("cardNumber").innerText=cardNumber;
+
+const ts=Date.now();
+const SECRET="CIZA_HEALTH_SECRET_2026";
+const sig=await sha256(user.uid+cardNumber+ts+SECRET);
+
+const payload=encodeURIComponent(JSON.stringify({
+uid:user.uid,
+card:cardNumber,
+ts,
+sig
+}));
+
+document.getElementById("qrImg").src=
+`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${payload}`;
+
+});
 </script>
 
 </body>
