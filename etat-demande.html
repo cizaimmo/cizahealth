@@ -110,8 +110,8 @@ body{
 
   <div class="spinner"></div>
 
-  <div class="status">
-    Le médecin prépare votre consultation…
+  <div class="status" id="statusText">
+    Recherche d’un médecin disponible…
   </div>
 
   <button class="btn" id="cancelBtn">
@@ -126,7 +126,7 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc
+  doc, onSnapshot, getDoc, updateDoc
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -144,46 +144,68 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  const reqSnap = await getDoc(doc(db,"requests",requestId));
-  if(!reqSnap.exists()){
-    alert("Demande introuvable");
-    return;
-  }
+  const requestRef = doc(db,"requests",requestId);
 
-  const requestData = reqSnap.data();
-  const proUid = requestData.assignedProUid;
+  onSnapshot(requestRef, async(snapshot)=>{
 
-  if(!proUid){
-    document.getElementById("proName").innerText =
-      "En attente d’un médecin disponible…";
-    return;
-  }
+    if(!snapshot.exists()){
+      alert("Demande introuvable");
+      return;
+    }
 
-  const proSnap = await getDoc(doc(db,"users",proUid));
-  if(!proSnap.exists()) return;
+    const requestData = snapshot.data();
 
-  const pro = proSnap.data();
+    /* 🔎 PENDING */
+    if(requestData.status === "pending"){
+      document.getElementById("proName").innerText =
+        "Recherche du médecin…";
+      document.getElementById("statusText").innerText =
+        "Recherche d’un médecin disponible…";
+    }
 
-  document.getElementById("proName").innerText =
-    pro.fullName || "Médecin CizaHealth+";
+    /* 👨‍⚕️ ASSIGNED */
+    if(requestData.status === "assigned" && requestData.assignedProUid){
 
-  document.getElementById("proMeta").innerText =
-    `${pro.specialty || "Médecin"} • ${pro.province || ""}`;
+      document.getElementById("statusText").innerText =
+        "Le médecin prépare votre consultation…";
 
-  if(pro.photoURL){
-    document.getElementById("proPhoto").src = pro.photoURL;
-  }
+      const proSnap = await getDoc(doc(db,"users",requestData.assignedProUid));
+      if(proSnap.exists()){
+        const pro = proSnap.data();
+
+        document.getElementById("proName").innerText =
+          pro.fullName || "Médecin CizaHealth+";
+
+        document.getElementById("proMeta").innerText =
+          `${pro.specialty || "Médecin"} • ${pro.province || ""}`;
+
+        if(pro.photoURL){
+          document.getElementById("proPhoto").src = pro.photoURL;
+        }
+      }
+    }
+
+    /* 📞 STARTED */
+    if(requestData.status === "started"){
+      location.href = `call.html?requestId=${requestId}`;
+    }
+
+    /* ❌ CANCELLED */
+    if(requestData.status === "cancelled"){
+      location.href = "dashboard-client.html";
+    }
+
+  });
 
   /* Annulation */
   document.getElementById("cancelBtn").onclick = async()=>{
-    await updateDoc(doc(db,"requests",requestId),{
+    await updateDoc(requestRef,{
       status:"cancelled"
     });
-    location.href="dashboard-client.html";
   };
+
 });
 </script>
 
-  
 </body>
 </html>
