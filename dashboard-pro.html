@@ -10,13 +10,13 @@
   --primary:#0E3A8A;
   --primary-dark:#0A2F6A;
   --success:#1B6B3A;
-  --warning:#E67E22;
+  --warning:#F39C12;
   --danger:#C0392B;
   --bg:#F4F7FB;
   --card:#FFFFFF;
   --text:#0A1A2F;
   --muted:#6B7A90;
-  --radius:22px;
+  --radius:20px;
 }
 
 *{box-sizing:border-box}
@@ -27,10 +27,11 @@ body{
   color:var(--text);
 }
 
+/* HEADER */
 header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:#fff;
-  padding:16px 20px;
+  padding:18px 24px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -38,11 +39,8 @@ header{
 
 .brand{
   display:flex;
-  align-items:center;
-  gap:12px;
+  flex-direction:column;
 }
-
-.brand img{height:36px}
 
 .status{
   display:flex;
@@ -57,20 +55,17 @@ header{
   border-radius:50%;
   background:red;
 }
-
 .dot.online{background:#2ecc71}
 
 .notif-btn{
   position:relative;
   background:#fff;
-  color:var(--primary);
   border:none;
-  padding:8px 12px;
+  padding:8px 14px;
   border-radius:12px;
-  font-weight:800;
   cursor:pointer;
+  font-weight:700;
 }
-
 .badge{
   position:absolute;
   top:-6px;
@@ -78,42 +73,68 @@ header{
   background:var(--danger);
   color:#fff;
   font-size:11px;
-  padding:3px 7px;
+  padding:3px 6px;
   border-radius:999px;
 }
 
+/* MAIN */
 main{
-  padding:22px;
   max-width:1200px;
   margin:auto;
+  padding:24px;
 }
 
+/* KPI */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:16px;
+}
+
+.kpi{
+  background:#fff;
+  padding:18px;
+  border-radius:var(--radius);
+  box-shadow:0 10px 26px rgba(10,42,94,.08);
+}
+.kpi h4{
+  margin:0;
+  font-size:13px;
+  color:var(--muted);
+}
+.kpi .value{
+  margin-top:6px;
+  font-size:28px;
+  font-weight:900;
+}
+
+/* CARDS */
 .card{
   background:#fff;
-  border-radius:var(--radius);
   padding:20px;
+  border-radius:var(--radius);
   box-shadow:0 10px 26px rgba(10,42,94,.08);
-  margin-top:20px;
+  margin-top:24px;
 }
 
 .request{
   border:1px solid #EEF1F6;
-  border-radius:18px;
   padding:16px;
+  border-radius:16px;
   margin-bottom:12px;
 }
 
 .actions{
-  margin-top:12px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:8px;
+  margin-top:10px;
 }
 
 .actions button{
   border:none;
-  border-radius:12px;
   padding:10px;
+  border-radius:10px;
   font-weight:700;
   color:#fff;
   cursor:pointer;
@@ -130,11 +151,8 @@ main{
 
 <header>
   <div class="brand">
-    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-    <div>
-      <strong id="proName">—</strong><br>
-      <small id="proMeta">—</small>
-    </div>
+    <strong id="proName">—</strong>
+    <small id="proMeta">—</small>
   </div>
 
   <div class="status">
@@ -150,15 +168,22 @@ main{
 
 <main>
 
-<div class="card">
+<section class="kpis">
+  <div class="kpi"><h4>Demandes</h4><div class="value" id="kpiPending">0</div></div>
+  <div class="kpi"><h4>Actives</h4><div class="value" id="kpiActive">0</div></div>
+  <div class="kpi"><h4>Terminées</h4><div class="value" id="kpiDone">0</div></div>
+  <div class="kpi"><h4>Revenus</h4><div class="value" id="kpiRevenue">0</div></div>
+</section>
+
+<section class="card">
   <h3>🟡 Demandes en attente</h3>
   <div id="pendingList"></div>
-</div>
+</section>
 
-<div class="card">
+<section class="card">
   <h3>🟢 Consultations actives</h3>
   <div id="activeList"></div>
-</div>
+</section>
 
 </main>
 
@@ -173,25 +198,29 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const proName = document.getElementById("proName");
-const proMeta = document.getElementById("proMeta");
-const statusDot = document.getElementById("statusDot");
-const statusText = document.getElementById("statusText");
-const notifBadge = document.getElementById("notifBadge");
-const pendingList = document.getElementById("pendingList");
-const activeList = document.getElementById("activeList");
+const proName=document.getElementById("proName");
+const proMeta=document.getElementById("proMeta");
+const statusDot=document.getElementById("statusDot");
+const statusText=document.getElementById("statusText");
+const notifBadge=document.getElementById("notifBadge");
+
+const pendingList=document.getElementById("pendingList");
+const activeList=document.getElementById("activeList");
+
+const kpiPending=document.getElementById("kpiPending");
+const kpiActive=document.getElementById("kpiActive");
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="/cizahealth/index.html";
 
-  const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
-  const p = snap.data();
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
+  const p=snap.data();
 
-  proName.textContent = p.fullName || "Professionnel";
-  proMeta.textContent = `${p.speciality || "Médecin"} • ${p.province || ""}`;
+  proName.textContent=p.fullName;
+  proMeta.textContent=`${p.speciality} • ${p.province}`;
 
-  /* ONLINE */
+  /* ONLINE HEARTBEAT */
   setInterval(()=>{
     updateDoc(userRef,{lastOnlineAt:serverTimestamp()});
   },15000);
@@ -203,7 +232,7 @@ onAuthStateChanged(auth, async(user)=>{
     statusText.textContent=online?"En ligne":"Hors ligne";
   });
 
-  /* 🔔 NOTIFICATIONS */
+  /* NOTIFICATIONS */
   onSnapshot(
     query(collection(db,"notifications"),
       where("receiverId","==",user.uid),
@@ -218,7 +247,7 @@ onAuthStateChanged(auth, async(user)=>{
     }
   );
 
-  /* 🟡 MATCHING PAR PROVINCE */
+  /* MATCHING PROVINCE */
   onSnapshot(
     query(collection(db,"requests"),
       where("status","==","pending"),
@@ -226,19 +255,20 @@ onAuthStateChanged(auth, async(user)=>{
     ),
     snap=>{
       pendingList.innerHTML="";
+      kpiPending.textContent=snap.size;
+
       snap.forEach(d=>{
         const r=d.data();
-
         const div=document.createElement("div");
         div.className="request";
 
         div.innerHTML=`
-          <strong>${r.fullName || "Patient"}</strong><br>
-          <small>${r.province}</small>
+          <strong>${r.fullName}</strong><br>
+          <small>${r.motif || ""}</small>
           <div class="actions">
             <button class="accept">Accepter</button>
             <button class="refuse">Refuser</button>
-            <button class="chat" disabled>Chat</button>
+            <button disabled class="chat">Chat</button>
           </div>
         `;
 
@@ -264,27 +294,29 @@ onAuthStateChanged(auth, async(user)=>{
     }
   );
 
-  /* 🟢 CONSULTATIONS ACTIVES */
+  /* CONSULTATIONS ACTIVES */
   onSnapshot(
     query(collection(db,"requests"),
       where("assignedProUid","==",user.uid)
     ),
     snap=>{
       activeList.innerHTML="";
+      let count=0;
+
       snap.forEach(d=>{
         const r=d.data();
-        if(r.status==="assigned" || r.status==="in_call"){
+        if(r.status==="assigned"||r.status==="in_call"){
+          count++;
 
           const div=document.createElement("div");
           div.className="request";
 
           div.innerHTML=`
-            <strong>Consultation</strong><br>
-            <small>Statut : ${r.status}</small>
+            <strong>Consultation</strong>
             <div class="actions">
-              <button class="call">📞 Appel</button>
-              <button class="chat">💬 Chat</button>
-              <button class="accept">📝 Rapport</button>
+              <button class="call">📞</button>
+              <button class="chat">💬</button>
+              <button class="accept">📝</button>
             </div>
           `;
 
@@ -303,6 +335,8 @@ onAuthStateChanged(auth, async(user)=>{
           activeList.appendChild(div);
         }
       });
+
+      kpiActive.textContent=count;
     }
   );
 
