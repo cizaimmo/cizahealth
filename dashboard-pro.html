@@ -174,7 +174,7 @@ main{max-width:1440px;margin:auto;width:100%;padding:22px}
 </section>
 
 </main>
-
+  
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signOut }
@@ -196,7 +196,10 @@ const activeList=document.getElementById("activeList");
 const kpiPending=document.getElementById("kpiPending");
 const kpiActive=document.getElementById("kpiActive");
 
-logoutBtn.onclick=async()=>{await signOut(auth);location.href="/cizahealth/index.html"};
+logoutBtn.onclick=async()=>{
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="/cizahealth/index.html";
@@ -205,10 +208,13 @@ onAuthStateChanged(auth, async(user)=>{
   const snap=await getDoc(userRef);
   const p=snap.data();
 
-  proName.textContent=p.fullName;
-  proMeta.textContent=`${p.role} • ${p.speciality} • ${p.province}`;
+  proName.textContent=p.fullName || "Professionnel";
+  proMeta.textContent=`${p.speciality || "Médecin"} • ${p.province || ""}`;
 
-  setInterval(()=>updateDoc(userRef,{lastOnlineAt:serverTimestamp()}),15000);
+  /* 🔵 ONLINE STATUS */
+  setInterval(()=>updateDoc(userRef,{
+    lastOnlineAt:serverTimestamp()
+  }),15000);
 
   onSnapshot(userRef,s=>{
     const last=s.data()?.lastOnlineAt?.toMillis?.();
@@ -217,62 +223,114 @@ onAuthStateChanged(auth, async(user)=>{
     statusText.textContent=online?"En ligne":"Hors ligne";
   });
 
+  /* ===========================
+     🟡 REQUESTS PENDING
+  ============================ */
+
   onSnapshot(
-    query(collection(db,"requests"),where("status","==","pending")),
+    query(collection(db,"requests"),
+      where("status","==","pending")),
     snap=>{
       pendingList.innerHTML="";
       kpiPending.textContent=snap.size;
+
       snap.forEach(d=>{
         const r=d.data();
         const div=document.createElement("div");
         div.className="request pending";
+
         div.innerHTML=`
-          <div class="title">Patient ${r.patientUid}</div>
-          <div class="meta">${r.province||""}</div>
+          <div class="title">Demande patient</div>
+          <div class="meta">${r.province || ""}</div>
           <div class="actions">
             <button class="accept">Accepter</button>
             <button class="refuse">Refuser</button>
             <button class="chat" disabled>Chat</button>
           </div>
         `;
-        div.querySelector(".accept").onclick=()=>updateDoc(doc(db,"requests",d.id),{
-          status:"assigned",
-          assignedProUid:user.uid,
-          assignedProName:p.fullName,
-          assignedAt:serverTimestamp()
-        });
-        div.querySelector(".refuse").onclick=()=>updateDoc(doc(db,"requests",d.id),{
-          status:"refused",
-          refusedBy:user.uid,
-          refusedAt:serverTimestamp()
-        });
+
+        div.querySelector(".accept").onclick=async()=>{
+          await updateDoc(doc(db,"requests",d.id),{
+            status:"assigned",
+            assignedProUid:user.uid,
+            assignedProName:p.fullName,
+            assignedAt:serverTimestamp()
+          });
+        };
+
+        div.querySelector(".refuse").onclick=async()=>{
+          await updateDoc(doc(db,"requests",d.id),{
+            status:"refused",
+            refusedBy:user.uid,
+            refusedAt:serverTimestamp()
+          });
+        };
+
         pendingList.appendChild(div);
       });
     }
   );
 
+  /* ===========================
+     🟢 CONSULTATIONS ACTIVES
+     assigned + in_call
+  ============================ */
+
   onSnapshot(
     query(collection(db,"requests"),
-      where("assignedProUid","==",user.uid),
-      where("status","==","assigned")),
+      where("assignedProUid","==",user.uid)),
     snap=>{
+
       activeList.innerHTML="";
-      kpiActive.textContent=snap.size;
+      let activeCount=0;
+
       snap.forEach(d=>{
-        const div=document.createElement("div");
-        div.className="request assigned";
-        div.innerHTML=`
-          <div class="title">Consultation</div>
-          <div class="actions">
-            <button class="call" onclick="location.href='/cizahealth/call.html?requestId=${d.id}'">📞 Appel</button>
-            <button class="chat" onclick="location.href='/cizahealth/chat.html?requestId=${d.id}'">💬 Chat</button>
-            <button class="accept" onclick="location.href='/cizahealth/report.html?requestId=${d.id}'">📝 Rapport</button>
-          </div>
-        `;
-        activeList.appendChild(div);
+        const r=d.data();
+
+        if(r.status==="assigned" || r.status==="in_call"){
+
+          activeCount++;
+
+          const div=document.createElement("div");
+          div.className="request assigned";
+
+          div.innerHTML=`
+            <div class="title">Consultation</div>
+            <div class="meta">Statut : ${r.status}</div>
+            <div class="actions">
+              <button class="call">📞 Appel</button>
+              <button class="chat">💬 Chat</button>
+              <button class="accept">📝 Rapport</button>
+            </div>
+          `;
+
+          /* 📞 CALL */
+          div.querySelector(".call").onclick=async()=>{
+            await updateDoc(doc(db,"requests",d.id),{
+              status:"in_call",
+              startedAt:serverTimestamp()
+            });
+            location.href=`/cizahealth/call.html?requestId=${d.id}`;
+          };
+
+          /* 💬 CHAT */
+          div.querySelector(".chat").onclick=()=>{
+            location.href=`/cizahealth/chat.html?requestId=${d.id}`;
+          };
+
+          /* 📝 REPORT */
+          div.querySelector(".accept").onclick=()=>{
+            location.href=`/cizahealth/report.html?requestId=${d.id}`;
+          };
+
+          activeList.appendChild(div);
+        }
       });
+
+      kpiActive.textContent=activeCount;
     }
   );
+
 });
 </script>
 
