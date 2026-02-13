@@ -97,14 +97,12 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, updateDoc,
-  collection, query, where, limit, onSnapshot
+  doc, getDoc, updateDoc, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let requestId =
-  new URLSearchParams(location.search).get("requestId") ||
-  localStorage.getItem("ciza_active_requestId") || null;
+const params = new URLSearchParams(location.search);
+let requestId = params.get("requestId") || localStorage.getItem("ciza_active_requestId") || null;
 
 const $proPhoto = document.getElementById("proPhoto");
 const $proName = document.getElementById("proName");
@@ -113,6 +111,9 @@ const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
 
+/* =====================
+   UI STATES
+===================== */
 function showSearching(){
   $proName.innerText = "Recherche du médecin…";
   $proMeta.innerText = "";
@@ -121,7 +122,7 @@ function showSearching(){
 }
 
 function showAssigned(){
-  $status.innerText = "Médecin trouvé. Préparation de la consultation…";
+  $status.innerText = "Médecin trouvé. En attente de l’appel…";
   $spin.style.display = "none";
 }
 
@@ -130,24 +131,22 @@ function showInCall(){
   $spin.style.display = "none";
 }
 
+/* =====================
+   LOAD PRO
+===================== */
 async function loadPro(proUid){
   if(!proUid) return;
 
   let data = null;
 
-  const proSnap = await getDoc(doc(db,"professionals",proUid));
-  if(proSnap.exists()) data = proSnap.data();
-
-  if(!data){
-    const userSnap = await getDoc(doc(db,"users",proUid));
-    if(userSnap.exists()) data = userSnap.data();
-  }
+  const userSnap = await getDoc(doc(db,"users",proUid));
+  if(userSnap.exists()) data = userSnap.data();
 
   if(!data) return;
 
   $proName.innerText = data.fullName || "Médecin CizaHealth+";
   $proMeta.innerText =
-    (data.specialty || "Médecin") +
+    (data.speciality || "Médecin") +
     (data.province ? " • " + data.province : "");
 
   if(data.photoURL){
@@ -155,12 +154,18 @@ async function loadPro(proUid){
   }
 }
 
+/* =====================
+   LISTENER
+===================== */
 function listenRequest(id){
+
   const ref = doc(db,"requests",id);
 
   onSnapshot(ref, async(snap)=>{
+
     if(!snap.exists()){
-      return; // 🔥 on ne redirige plus automatiquement
+      // ❌ On ne redirige plus
+      return;
     }
 
     const r = snap.data();
@@ -180,10 +185,9 @@ function listenRequest(id){
 
     if(status === "in_call"){
       showInCall();
-      localStorage.setItem("ciza_active_requestId", id);
       setTimeout(()=>{
         location.href = "call.html?requestId="+id;
-      }, 1000);
+      },1000);
       return;
     }
 
@@ -192,29 +196,14 @@ function listenRequest(id){
       location.href = "dashboard-client.html";
     }
 
+  }, (err)=>{
+    console.error("REQUEST ERROR:", err);
   });
 }
 
-function findLatestRequest(uid){
-  const q = query(
-    collection(db,"requests"),
-    where("patientUid","==",uid),
-    where("status","in",["pending","assigned","in_call"]),
-    limit(1)
-  );
-
-  onSnapshot(q,(snap)=>{
-    if(snap.empty){
-      return;
-    }
-
-    const docu = snap.docs[0];
-    requestId = docu.id;
-    localStorage.setItem("ciza_active_requestId",requestId);
-    listenRequest(requestId);
-  });
-}
-
+/* =====================
+   AUTH
+===================== */
 onAuthStateChanged(auth,(user)=>{
   if(!user){
     location.href="login.html";
@@ -223,12 +212,13 @@ onAuthStateChanged(auth,(user)=>{
 
   showSearching();
 
-  if(requestId){
-    localStorage.setItem("ciza_active_requestId",requestId);
-    listenRequest(requestId);
-  }else{
-    findLatestRequest(user.uid);
+  if(!requestId){
+    // ❌ On reste sur écran au lieu de rediriger
+    return;
   }
+
+  localStorage.setItem("ciza_active_requestId",requestId);
+  listenRequest(requestId);
 
   $cancel.onclick = async()=>{
     if(!requestId) return;
