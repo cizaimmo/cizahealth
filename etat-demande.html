@@ -94,6 +94,7 @@ body{
   font-weight:700;
   cursor:pointer;
 }
+.btn:disabled{opacity:.6;cursor:not-allowed}
 </style>
 </head>
 
@@ -108,7 +109,7 @@ body{
   <div class="name" id="proName">Recherche du médecin…</div>
   <div class="meta" id="proMeta"></div>
 
-  <div class="spinner"></div>
+  <div class="spinner" id="spin"></div>
 
   <div class="status" id="statusText">
     Recherche d’un médecin disponible…
@@ -126,12 +127,126 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, onSnapshot, getDoc, updateDoc
+  doc, getDoc, updateDoc,
+  collection, query, where, orderBy, limit, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
-const requestId = params.get("requestId");
+let requestId = params.get("requestId") || localStorage.getItem("ciza_active_requestId") || "";
+
+const $proPhoto = document.getElementById("proPhoto");
+const $proName = document.getElementById("proName");
+const $proMeta = document.getElementById("proMeta");
+const $status = document.getElementById("statusText");
+const $spin = document.getElementById("spin");
+const $cancel = document.getElementById("cancelBtn");
+
+function setSearching(){
+  $proName.innerText = "Recherche du médecin…";
+  $proMeta.innerText = "";
+  $status.innerText = "Recherche d’un médecin disponible…";
+  $spin.style.display = "block";
+}
+function setAssignedLoading(){
+  $status.innerText = "Le médecin prépare votre consultation…";
+  $spin.style.display = "block";
+}
+function setReadyNoSpinner(){
+  $spin.style.display = "none";
+}
+
+async function loadProCard(proUid){
+  if(!proUid) return;
+
+  // ✅ 1) Essaye dans professionals
+  let proData = null;
+  const proSnap1 = await getDoc(doc(db,"professionals",proUid));
+  if(proSnap1.exists()) proData = proSnap1.data();
+
+  // ✅ 2) Sinon essaye dans users
+  if(!proData){
+    const proSnap2 = await getDoc(doc(db,"users",proUid));
+    if(proSnap2.exists()) proData = proSnap2.data();
+  }
+
+  if(!proData) return;
+
+  $proName.innerText = proData.fullName || "Médecin CizaHealth+";
+  $proMeta.innerText = `${proData.specialty || "Médecin"}${proData.province ? " • " + proData.province : ""}`;
+  if(proData.photoURL) $proPhoto.src = proData.photoURL;
+}
+
+function listenToRequestByDocId(docId){
+  const ref = doc(db,"requests",docId);
+
+  return onSnapshot(ref, async(snap)=>{
+    if(!snap.exists()){
+      alert("Demande introuvable");
+      location.href = "dashboard-client.html";
+      return;
+    }
+
+    const r = snap.data();
+    const st = (r.status || "").toLowerCase();
+
+    // ✅ si assignedProUid existe, on considère matching OK
+    const proUid = r.assignedProUid || r.proUid || r.assignedProId || "";
+
+    if(!proUid && (st === "pending" || st === "")){
+      setSearching();
+    }
+
+    if(proUid && (st === "assigned" || st === "accepted" || st === "matched" || st === "pending")){
+      setAssignedLoading();
+      await loadProCard(proUid);
+      setReadyNoSpinner();
+    }
+
+    if(st === "started" || st === "in_call" || st === "incall"){
+      localStorage.setItem("ciza_active_requestId", docId);
+      location.href = `call.html?requestId=${encodeURIComponent(docId)}`;
+      return;
+    }
+
+    if(st === "cancelled" || st === "canceled" || st === "ended" || st === "closed"){
+      localStorage.removeItem("ciza_active_requestId");
+      location.href = "dashboard-client.html";
+      return;
+    }
+
+  }, (err)=>{
+    console.error("onSnapshot requests error:", err);
+    alert("Accès refusé (Rules) ou erreur réseau. Vérifie Firestore rules sur requests.");
+  });
+}
+
+function listenToLatestActiveRequestForPatient(uid){
+  // ✅ On retrouve automatiquement le dernier request du patient
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
+
+  return onSnapshot(q, (snap)=>{
+    if(snap.empty){
+      alert("Consultation introuvable");
+      location.href = "dashboard-client.html";
+      return;
+    }
+    const docu = snap.docs[0];
+    requestId = docu.id;
+    localStorage.setItem("ciza_active_requestId", requestId);
+
+    // 🔁 ensuite on écoute le doc en temps réel
+    listenToRequestByDocId(requestId);
+  }, (err)=>{
+    console.error("query latest request error:", err);
+    alert("Impossible de lire la demande (Rules). Vérifie Firestore rules sur requests.");
+  });
+}
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
@@ -139,71 +254,32 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  if(!requestId){
-    alert("Consultation introuvable");
-    return;
+  setSearching();
+
+  // ✅ Si requestId fourni -> écoute directe
+  if(requestId){
+    localStorage.setItem("ciza_active_requestId", requestId);
+    listenToRequestByDocId(requestId);
+  }else{
+    // ✅ Sinon -> on retrouve automatiquement le dernier request du patient
+    listenToLatestActiveRequestForPatient(user.uid);
   }
 
-  const requestRef = doc(db,"requests",requestId);
-
-  onSnapshot(requestRef, async(snapshot)=>{
-
-    if(!snapshot.exists()){
+  // ✅ Annulation
+  $cancel.onclick = async()=>{
+    if(!requestId){
       alert("Demande introuvable");
       return;
     }
-
-    const requestData = snapshot.data();
-
-    /* 🔎 PENDING */
-    if(requestData.status === "pending"){
-      document.getElementById("proName").innerText =
-        "Recherche du médecin…";
-      document.getElementById("statusText").innerText =
-        "Recherche d’un médecin disponible…";
+    $cancel.disabled = true;
+    try{
+      await updateDoc(doc(db,"requests",requestId),{ status:"cancelled" });
+    }catch(e){
+      console.error(e);
+      alert("Impossible d’annuler. Vérifie les règles Firestore.");
+      $cancel.disabled = false;
     }
-
-    /* 👨‍⚕️ ASSIGNED */
-    if(requestData.status === "assigned" && requestData.assignedProUid){
-
-      document.getElementById("statusText").innerText =
-        "Le médecin prépare votre consultation…";
-
-      const proSnap = await getDoc(doc(db,"users",requestData.assignedProUid));
-      if(proSnap.exists()){
-        const pro = proSnap.data();
-
-        document.getElementById("proName").innerText =
-          pro.fullName || "Médecin CizaHealth+";
-
-        document.getElementById("proMeta").innerText =
-          `${pro.specialty || "Médecin"} • ${pro.province || ""}`;
-
-        if(pro.photoURL){
-          document.getElementById("proPhoto").src = pro.photoURL;
-        }
-      }
-    }
-
-    /* 📞 STARTED */
-    if(requestData.status === "started"){
-      location.href = `call.html?requestId=${requestId}`;
-    }
-
-    /* ❌ CANCELLED */
-    if(requestData.status === "cancelled"){
-      location.href = "dashboard-client.html";
-    }
-
-  });
-
-  /* Annulation */
-  document.getElementById("cancelBtn").onclick = async()=>{
-    await updateDoc(requestRef,{
-      status:"cancelled"
-    });
   };
-
 });
 </script>
 
