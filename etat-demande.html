@@ -7,200 +7,237 @@
 
 <style>
 :root{
-  --blue:#123c8a;
+  --primary:#123c8a;
+  --primary-dark:#0b2c66;
   --bg:#f4f7fb;
-  --card:#ffffff;
+  --text:#0a1a2f;
   --muted:#6b7a90;
   --radius:24px;
 }
+*{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
 }
+
 .app{
-  max-width:500px;
+  max-width:900px;
   margin:auto;
-  padding:24px;
   min-height:100vh;
+  background:#fff;
+  box-shadow:0 12px 50px rgba(10,42,94,.08);
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:16px 22px;
+  border-bottom:1px solid #eef1f6;
   display:flex;
   align-items:center;
+  gap:12px;
 }
-.card{
-  background:white;
-  border-radius:var(--radius);
-  padding:24px;
+.header img{height:46px}
+
+/* HERO */
+.hero{
+  padding:32px 26px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
   text-align:center;
-  box-shadow:0 20px 50px rgba(0,0,0,.08);
-  width:100%;
 }
-.photo{
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  object-fit:cover;
-  border:4px solid #eef3fb;
-  margin-bottom:16px;
+.hero h1{
+  margin:0 0 10px;
+  font-size:24px;
 }
-.name{font-size:18px;font-weight:700;}
-.meta{font-size:14px;color:var(--muted);margin-top:4px;}
-.status{margin-top:18px;font-size:14px;color:var(--blue);font-weight:600;}
-.spinner{
-  margin:20px auto;
-  width:40px;
-  height:40px;
-  border:4px solid #e5ecf9;
-  border-top:4px solid var(--blue);
+.hero p{
+  font-size:14.5px;
+  opacity:.95;
+}
+
+/* CONTENT */
+.content{
+  padding:30px 26px;
+  text-align:center;
+}
+
+/* CARD */
+.card{
+  border-radius:var(--radius);
+  padding:28px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(10,42,94,.08);
+  margin-bottom:22px;
+}
+
+/* STATUS */
+.status{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+.sub{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* LOADER */
+.loader{
+  margin:20px auto 0;
+  width:42px;
+  height:42px;
   border-radius:50%;
+  border:4px solid #e3e8f2;
+  border-top-color:var(--primary);
   animation:spin 1s linear infinite;
 }
-@keyframes spin{to{transform:rotate(360deg);}}
-.btn{
-  margin-top:20px;
-  padding:12px 16px;
-  border:none;
-  border-radius:16px;
-  background:#eef3fb;
-  color:var(--blue);
-  font-weight:700;
-  cursor:pointer;
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* FOOTER */
+.footer{
+  margin-top:auto;
+  padding:26px;
+  border-top:1px solid #eef1f6;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+.footer img{
+  height:42px;
+  margin-bottom:8px;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-<div class="card">
 
-<img id="proPhoto"
-  src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-  class="photo">
-
-<div class="name" id="proName">Recherche du médecin…</div>
-<div class="meta" id="proMeta"></div>
-
-<div class="spinner" id="spin"></div>
-
-<div class="status" id="statusText">
-Recherche d’un médecin disponible…
+<!-- HEADER -->
+<div class="header">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
 </div>
 
-<button class="btn" id="cancelBtn">
-Annuler la demande
-</button>
+<!-- HERO -->
+<div class="hero">
+  <h1 id="heroTitle">Demande en cours</h1>
+  <p id="heroDesc">
+    Veuillez patienter pendant l’assignation d’un professionnel.
+  </p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="card">
+    <div class="status" id="statusLabel">
+      Recherche d’un professionnel…
+    </div>
+    <div class="sub" id="statusDesc">
+      Un professionnel de santé est en cours de sélection.
+      Vous serez automatiquement redirigé dès qu’il accepte.
+    </div>
+    <div class="loader" id="loader"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <img
+    src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png"
+    alt="CizaHealth+">
+  <div>
+    © 2026 CizaHealth+ — CIZA GROUP<br>
+    Plateforme de santé numérique • Service non urgent
+  </div>
+</div>
 
 </div>
-</div>
 
+<!-- 🔐 LOGIQUE FIREBASE — SYNCHRONISATION TEMPS RÉEL -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, onSnapshot, updateDoc
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  collection, query, where,
+  orderBy, limit, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let requestId =
-  new URLSearchParams(location.search).get("requestId") ||
-  localStorage.getItem("ciza_active_requestId") || null;
+const heroTitle = document.getElementById("heroTitle");
+const heroDesc = document.getElementById("heroDesc");
+const statusLabel = document.getElementById("statusLabel");
+const statusDesc = document.getElementById("statusDesc");
+const loader = document.getElementById("loader");
 
-const $proPhoto = document.getElementById("proPhoto");
-const $proName = document.getElementById("proName");
-const $proMeta = document.getElementById("proMeta");
-const $status = document.getElementById("statusText");
-const $spin = document.getElementById("spin");
-const $cancel = document.getElementById("cancelBtn");
-
-function showSearching(){
-  $proName.innerText="Recherche du médecin…";
-  $proMeta.innerText="";
-  $status.innerText="Recherche d’un médecin disponible…";
-  $spin.style.display="block";
-}
-
-function showAssigned(r){
-  $proName.innerText=r.assignedProName||"Médecin";
-  $proMeta.innerText=
-    (r.assignedProSpeciality||"Médecin")+" • "+
-    (r.assignedProProvince||"");
-
-  if(r.assignedProPhoto){
-    $proPhoto.src=r.assignedProPhoto;
-  }
-
-  $status.innerText="Médecin trouvé. Préparation de la consultation…";
-  $spin.style.display="none";
-}
-
-function showRefused(){
-  $proName.innerText="Recherche du médecin…";
-  $proMeta.innerText="";
-  $status.innerText="Votre demande a été refusée. Recherche d’un autre médecin…";
-  $spin.style.display="block";
-}
-
-function listenRequest(id){
-
-  const ref = doc(db,"requests",id);
-
-  onSnapshot(ref,(snap)=>{
-    if(!snap.exists()) return;
-
-    const r=snap.data();
-    const status=(r.status||"").toLowerCase();
-
-    console.log("STATUS UPDATE:",status);
-
-    if(status==="pending"){
-      showSearching();
-      return;
-    }
-
-    if(status==="assigned"){
-      showAssigned(r);
-      return;
-    }
-
-    if(status==="refused"){
-      showRefused();
-      return;
-    }
-
-    if(status==="in_call"){
-      location.href="call.html?requestId="+id;
-      return;
-    }
-
-    if(status==="cancelled" || status==="ended"){
-      localStorage.removeItem("ciza_active_requestId");
-      location.href="dashboard-client.html";
-    }
-
-  });
-}
-
-onAuthStateChanged(auth,(user)=>{
+onAuthStateChanged(auth, (user)=>{
   if(!user){
-    location.href="login.html";
+    location.href = "login.html";
     return;
   }
 
-  if(!requestId){
-    location.href="dashboard-client.html";
-    return;
-  }
+  // 🔑 écouter la DERNIÈRE demande du patient
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(1)
+  );
 
-  localStorage.setItem("ciza_active_requestId",requestId);
-  listenRequest(requestId);
+  onSnapshot(q, (snap)=>{
+    if(snap.empty) return;
 
-  $cancel.onclick=async()=>{
-    await updateDoc(doc(db,"requests",requestId),{
-      status:"cancelled"
-    });
-  };
+    const docSnap = snap.docs[0];
+    const r = docSnap.data();
+
+    /* ⏳ EN ATTENTE */
+    if(r.status === "pending"){
+      heroTitle.textContent = "Demande en cours";
+      heroDesc.textContent =
+        "Veuillez patienter pendant l’assignation d’un professionnel.";
+      statusLabel.textContent = "Recherche d’un professionnel…";
+      statusDesc.textContent =
+        "Un professionnel de santé est en cours de sélection.";
+      loader.style.display = "block";
+    }
+
+    /* ✅ PRO A ACCEPTÉ → REDIRECTION */
+    if(r.status === "assigned" && r.assignedProUid){
+      heroTitle.textContent = "Consultation acceptée";
+      heroDesc.textContent =
+        "Votre consultation va commencer avec " +
+        (r.assignedProName || "le professionnel");
+
+      statusLabel.textContent = "Professionnel assigné";
+      statusDesc.textContent =
+        r.assignedProName
+          ? `Dr ${r.assignedProName} a accepté votre demande.`
+          : "Un professionnel a accepté votre demande.";
+
+      loader.style.display = "none";
+
+      // ⏱️ petite pause UX puis redirection
+      setTimeout(()=>{
+        location.href = `chat.html?requestId=${docSnap.id}`;
+      }, 1200);
+    }
+
+    /* ❌ REFUS / ANNULÉ */
+    if(r.status === "refused" || r.status === "cancelled"){
+      heroTitle.textContent = "Demande annulée";
+      heroDesc.textContent = "La demande n’a pas pu être prise en charge.";
+      statusLabel.textContent = "Aucun professionnel disponible";
+      statusDesc.textContent =
+        "Veuillez réessayer ou créer une nouvelle demande.";
+      loader.style.display = "none";
+    }
+  });
 });
 </script>
-
-</body>
-</html>
