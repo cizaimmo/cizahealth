@@ -97,13 +97,19 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, updateDoc, onSnapshot
+  doc, getDoc, updateDoc,
+  collection, query, where, limit, onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* =========================
+   VARIABLES
+========================= */
+
 let requestId =
   new URLSearchParams(location.search).get("requestId") ||
-  localStorage.getItem("ciza_active_requestId") || null;
+  localStorage.getItem("ciza_active_requestId") ||
+  null;
 
 const $proPhoto = document.getElementById("proPhoto");
 const $proName = document.getElementById("proName");
@@ -112,7 +118,9 @@ const $status = document.getElementById("statusText");
 const $spin = document.getElementById("spin");
 const $cancel = document.getElementById("cancelBtn");
 
-/* ================= UI STATES ================= */
+/* =========================
+   UI STATES
+========================= */
 
 function showSearching(){
   $proName.innerText = "Recherche du médecin…";
@@ -121,8 +129,18 @@ function showSearching(){
   $spin.style.display = "block";
 }
 
-function showAssigned(){
-  $status.innerText = "Médecin trouvé. En attente de l’appel…";
+function showAssigned(r){
+  $proName.innerText = r.assignedProName || "Médecin";
+  $proMeta.innerText =
+    (r.assignedProSpeciality || "Médecin") +
+    " • " +
+    (r.assignedProProvince || "");
+
+  if(r.assignedProPhoto){
+    $proPhoto.src = r.assignedProPhoto;
+  }
+
+  $status.innerText = "Médecin trouvé. Préparation de la consultation…";
   $spin.style.display = "none";
 }
 
@@ -131,74 +149,103 @@ function showInCall(){
   $spin.style.display = "none";
 }
 
-/* ================= LISTEN REQUEST ================= */
+/* =========================
+   LISTEN REQUEST
+========================= */
 
 function listenRequest(id){
-const ref = doc(db,"requests",id);
 
-onSnapshot(ref,(snap)=>{
-if(!snap.exists()) return;
+  const ref = doc(db,"requests",id);
 
-const r=snap.data();
-const status=(r.status||"").toLowerCase();
+  onSnapshot(ref,(snap)=>{
+    if(!snap.exists()) return;
 
-/* 🔎 PENDING */
-if(status==="pending"){
-showSearching();
-return;
+    const r = snap.data();
+    const status = (r.status || "").toLowerCase();
+
+    /* PENDING */
+    if(status==="pending"){
+      showSearching();
+      return;
+    }
+
+    /* ASSIGNED */
+    if(status==="assigned"){
+      showAssigned(r);
+      return;
+    }
+
+    /* CALL */
+    if(status==="in_call"){
+      showInCall();
+      setTimeout(()=>{
+        location.href="call.html?requestId="+id;
+      },1000);
+    }
+
+    /* FIN */
+    if(status==="cancelled" || status==="ended"){
+      localStorage.removeItem("ciza_active_requestId");
+      location.href="dashboard-client.html";
+    }
+
+  });
+
 }
 
-/* 🟢 ASSIGNED */
-if(status==="assigned"){
-$proName.innerText=r.assignedProName||"Médecin";
-$proMeta.innerText=
-(r.assignedProSpeciality||"Médecin")+" • "+
-(r.assignedProProvince||"");
+/* =========================
+   FIND LAST ACTIVE REQUEST
+========================= */
 
-if(r.assignedProPhoto){
-$proPhoto.src=r.assignedProPhoto;
+function findLatestRequest(uid){
+
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",uid),
+    where("status","in",["pending","assigned","in_call"]),
+    limit(1)
+  );
+
+  onSnapshot(q,(snap)=>{
+    if(snap.empty){
+      showSearching();
+      return;
+    }
+
+    const docu = snap.docs[0];
+    requestId = docu.id;
+    localStorage.setItem("ciza_active_requestId",requestId);
+    listenRequest(requestId);
+  });
+
 }
 
-showAssigned();
-return;
-}
-
-/* 📞 CALL */
-if(status==="in_call"){
-showInCall();
-location.href="call.html?requestId="+id;
-}
-
-/* ❌ FIN */
-if(status==="cancelled" || status==="ended"){
-localStorage.removeItem("ciza_active_requestId");
-location.href="dashboard-client.html";
-}
-
-});
-}
-
-/* ================= AUTH ================= */
+/* =========================
+   AUTH
+========================= */
 
 onAuthStateChanged(auth,(user)=>{
-if(!user){
-location.href="login.html";
-return;
-}
+  if(!user){
+    location.href="login.html";
+    return;
+  }
 
-if(!requestId){
-location.href="dashboard-client.html";
-return;
-}
+  showSearching();
 
-localStorage.setItem("ciza_active_requestId",requestId);
-listenRequest(requestId);
+  if(requestId){
+    localStorage.setItem("ciza_active_requestId",requestId);
+    listenRequest(requestId);
+  }else{
+    findLatestRequest(user.uid);
+  }
 
-$cancel.onclick=async()=>{
-await updateDoc(doc(db,"requests",requestId),{
-status:"cancelled"
-});
-};
+  $cancel.onclick = async()=>{
+    if(!requestId) return;
+
+    await updateDoc(doc(db,"requests",requestId),{
+      status:"cancelled"
+    });
+  };
 
 });
 </script>
