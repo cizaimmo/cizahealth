@@ -15,38 +15,25 @@
   --radius:24px;
 }
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
   color:var(--text);
 }
-
 .app{
   max-width:900px;
   margin:auto;
   min-height:100vh;
   background:#fff;
-  box-shadow:0 12px 50px rgba(10,42,94,.08);
   display:flex;
   flex-direction:column;
 }
-
 .header{
   padding:16px 22px;
   border-bottom:1px solid #eef1f6;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
 }
 .header img{height:46px}
-.header .mini{
-  font-size:12px;
-  color:#6b7a90;
-}
-
 .hero{
   padding:34px 26px;
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
@@ -55,19 +42,16 @@ body{
 }
 .hero h1{margin:0 0 10px;font-size:24px}
 .hero p{font-size:15px;opacity:.95;margin:0}
-
 .content{
   padding:32px 26px;
   text-align:center;
 }
-
 .card{
   border-radius:var(--radius);
   padding:26px;
   background:#fff;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
-
 .status{
   font-size:19px;
   font-weight:800;
@@ -78,7 +62,6 @@ body{
   color:var(--muted);
   line-height:1.7;
 }
-
 .loader{
   margin:22px auto 0;
   width:44px;
@@ -89,7 +72,6 @@ body{
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-
 .proCard{
   margin:18px auto 0;
   max-width:520px;
@@ -112,29 +94,6 @@ body{
 }
 .proName{font-weight:900;font-size:16px}
 .proMeta{color:var(--muted);font-size:13px;margin-top:3px}
-
-.actions{
-  margin-top:18px;
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-.btn{
-  padding:12px 16px;
-  border:none;
-  border-radius:16px;
-  background:#eef3fb;
-  color:var(--primary);
-  font-weight:800;
-  cursor:pointer;
-}
-.btn.danger{
-  background:#fdecec;
-  color:#8a1f1f;
-}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-
 .footer{
   margin-top:auto;
   padding:26px;
@@ -152,7 +111,6 @@ body{
 
 <div class="header">
   <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  <div class="mini" id="debugReq">Request: —</div>
 </div>
 
 <div class="hero">
@@ -169,7 +127,8 @@ body{
 
     <div class="proCard" id="proCard">
       <div class="proRow">
-        <img class="proPhoto" id="proPhoto" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="">
+        <img class="proPhoto" id="proPhoto"
+             src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
         <div>
           <div class="proName" id="proName">—</div>
           <div class="proMeta" id="proMeta">—</div>
@@ -178,10 +137,6 @@ body{
     </div>
 
     <div class="loader" id="loader"></div>
-
-    <div class="actions">
-      <button class="btn danger" id="cancelBtn">Annuler la demande</button>
-    </div>
   </div>
 </div>
 
@@ -195,11 +150,11 @@ body{
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where,
-  orderBy, limit, onSnapshot, doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  doc, getDoc, onSnapshot
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const heroTitle = document.getElementById("heroTitle");
 const heroDesc = document.getElementById("heroDesc");
@@ -207,7 +162,14 @@ const statusLabel = document.getElementById("statusLabel");
 const statusDesc = document.getElementById("statusDesc");
 const loader = document.getElementById("loader");
 
-let callListenerUnsub = null;
+const proCard = document.getElementById("proCard");
+const proPhoto = document.getElementById("proPhoto");
+const proName = document.getElementById("proName");
+const proMeta = document.getElementById("proMeta");
+
+let requestId =
+  new URLSearchParams(location.search).get("requestId") ||
+  localStorage.getItem("ciza_active_requestId");
 
 onAuthStateChanged(auth,(user)=>{
   if(!user){
@@ -215,84 +177,82 @@ onAuthStateChanged(auth,(user)=>{
     return;
   }
 
-  const reqQuery = query(
-    collection(db,"requests"),
-    where("patientUid","==",user.uid),
-    orderBy("createdAt","desc"),
-    limit(1)
-  );
+  if(!requestId) return;
 
-  onSnapshot(reqQuery,(snap)=>{
-    if(snap.empty) return;
+  listenRequest(requestId);
+});
 
-    const reqDoc = snap.docs[0];
-    const r = reqDoc.data();
-    const requestId = reqDoc.id;
+function listenRequest(id){
 
-    /* ==============================
-       ⏳ EN ATTENTE
-    ============================== */
-    if(r.status === "pending"){
+  onSnapshot(doc(db,"requests",id), async(snap)=>{
+    if(!snap.exists()) return;
+
+    const r = snap.data();
+    const status = (r.status || "").toLowerCase();
+
+    if(status === "pending"){
       heroTitle.textContent = "Demande en cours";
       heroDesc.textContent = "Recherche d’un professionnel disponible.";
       statusLabel.textContent = "Recherche en cours…";
-      statusDesc.textContent = "Merci de patienter quelques instants.";
+      statusDesc.textContent = "Merci de patienter.";
       loader.style.display = "block";
+      proCard.style.display = "none";
+      return;
     }
 
-    /* ==============================
-       ❌ REFUSÉ
-    ============================== */
-    if(r.status === "refused"){
-      heroTitle.textContent = "Recherche d’un autre médecin";
-      heroDesc.textContent = "Votre demande a été refusée.";
-      statusLabel.textContent = "Recherche en cours…";
-      statusDesc.textContent = "Nous recherchons un autre professionnel.";
-      loader.style.display = "block";
-    }
-
-    /* ==============================
-       ✅ ASSIGNÉ
-    ============================== */
-    if(r.status === "assigned"){
-
+    if(status === "assigned"){
       heroTitle.textContent = "Consultation acceptée";
       heroDesc.textContent = "Votre professionnel est prêt.";
       statusLabel.textContent = "Veuillez attendre l’appel";
-
-      const name = r.assignedProName || "Médecin";
-      const speciality = r.assignedProSpeciality || "";
-      const province = r.assignedProProvince || "";
-
-      statusDesc.textContent =
-        `Dr ${name} ${speciality ? "• " + speciality : ""} ${province ? "• " + province : ""}`;
-
+      statusDesc.textContent = "Restez sur cet écran.";
       loader.style.display = "none";
+      proCard.style.display = "block";
 
-      listenCallDoc(requestId);
+      // 🔥 IDENTITÉ PRO DEPUIS REQUEST
+      proName.textContent = r.assignedProName
+        ? "Dr " + r.assignedProName
+        : "Médecin";
+
+      proMeta.textContent =
+        (r.assignedProSpeciality || "Médecin") +
+        (r.assignedProProvince
+          ? " • " + r.assignedProProvince
+          : "");
+
+      if(r.assignedProPhoto){
+        proPhoto.src = r.assignedProPhoto;
+      }
+
+      listenCall(id);
+      return;
+    }
+
+    if(status === "refused"){
+      heroTitle.textContent = "Demande refusée";
+      heroDesc.textContent = "Un autre professionnel sera recherché.";
+      statusLabel.textContent = "Mise à jour…";
+      loader.style.display = "block";
+      proCard.style.display = "none";
+      return;
+    }
+
+    if(status === "in_call"){
+      location.href = "call.html?requestId=" + id;
     }
 
   });
-});
+}
 
-/* ==============================
-   🔔 ÉCOUTE CALL SESSION
-============================== */
-function listenCallDoc(requestId){
+function listenCall(requestId){
 
-  if(callListenerUnsub) return;
-
-  const callRef = doc(db,"callSessions",requestId);
-
-  callListenerUnsub = onSnapshot(callRef,(snap)=>{
+  onSnapshot(doc(db,"callSessions",requestId),(snap)=>{
     if(!snap.exists()) return;
 
     const call = snap.data();
 
-    // 🔥 CORRECTION IMPORTANTE
-    // Ton pro envoie status: "ringing"
-    if(call.status === "ringing" || call.status === "calling"){
-      location.href = `call.html?requestId=${requestId}`;
+    // ✅ PRO A écrit status:"ringing"
+    if(call.status === "ringing"){
+      location.href = "call.html?requestId=" + requestId;
     }
   });
 }
