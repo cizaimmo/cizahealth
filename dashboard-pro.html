@@ -155,11 +155,12 @@ onAuthStateChanged(auth, async (user)=>{
 
   /* PRO INFO */
   const proSnap = await getDoc(doc(db,"users",user.uid));
-  if(proSnap.exists()){
-    const p = proSnap.data();
-    proName.textContent = p.fullName || "—";
-    proMeta.textContent = `${p.role||"—"} • ${p.speciality||"—"} • ${p.service||"—"} • ${p.province||"—"}`;
-  }
+  if(!proSnap.exists()) return;
+
+  const p = proSnap.data();
+
+  proName.textContent = p.fullName || "—";
+  proMeta.textContent = `${p.role||"—"} • ${p.speciality||p.specialty||"—"} • ${p.service||"—"} • ${p.province||"—"}`;
 
   /* ONLINE HEARTBEAT (FIABLE) */
   await setDoc(doc(db,"users",user.uid),{ lastOnlineAt: serverTimestamp() },{merge:true});
@@ -222,25 +223,35 @@ onAuthStateChanged(auth, async (user)=>{
       div.className="request pending";
       div.innerHTML=`
 <strong>${r.serviceType||"Service médical"}</strong>
-<div class="empty">👤 ${r.patientName||"—"} • ${r.patientAge??"—"} ans • ${r.patientProvince||"—"}</div>
+<div class="empty">👤 ${r.patientName||r.fullName||"—"} • ${r.patientAge??r.age??"—"} ans • ${r.patientProvince||r.province||"—"}</div>
 <div class="empty">🩺 ${r.symptoms||"—"}</div>
-<div class="empty">📝 ${r.description||"—"}</div>
+<div class="empty">📝 ${r.description||r.details||"—"}</div>
 <div class="empty">🕒 ${r.createdAt?.toDate?.().toLocaleString()||"—"}</div>
 <div class="actions">
   <button class="accept">Accepter</button>
   <button class="refuse">Refuser</button>
   <button class="chat" disabled>Chat</button>
 </div>`;
+
       div.querySelector(".accept").onclick=async()=>{
         div.remove();
+
         await updateDoc(doc(db,"requests",d.id),{
-          status:"assigned", assignedProUid:user.uid, assignedAt:serverTimestamp()
+          status:"assigned",
+          assignedProUid:user.uid,
+          assignedProName:p.fullName || "",
+          assignedProSpeciality:(p.speciality || p.specialty || ""),
+          assignedProProvince:(p.province || ""),
+          assignedProPhoto:(p.photoURL || ""),
+          assignedAt:serverTimestamp()
         });
+
         await addDoc(collection(db,"notifications"),{
           receiverId:r.patientUid, title:"Demande acceptée",
           body:"Votre consultation a été acceptée", read:false, createdAt:serverTimestamp()
         });
       };
+
       div.querySelector(".refuse").onclick=async()=>{
         div.remove();
         await updateDoc(doc(db,"requests",d.id),{
@@ -251,6 +262,7 @@ onAuthStateChanged(auth, async (user)=>{
           body:"Votre consultation a été refusée", read:false, createdAt:serverTimestamp()
         });
       };
+
       pendingList.appendChild(div);
     });
   });
@@ -273,14 +285,17 @@ onAuthStateChanged(auth, async (user)=>{
   <button class="chat">💬 Chat</button>
   <button class="report">📝 Rapport</button>
 </div>`;
+
       div.querySelector(".call").onclick=async()=>{
         await setDoc(doc(db,"callSessions",d.id),{requestId:d.id,proUid:user.uid,status:"ringing",createdAt:serverTimestamp()},{merge:true});
         location.href=`/cizahealth/call.html?requestId=${d.id}&role=pro`;
       };
+
       div.querySelector(".chat").onclick=async()=>{
         await setDoc(doc(db,"chats",d.id),{requestId:d.id,createdAt:serverTimestamp()},{merge:true});
         location.href=`/cizahealth/chat.html?requestId=${d.id}&role=pro`;
       };
+
       div.querySelector(".report").onclick=async()=>{
         const diagnosis = prompt("Diagnostic");
         if(!diagnosis) return;
@@ -289,6 +304,7 @@ onAuthStateChanged(auth, async (user)=>{
         });
         alert("Rapport enregistré. Paiement autorisé.");
       };
+
       assignedList.appendChild(div);
     });
   });
