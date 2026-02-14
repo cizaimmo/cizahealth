@@ -90,6 +90,7 @@ body{
 .proPhoto{
   width:72px;height:72px;border-radius:50%;
   object-fit:cover;border:3px solid #eef3fb;
+  background:#fff;
 }
 .proName{font-weight:900;font-size:16px}
 .proMeta{color:var(--muted);font-size:13px;margin-top:3px}
@@ -114,13 +115,15 @@ body{
 
 <div class="hero">
   <h1 id="heroTitle">Demande en cours</h1>
-  <p id="heroDesc">Nous recherchons un professionnel disponible.</p>
+  <p id="heroDesc">Nous recherchons un professionnel de santé disponible.</p>
 </div>
 
 <div class="content">
   <div class="card">
     <div class="status" id="statusLabel">Chargement…</div>
-    <div class="sub" id="statusDesc">Veuillez patienter.</div>
+    <div class="sub" id="statusDesc">
+      Veuillez rester sur cet écran.
+    </div>
 
     <div class="proCard" id="proCard">
       <div class="proRow">
@@ -139,7 +142,7 @@ body{
 
 <div class="footer">
   <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
-  <div>© 2026 CizaHealth+</div>
+  <div>© 2026 CizaHealth+ — CIZA GROUP</div>
 </div>
 
 </div>
@@ -158,6 +161,7 @@ const heroDesc = document.getElementById("heroDesc");
 const statusLabel = document.getElementById("statusLabel");
 const statusDesc = document.getElementById("statusDesc");
 const loader = document.getElementById("loader");
+
 const proCard = document.getElementById("proCard");
 const proPhoto = document.getElementById("proPhoto");
 const proName = document.getElementById("proName");
@@ -167,10 +171,12 @@ let requestId =
   new URLSearchParams(location.search).get("requestId") ||
   localStorage.getItem("ciza_active_requestId");
 
-let callListener = null;
-
 onAuthStateChanged(auth,(user)=>{
-  if(!user) return location.href="login.html";
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
   if(!requestId) return;
 
   listenRequest(requestId);
@@ -184,7 +190,6 @@ function listenRequest(id){
     const r = snap.data();
     const status = (r.status || "").toLowerCase();
 
-    /* 🔎 PENDING */
     if(status === "pending"){
       heroTitle.textContent = "Demande en cours";
       heroDesc.textContent = "Recherche d’un professionnel disponible.";
@@ -195,7 +200,6 @@ function listenRequest(id){
       return;
     }
 
-    /* 🟢 ASSIGNED */
     if(status === "assigned"){
       heroTitle.textContent = "Consultation acceptée";
       heroDesc.textContent = "Votre professionnel est prêt.";
@@ -204,7 +208,7 @@ function listenRequest(id){
       loader.style.display = "none";
       proCard.style.display = "block";
 
-      // IDENTITÉ PRO
+      // 🔥 IDENTITÉ PRO DEPUIS REQUEST
       proName.textContent = r.assignedProName
         ? "Dr " + r.assignedProName
         : "Médecin";
@@ -223,7 +227,15 @@ function listenRequest(id){
       return;
     }
 
-    /* 📞 IN CALL */
+    if(status === "refused"){
+      heroTitle.textContent = "Demande refusée";
+      heroDesc.textContent = "Un autre professionnel sera recherché.";
+      statusLabel.textContent = "Mise à jour…";
+      loader.style.display = "block";
+      proCard.style.display = "none";
+      return;
+    }
+
     if(status === "in_call"){
       location.href = "call.html?requestId=" + id;
     }
@@ -231,18 +243,16 @@ function listenRequest(id){
   });
 }
 
-function listenCall(id){
+function listenCall(requestId){
 
-  if(callListener) return;
-
-  callListener = onSnapshot(doc(db,"callSessions",id),(snap)=>{
+  onSnapshot(doc(db,"callSessions",requestId),(snap)=>{
     if(!snap.exists()) return;
 
     const call = snap.data();
 
-    // ton pro écrit status:"ringing"
+    // ✅ PRO A écrit status:"ringing"
     if(call.status === "ringing"){
-      location.href = "call.html?requestId=" + id;
+      location.href = "call.html?requestId=" + requestId;
     }
   });
 }
