@@ -36,8 +36,16 @@ body{
 .header{
   padding:16px 22px;
   border-bottom:1px solid #eef1f6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
 }
 .header img{height:46px}
+.header .mini{
+  font-size:12px;
+  color:#6b7a90;
+}
 
 .hero{
   padding:34px 26px;
@@ -46,7 +54,7 @@ body{
   text-align:center;
 }
 .hero h1{margin:0 0 10px;font-size:24px}
-.hero p{font-size:15px;opacity:.95}
+.hero p{font-size:15px;opacity:.95;margin:0}
 
 .content{
   padding:32px 26px;
@@ -55,7 +63,7 @@ body{
 
 .card{
   border-radius:var(--radius);
-  padding:30px;
+  padding:26px;
   background:#fff;
   box-shadow:0 10px 28px rgba(10,42,94,.08);
 }
@@ -72,7 +80,7 @@ body{
 }
 
 .loader{
-  margin:24px auto 0;
+  margin:22px auto 0;
   width:44px;
   height:44px;
   border-radius:50%;
@@ -81,6 +89,51 @@ body{
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.proCard{
+  margin:18px auto 0;
+  max-width:520px;
+  display:none;
+  text-align:left;
+  border:1px solid #eef1f6;
+  border-radius:20px;
+  padding:16px;
+  background:#fbfdff;
+}
+.proRow{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.proPhoto{
+  width:72px;height:72px;border-radius:50%;
+  object-fit:cover;border:3px solid #eef3fb;
+  background:#fff;
+}
+.proName{font-weight:900;font-size:16px}
+.proMeta{color:var(--muted);font-size:13px;margin-top:3px}
+
+.actions{
+  margin-top:18px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.btn{
+  padding:12px 16px;
+  border:none;
+  border-radius:16px;
+  background:#eef3fb;
+  color:var(--primary);
+  font-weight:800;
+  cursor:pointer;
+}
+.btn.danger{
+  background:#fdecec;
+  color:#8a1f1f;
+}
+.btn:disabled{opacity:.6;cursor:not-allowed}
 
 .footer{
   margin-top:auto;
@@ -99,6 +152,7 @@ body{
 
 <div class="header">
   <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="mini" id="debugReq">Request: —</div>
 </div>
 
 <div class="hero">
@@ -108,12 +162,26 @@ body{
 
 <div class="content">
   <div class="card">
-    <div class="status" id="statusLabel">Recherche en cours…</div>
+    <div class="status" id="statusLabel">Chargement…</div>
     <div class="sub" id="statusDesc">
-      Veuillez rester sur cet écran.  
-      Vous serez informé dès qu’un professionnel est prêt.
+      Veuillez rester sur cet écran.
     </div>
+
+    <div class="proCard" id="proCard">
+      <div class="proRow">
+        <img class="proPhoto" id="proPhoto" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="">
+        <div>
+          <div class="proName" id="proName">—</div>
+          <div class="proMeta" id="proMeta">—</div>
+        </div>
+      </div>
+    </div>
+
     <div class="loader" id="loader"></div>
+
+    <div class="actions">
+      <button class="btn danger" id="cancelBtn">Annuler la demande</button>
+    </div>
   </div>
 </div>
 
@@ -124,14 +192,13 @@ body{
 
 </div>
 
-<!-- 🔐 LOGIQUE FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, query, where,
-  orderBy, limit, onSnapshot, doc
+  collection, query, where, limit, onSnapshot,
+  doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const heroTitle = document.getElementById("heroTitle");
@@ -140,72 +207,267 @@ const statusLabel = document.getElementById("statusLabel");
 const statusDesc = document.getElementById("statusDesc");
 const loader = document.getElementById("loader");
 
-let callListenerUnsub = null;
+const proCard = document.getElementById("proCard");
+const proPhoto = document.getElementById("proPhoto");
+const proName = document.getElementById("proName");
+const proMeta = document.getElementById("proMeta");
 
+const cancelBtn = document.getElementById("cancelBtn");
+const debugReq = document.getElementById("debugReq");
+
+let requestId =
+  new URLSearchParams(location.search).get("requestId") ||
+  sessionStorage.getItem("lastRequestId") ||
+  localStorage.getItem("ciza_active_requestId") ||
+  "";
+
+let unsubRequest = null;
+let unsubCall = null;
+
+/* =====================
+   UI STATES
+===================== */
+function uiPending(){
+  heroTitle.textContent = "Demande en cours";
+  heroDesc.textContent = "Recherche d’un professionnel disponible.";
+  statusLabel.textContent = "Recherche en cours…";
+  statusDesc.textContent = "Merci de patienter. Un professionnel va prendre votre demande.";
+  loader.style.display = "block";
+  proCard.style.display = "none";
+}
+
+function uiAssigned(){
+  heroTitle.textContent = "Consultation acceptée";
+  heroDesc.textContent = "Votre professionnel est prêt.";
+  statusLabel.textContent = "Veuillez attendre l’appel";
+  statusDesc.textContent = "Restez sur cet écran. Le médecin vous appellera sous peu.";
+  loader.style.display = "none";
+  proCard.style.display = "block";
+}
+
+function uiInCall(){
+  heroTitle.textContent = "Consultation en cours";
+  heroDesc.textContent = "Connexion en cours…";
+  statusLabel.textContent = "Ouverture de l’appel…";
+  statusDesc.textContent = "Veuillez patienter quelques secondes.";
+  loader.style.display = "block";
+}
+
+function uiRefused(){
+  heroTitle.textContent = "Demande mise à jour";
+  heroDesc.textContent = "Un professionnel n’a pas pu prendre la demande.";
+  statusLabel.textContent = "Demande refusée";
+  statusDesc.textContent = "Veuillez relancer une demande depuis votre tableau de bord.";
+  loader.style.display = "none";
+  proCard.style.display = "none";
+}
+
+function uiEnded(){
+  heroTitle.textContent = "Demande terminée";
+  heroDesc.textContent = "Cette demande est clôturée.";
+  statusLabel.textContent = "Fin";
+  statusDesc.textContent = "Retour au tableau de bord.";
+  loader.style.display = "none";
+  proCard.style.display = "none";
+}
+
+/* =====================
+   PRO CARD (FIABLE)
+===================== */
+async function fillProCardFromRequest(r){
+  // 1) Si déjà stocké dans request
+  const name = r.assignedProName || "";
+  const spec = r.assignedProSpeciality || r.assignedProSpecialty || "";
+  const prov = r.assignedProProvince || "";
+  const photo = r.assignedProPhoto || r.assignedProPhotoURL || r.assignedProPhotoUrl || "";
+
+  if(name || spec || prov || photo){
+    proName.textContent = name ? ("Dr " + name) : "Médecin";
+    proMeta.textContent = (spec || "Médecin") + (prov ? (" • " + prov) : "");
+    if(photo) proPhoto.src = photo;
+    return;
+  }
+
+  // 2) Sinon on lit users/{uid}
+  const uid = r.assignedProUid || "";
+  if(!uid) return;
+
+  const snap = await getDoc(doc(db,"users",uid));
+  if(!snap.exists()) return;
+  const p = snap.data();
+
+  proName.textContent = p.fullName ? ("Dr " + p.fullName) : "Médecin";
+  proMeta.textContent = (p.speciality || p.specialty || "Médecin") + (p.province ? (" • " + p.province) : "");
+  if(p.photoURL) proPhoto.src = p.photoURL;
+}
+
+/* =====================
+   LISTEN REQUEST DOC
+===================== */
+function listenRequest(id){
+  if(unsubRequest) unsubRequest();
+  if(unsubCall) { unsubCall(); unsubCall=null; }
+
+  localStorage.setItem("ciza_active_requestId", id);
+  debugReq.textContent = "Request: " + id;
+
+  unsubRequest = onSnapshot(doc(db,"requests",id), async(snap)=>{
+    if(!snap.exists()){
+      // On ne redirige pas brutalement : on reste et on affiche un état propre
+      statusLabel.textContent = "Demande introuvable";
+      statusDesc.textContent = "Retournez au tableau de bord et relancez une demande si nécessaire.";
+      loader.style.display = "none";
+      proCard.style.display = "none";
+      return;
+    }
+
+    const r = snap.data();
+    const st = (r.status || "").toLowerCase();
+
+    if(st === "pending" || st === ""){
+      uiPending();
+      return;
+    }
+
+    if(st === "assigned"){
+      uiAssigned();
+      await fillProCardFromRequest(r);
+      listenCall(id); // écoute callSessions
+      return;
+    }
+
+    if(st === "refused"){
+      uiRefused();
+      localStorage.removeItem("ciza_active_requestId");
+      return;
+    }
+
+    if(st === "in_call" || st === "incall" || st === "started"){
+      uiInCall();
+      setTimeout(()=>{
+        location.href = "call.html?requestId=" + encodeURIComponent(id);
+      }, 600);
+      return;
+    }
+
+    if(st === "cancelled" || st === "canceled" || st === "ended" || st === "closed"){
+      uiEnded();
+      localStorage.removeItem("ciza_active_requestId");
+      setTimeout(()=> location.href="dashboard-client.html", 900);
+      return;
+    }
+
+    // état inconnu => on affiche sans casser
+    statusLabel.textContent = "Mise à jour…";
+    statusDesc.textContent = "Statut: " + (r.status || "—");
+  }, (err)=>{
+    console.error("REQUEST SNAP ERROR:", err);
+    statusLabel.textContent = "Erreur de lecture";
+    statusDesc.textContent = "Accès refusé (Rules) ou réseau. Vérifie les règles sur requests.";
+    loader.style.display = "none";
+  });
+}
+
+/* =====================
+   LISTEN CALL SESSION
+===================== */
+function listenCall(id){
+  if(unsubCall) return;
+
+  unsubCall = onSnapshot(doc(db,"callSessions",id),(snap)=>{
+    if(!snap.exists()) return;
+    const c = snap.data();
+    const st = (c.status || "").toLowerCase();
+
+    // Si ton call flow déclenche "calling"/"ringing"/"ready" etc
+    if(st === "calling" || st === "ringing" || st === "ready" || (c.offer && st)){
+      // le pro a lancé l’appel
+      location.href = "call.html?requestId=" + encodeURIComponent(id);
+    }
+  });
+}
+
+/* =====================
+   FIND ACTIVE REQUEST (SANS orderBy)
+   -> évite les problèmes createdAt/index
+===================== */
+function findActiveRequestForPatient(uid){
+  // On récupère quelques demandes et on prend la première active
+  const q = query(
+    collection(db,"requests"),
+    where("patientUid","==",uid),
+    limit(10)
+  );
+
+  onSnapshot(q,(snap)=>{
+    if(snap.empty){
+      statusLabel.textContent = "Aucune demande active";
+      statusDesc.textContent = "Retournez au tableau de bord et lancez une demande.";
+      loader.style.display = "none";
+      return;
+    }
+
+    let chosen = null;
+
+    snap.docs.forEach(d=>{
+      const r = d.data();
+      const st = (r.status || "").toLowerCase();
+      if(!chosen && (st === "pending" || st === "assigned" || st === "in_call" || st === "incall" || st === "started")){
+        chosen = d.id;
+      }
+    });
+
+    if(!chosen){
+      // aucune active trouvée
+      statusLabel.textContent = "Aucune demande active";
+      statusDesc.textContent = "Retournez au tableau de bord et relancez une demande.";
+      loader.style.display = "none";
+      return;
+    }
+
+    requestId = chosen;
+    sessionStorage.setItem("lastRequestId", requestId);
+    localStorage.setItem("ciza_active_requestId", requestId);
+    listenRequest(requestId);
+  }, (err)=>{
+    console.error("FIND ACTIVE ERROR:", err);
+    statusLabel.textContent = "Erreur";
+    statusDesc.textContent = "Impossible de retrouver la demande (Rules).";
+    loader.style.display = "none";
+  });
+}
+
+/* =====================
+   AUTH + CANCEL
+===================== */
 onAuthStateChanged(auth,(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
 
-  // 🔑 Dernière demande du patient
-  const reqQuery = query(
-    collection(db,"requests"),
-    where("patientUid","==",user.uid),
-    orderBy("createdAt","desc"),
-    limit(1)
-  );
+  uiPending();
 
-  onSnapshot(reqQuery,(snap)=>{
-    if(snap.empty) return;
+  if(requestId){
+    sessionStorage.setItem("lastRequestId", requestId);
+    listenRequest(requestId);
+  }else{
+    findActiveRequestForPatient(user.uid);
+  }
 
-    const reqDoc = snap.docs[0];
-    const r = reqDoc.data();
-    const requestId = reqDoc.id;
-
-    /* ⏳ EN ATTENTE */
-    if(r.status === "pending"){
-      heroTitle.textContent = "Demande en cours";
-      heroDesc.textContent = "Recherche d’un professionnel disponible.";
-      statusLabel.textContent = "Recherche en cours…";
-      statusDesc.textContent = "Merci de patienter quelques instants.";
-      loader.style.display = "block";
+  cancelBtn.onclick = async()=>{
+    if(!requestId) return;
+    cancelBtn.disabled = true;
+    try{
+      await updateDoc(doc(db,"requests",requestId),{ status:"cancelled" });
+    }catch(e){
+      console.error("CANCEL ERROR:", e);
+      cancelBtn.disabled = false;
+      alert("Impossible d’annuler (Rules).");
     }
-
-    /* ✅ ASSIGNÉ */
-    if(r.status === "assigned"){
-      heroTitle.textContent = "Consultation acceptée";
-      heroDesc.textContent = "Votre professionnel est prêt.";
-      statusLabel.textContent = "Veuillez attendre l’appel";
-      statusDesc.textContent =
-        r.assignedProName
-          ? `Dr ${r.assignedProName} va vous appeler.`
-          : "Le professionnel va vous appeler.";
-      loader.style.display = "none";
-
-      listenCallDoc(requestId);
-    }
-  });
+  };
 });
-
-/* 🔔 ÉCOUTE DIRECTE DU DOCUMENT D’APPEL */
-function listenCallDoc(requestId){
-  if(callListenerUnsub) return;
-
-  const callRef = doc(db,"callSessions",requestId);
-
-  callListenerUnsub = onSnapshot(callRef,(snap)=>{
-    if(!snap.exists()) return;
-
-    const call = snap.data();
-
-    // ✅ LE PRO A CLIQUÉ SUR “DÉMARRER”
-    if(call.status === "calling" && call.offer){
-      location.href = `call.html?requestId=${requestId}`;
-    }
-  });
-}
 </script>
-  
+
 </body>
 </html>
