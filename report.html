@@ -156,11 +156,11 @@ Envoyer rapport
 </div>
 
 </div>
-
+  
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
-  doc, setDoc, getDoc, serverTimestamp
+  doc, setDoc, getDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
@@ -204,7 +204,7 @@ submitBtn.onclick = async()=>{
 
   try{
 
-    // 🔥 Récupérer la request pour obtenir patientUid
+    // 🔥 1️⃣ Lire la request
     const reqSnap = await getDoc(doc(db,"requests",requestId));
     if(!reqSnap.exists()){
       alert("Request introuvable");
@@ -215,22 +215,40 @@ submitBtn.onclick = async()=>{
 
     const reqData = reqSnap.data();
 
+    // 🔥 2️⃣ Lire infos pro depuis users (fiable)
+    const proSnap = await getDoc(doc(db,"users",user.uid));
+    const proData = proSnap.exists() ? proSnap.data() : {};
+
     const reportData = {
       requestId,
       patientUid: reqData.patientUid,
       proUid: user.uid,
+
+      // 🔥 identité pro fiable
+      proName: proData.fullName || reqData.assignedProName || "",
+      proSpeciality: proData.speciality || reqData.assignedProSpeciality || "",
+      proProvince: proData.province || reqData.assignedProProvince || "",
+      proPhoto: proData.photoURL || reqData.assignedProPhoto || "",
+
       motif: motif.value,
       diagnostic: diagnostic.value,
       traitement: traitement.value,
       suivi: suivi.value,
       ordonnance: needRx.checked,
       medications,
-      status:"submitted",
+
+      status:"completed",
       submittedAt: serverTimestamp()
     };
 
     // ✅ Sauvegarde report
     await setDoc(doc(db,"reports",requestId), reportData);
+
+    // ✅ Mise à jour request
+    await updateDoc(doc(db,"requests",requestId),{
+      status:"completed",
+      completedAt: serverTimestamp()
+    });
 
     // ✅ Si ordonnance activée
     if(needRx.checked){
