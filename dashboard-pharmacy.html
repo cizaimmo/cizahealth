@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Espace Pharmacie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --blue-dark:#0b2c66;
+  --green:#2e7d32;
+  --red:#b00020;
+  --orange:#ef6c00;
+  --gray:#6b7a90;
+  --bg:#f4f7fb;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+}
+.app{
+  max-width:1100px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  background:linear-gradient(90deg,var(--blue),var(--blue-dark));
+  color:white;
+  padding:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header-left h1{margin:0;font-size:18px}
+.header-left small{opacity:.9}
+.logout{
+  background:white;
+  color:var(--blue-dark);
+  border:none;
+  padding:8px 14px;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.content{padding:20px}
+
+/* KPI */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.kpi{
+  background:white;
+  padding:16px;
+  border-radius:var(--radius);
+  box-shadow:0 10px 25px rgba(0,0,0,.05);
+  text-align:center;
+}
+.kpi h3{margin:0;font-size:20px}
+.kpi small{color:var(--gray)}
+
+.card{
+  background:white;
+  padding:18px;
+  border-radius:var(--radius);
+  margin-bottom:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #e6ebf5;
+  margin-top:10px;
+}
+button{
+  margin-top:10px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:var(--blue);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+button.secondary{
+  background:#eef3fb;
+  color:var(--blue);
+}
+button.danger{
+  background:var(--red);
+}
+
+.muted{color:var(--gray);font-size:13px}
+.success{color:var(--green);font-weight:600}
+.error{color:var(--red);font-weight:600}
+
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+<div class="header-left">
+  <h1 id="pharmacyName">Pharmacie</h1>
+  <small id="pharmacyAddress"></small><br>
+  <small id="pharmacyCountry"></small>
+</div>
+<button class="logout" id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="content">
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <h3 id="kpiPending">0</h3>
+    <small>En attente</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiDispensed">0</h3>
+    <small>Délivrées</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiRejected">0</h3>
+    <small>Refusées</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiUnavailable">0</h3>
+    <small>Indisponible</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiTotal">0</h3>
+    <small>Total traitées</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiRate">0%</h3>
+    <small>Taux validation</small>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div class="card">
+<h3>Scanner ordonnance</h3>
+<input id="manualCode" placeholder="Scanner ou entrer code RX">
+<button id="validateBtn">Valider ordonnance</button>
+<div id="result"></div>
+</div>
+
+<!-- PENDING -->
+<div class="card">
+<h3>Ordonnances en attente</h3>
+<div id="pendingList"></div>
+</div>
+
+</div>
+
+<div class="footer">
+© 2026 CizaHealth+ — Système hospitalier partenaire
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+collection, query, where, onSnapshot,
+doc, getDoc, updateDoc, serverTimestamp, getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const logoutBtn = document.getElementById("logoutBtn");
+const pharmacyNameEl = document.getElementById("pharmacyName");
+const pharmacyAddressEl = document.getElementById("pharmacyAddress");
+const pharmacyCountryEl = document.getElementById("pharmacyCountry");
+
+const manualCode = document.getElementById("manualCode");
+const validateBtn = document.getElementById("validateBtn");
+const result = document.getElementById("result");
+const pendingList = document.getElementById("pendingList");
+
+let currentUser;
+
+/* 🔐 LOGOUT */
+logoutBtn.onclick = async()=>{
+  await signOut(auth);
+  location.href="login.html";
+};
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user) return location.href="login.html";
+  currentUser = user;
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  const data = snap.data();
+
+  if(data.role !== "pharmacy"){
+    location.href="login.html";
+    return;
+  }
+
+  pharmacyNameEl.innerText = data.fullName || "Pharmacie";
+  pharmacyAddressEl.innerText = data.address || "";
+  pharmacyCountryEl.innerText = data.country || "";
+
+  loadKPI();
+  listenPending();
+});
+
+/* KPI */
+function loadKPI(){
+  const q = query(
+    collection(db,"prescriptions"),
+    where("assignedPharmacyUid","==",currentUser.uid)
+  );
+
+  onSnapshot(q,(snap)=>{
+    let pending=0, dispensed=0, rejected=0, unavailable=0;
+
+    snap.forEach(docu=>{
+      const s = docu.data().status;
+      if(s==="sent") pending++;
+      if(s==="dispensed") dispensed++;
+      if(s==="rejected") rejected++;
+      if(s==="unavailable") unavailable++;
+    });
+
+    const totalTreated = dispensed+rejected+unavailable;
+    const totalAll = pending+totalTreated;
+    const rate = totalAll>0 ? Math.round((dispensed/totalAll)*100) : 0;
+
+    document.getElementById("kpiPending").innerText = pending;
+    document.getElementById("kpiDispensed").innerText = dispensed;
+    document.getElementById("kpiRejected").innerText = rejected;
+    document.getElementById("kpiUnavailable").innerText = unavailable;
+    document.getElementById("kpiTotal").innerText = totalTreated;
+    document.getElementById("kpiRate").innerText = rate+"%";
+
+    const rateEl = document.getElementById("kpiRate");
+    if(rate >= 70) rateEl.style.color = "#2e7d32";
+    else if(rate >= 40) rateEl.style.color = "#ef6c00";
+    else rateEl.style.color = "#b00020";
+  });
+}
+
+/* LISTEN PENDING */
+function listenPending(){
+  const q = query(
+    collection(db,"prescriptions"),
+    where("assignedPharmacyUid","==",currentUser.uid),
+    where("status","==","sent")
+  );
+
+  onSnapshot(q,(snap)=>{
+    pendingList.innerHTML="";
+    if(snap.empty){
+      pendingList.innerHTML="<div class='muted'>Aucune ordonnance en attente</div>";
+      return;
+    }
+
+    snap.forEach(docu=>{
+      const r = docu.data();
+      const div = document.createElement("div");
+      div.className="card";
+      div.innerHTML=`
+        <b>Code :</b> ${r.code}<br>
+        <b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}
+      `;
+      pendingList.appendChild(div);
+    });
+  });
+}
+
+/* VALIDATION */
+validateBtn.onclick = async()=>{
+  const code = manualCode.value.trim().toUpperCase();
+  if(!code) return;
+
+  const q = query(
+    collection(db,"prescriptions"),
+    where("code","==",code),
+    where("assignedPharmacyUid","==",currentUser.uid),
+    where("status","==","sent")
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    result.innerHTML="<div class='error'>Ordonnance invalide ou non assignée</div>";
+    return;
+  }
+
+  const docu = snap.docs[0];
+  const data = docu.data();
+
+  let medsHTML="";
+  (data.medications || []).forEach(m=>{
+    medsHTML += `<b>${m.name}</b><br>${m.dosage} — ${m.posology} — ${m.duration}<br><br>`;
+  });
+
+  result.innerHTML=`
+    <div class='success'>Ordonnance valide</div><br>
+    ${medsHTML}
+    <button id="dispenseBtn">Confirmer délivrance</button>
+    <button id="rejectBtn" class="danger">Refuser</button>
+    <button id="unavailableBtn" class="secondary">Indisponible</button>
+  `;
+
+  document.getElementById("dispenseBtn").onclick = async()=>{
+    await updateDoc(doc(db,"prescriptions",docu.id),{
+      status:"dispensed",
+      used:true,
+      dispensedAt: serverTimestamp()
+    });
+    result.innerHTML="<div class='success'>Ordonnance délivrée</div>";
+  };
+
+  document.getElementById("rejectBtn").onclick = async()=>{
+    await updateDoc(doc(db,"prescriptions",docu.id),{
+      status:"rejected"
+    });
+    result.innerHTML="<div class='error'>Ordonnance refusée</div>";
+  };
+
+  document.getElementById("unavailableBtn").onclick = async()=>{
+    await updateDoc(doc(db,"prescriptions",docu.id),{
+      status:"unavailable"
+    });
+    result.innerHTML="<div class='muted'>Médicament indisponible</div>";
+  };
+};
+</script>
+
+</body>
+</html>
