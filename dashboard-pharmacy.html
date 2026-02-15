@@ -12,7 +12,7 @@
   --bg:#f4f7fb;
   --card:#ffffff;
   --muted:#6b7a90;
-  --radius:20px;
+  --radius:18px;
 }
 *{box-sizing:border-box}
 body{
@@ -21,7 +21,7 @@ body{
   background:var(--bg);
 }
 .app{
-  max-width:900px;
+  max-width:1000px;
   margin:auto;
   min-height:100vh;
   display:flex;
@@ -30,17 +30,35 @@ body{
 header{
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
   color:white;
-  padding:18px;
+  padding:20px;
 }
-header strong{font-size:16px}
+header h1{margin:0;font-size:18px}
+header small{opacity:.9}
 .content{padding:20px}
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.kpi{
+  background:white;
+  padding:16px;
+  border-radius:var(--radius);
+  box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+.kpi h3{margin:0;font-size:18px}
+.kpi small{color:var(--muted)}
+
 .card{
   background:white;
   padding:18px;
   border-radius:var(--radius);
-  margin-bottom:16px;
+  margin-bottom:18px;
   box-shadow:0 10px 30px rgba(0,0,0,.05);
 }
+
 input{
   width:100%;
   padding:14px;
@@ -49,7 +67,7 @@ input{
   margin-top:10px;
 }
 button{
-  margin-top:12px;
+  margin-top:10px;
   padding:12px;
   border:none;
   border-radius:14px;
@@ -57,6 +75,13 @@ button{
   color:white;
   font-weight:600;
   cursor:pointer;
+}
+button.secondary{
+  background:#eef3fb;
+  color:var(--blue);
+}
+button.danger{
+  background:#b00020;
 }
 .muted{color:var(--muted);font-size:13px}
 .success{color:green;font-weight:600}
@@ -73,6 +98,15 @@ video{
   border-radius:14px;
   margin-top:10px;
 }
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  background:white;
+  color:var(--blue);
+  margin-top:6px;
+}
 </style>
 </head>
 
@@ -80,25 +114,51 @@ video{
 <div class="app">
 
 <header>
-<strong id="pharmacyName">Pharmacie</strong>
+<h1 id="pharmacyName">Pharmacie</h1>
+<small id="pharmacyAddress"></small><br>
+<span class="badge" id="pharmacyCountry"></span>
 </header>
 
 <div class="content">
 
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <h3 id="kpiPending">0</h3>
+    <small>En attente</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiDispensed">0</h3>
+    <small>Délivrées</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiRejected">0</h3>
+    <small>Refusées</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiUnavailable">0</h3>
+    <small>Indisponible</small>
+  </div>
+  <div class="kpi">
+    <h3 id="kpiRate">0%</h3>
+    <small>Taux validation</small>
+  </div>
+</div>
+
+<!-- SCAN -->
 <div class="card">
 <h3>Scanner ordonnance</h3>
 
 <input id="manualCode" placeholder="Scanner ou entrer code RX">
-
 <button id="validateBtn">Valider ordonnance</button>
 
 <div id="result"></div>
 
 <video id="preview" hidden playsinline></video>
 <button id="startScan">Scanner avec caméra</button>
-
 </div>
 
+<!-- PENDING LIST -->
 <div class="card">
 <h3>Ordonnances en attente</h3>
 <div id="pendingList"></div>
@@ -107,16 +167,15 @@ video{
 </div>
 
 <div class="footer">
-© 2026 CizaHealth+ — Espace partenaire
+© 2026 CizaHealth+ — Système hospitalier partenaire
 </div>
 
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } 
+import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
 import {
 collection, query, where, onSnapshot,
 doc, getDoc, updateDoc, serverTimestamp, getDocs
@@ -124,42 +183,63 @@ doc, getDoc, updateDoc, serverTimestamp, getDocs
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const pharmacyNameEl = document.getElementById("pharmacyName");
+const pharmacyAddressEl = document.getElementById("pharmacyAddress");
+const pharmacyCountryEl = document.getElementById("pharmacyCountry");
+
 const manualCode = document.getElementById("manualCode");
 const validateBtn = document.getElementById("validateBtn");
 const result = document.getElementById("result");
 const pendingList = document.getElementById("pendingList");
 
-const preview = document.getElementById("preview");
-const startScanBtn = document.getElementById("startScan");
-
 let currentUser;
-let scanStream = null;
-let scanTimer = null;
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="login.html";
   currentUser = user;
 
   const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()){
-    alert("Profil introuvable");
-    location.href="login.html";
-    return;
-  }
-
   const data = snap.data();
 
   if(data.role !== "pharmacy"){
-    alert("Accès refusé");
     location.href="login.html";
     return;
   }
 
-  // ✅ IMPORTANT : Firestore utilise fullName (pas pharmacyName)
-  pharmacyNameEl.innerText = data.fullName || "Pharmacie partenaire";
+  pharmacyNameEl.innerText = data.fullName || "Pharmacie";
+  pharmacyAddressEl.innerText = data.address || "";
+  pharmacyCountryEl.innerText = data.country || "";
 
+  loadKPI();
   listenPending();
 });
+
+function loadKPI(){
+  const q = query(
+    collection(db,"prescriptions"),
+    where("assignedPharmacyUid","==",currentUser.uid)
+  );
+
+  onSnapshot(q,(snap)=>{
+    let pending=0, dispensed=0, rejected=0, unavailable=0;
+
+    snap.forEach(docu=>{
+      const s = docu.data().status;
+      if(s==="sent") pending++;
+      if(s==="dispensed") dispensed++;
+      if(s==="rejected") rejected++;
+      if(s==="unavailable") unavailable++;
+    });
+
+    document.getElementById("kpiPending").innerText = pending;
+    document.getElementById("kpiDispensed").innerText = dispensed;
+    document.getElementById("kpiRejected").innerText = rejected;
+    document.getElementById("kpiUnavailable").innerText = unavailable;
+
+    const total = pending+dispensed+rejected+unavailable;
+    const rate = total>0 ? Math.round((dispensed/total)*100) : 0;
+    document.getElementById("kpiRate").innerText = rate+"%";
+  });
+}
 
 function listenPending(){
   const q = query(
@@ -180,8 +260,8 @@ function listenPending(){
       const div = document.createElement("div");
       div.className="card";
       div.innerHTML=`
-        <b>Code :</b> ${r.code || "—"}<br>
-        <b>Date :</b> ${r.createdAt?.toDate?.().toLocaleString?.() || "—"}
+        <b>Code :</b> ${r.code}<br>
+        <b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}
       `;
       pendingList.appendChild(div);
     });
@@ -191,8 +271,6 @@ function listenPending(){
 validateBtn.onclick = async()=>{
   const code = manualCode.value.trim().toUpperCase();
   if(!code) return;
-
-  result.innerHTML="Vérification...";
 
   const q = query(
     collection(db,"prescriptions"),
@@ -211,116 +289,43 @@ validateBtn.onclick = async()=>{
   const docu = snap.docs[0];
   const data = docu.data();
 
-  const meds = Array.isArray(data.medications) ? data.medications : [];
-
   let medsHTML="";
-  if(meds.length === 0){
-    medsHTML = "<div class='muted'>Aucun médicament listé.</div><br>";
-  }else{
-    meds.forEach(m=>{
-      medsHTML += `
-        <div>
-          <b>${(m && m.name) ? m.name : "—"}</b><br>
-          ${(m && m.dosage) ? m.dosage : "—"} — ${(m && m.posology) ? m.posology : "—"} — ${(m && m.duration) ? m.duration : "—"}
-        </div><br>
-      `;
-    });
-  }
+  data.medications.forEach(m=>{
+    medsHTML += `<b>${m.name}</b><br>${m.dosage} — ${m.posology} — ${m.duration}<br><br>`;
+  });
 
   result.innerHTML=`
     <div class='success'>Ordonnance valide</div><br>
     ${medsHTML}
-    <button id="confirmDispense">Confirmer délivrance</button>
+    <button id="dispenseBtn">Confirmer délivrance</button>
+    <button id="rejectBtn" class="danger">Refuser</button>
+    <button id="unavailableBtn" class="secondary">Médicament indisponible</button>
   `;
 
-  document.getElementById("confirmDispense").onclick = async()=>{
+  document.getElementById("dispenseBtn").onclick = async()=>{
     await updateDoc(doc(db,"prescriptions",docu.id),{
-      used:true,
       status:"dispensed",
+      used:true,
       dispensedAt: serverTimestamp()
     });
-
     result.innerHTML="<div class='success'>Ordonnance délivrée</div>";
-    manualCode.value="";
+  };
+
+  document.getElementById("rejectBtn").onclick = async()=>{
+    await updateDoc(doc(db,"prescriptions",docu.id),{
+      status:"rejected"
+    });
+    result.innerHTML="<div class='error'>Ordonnance refusée</div>";
+  };
+
+  document.getElementById("unavailableBtn").onclick = async()=>{
+    await updateDoc(doc(db,"prescriptions",docu.id),{
+      status:"unavailable"
+    });
+    result.innerHTML="<div class='muted'>Médicament indisponible</div>";
   };
 };
-
-/* =========================
-   📷 SCAN QR CAMERA (sans données sensibles)
-   - Le QR contient seulement un texte (ex: RX-XXXXXX)
-   - On remplit manualCode puis tu valides
-   ========================= */
-
-async function stopScan(){
-  try{
-    if(scanTimer){
-      clearInterval(scanTimer);
-      scanTimer = null;
-    }
-    if(scanStream){
-      scanStream.getTracks().forEach(t=>t.stop());
-      scanStream = null;
-    }
-    preview.hidden = true;
-  }catch(e){}
-}
-
-async function startScan(){
-  result.innerHTML = "<div class='muted'>Ouverture caméra…</div>";
-
-  // BarcodeDetector: Chrome/Android OK. Sinon fallback manuel.
-  if(!("BarcodeDetector" in window)){
-    result.innerHTML = "<div class='error'>Scan caméra non supporté ici. Utilise la saisie/scanner manuel.</div>";
-    return;
-  }
-
-  const detector = new BarcodeDetector({ formats: ["qr_code"] });
-
-  try{
-    scanStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false
-    });
-
-    preview.srcObject = scanStream;
-    preview.hidden = false;
-    await preview.play();
-
-    result.innerHTML = "<div class='muted'>Scannez le QR…</div>";
-
-    scanTimer = setInterval(async ()=>{
-      try{
-        const barcodes = await detector.detect(preview);
-        if(barcodes && barcodes.length){
-          const raw = (barcodes[0].rawValue || "").trim();
-          if(raw){
-            manualCode.value = raw.toUpperCase();
-            await stopScan();
-            result.innerHTML = "<div class='success'>QR détecté. Cliquez sur “Valider ordonnance”.</div>";
-          }
-        }
-      }catch(e){}
-    }, 350);
-
-  }catch(err){
-    console.error(err);
-    result.innerHTML = "<div class='error'>Accès caméra refusé ou indisponible.</div>";
-    await stopScan();
-  }
-}
-
-startScanBtn.onclick = async()=>{
-  // toggle simple
-  if(scanStream){
-    await stopScan();
-    result.innerHTML = "<div class='muted'>Scan arrêté.</div>";
-    return;
-  }
-  await startScan();
-};
-
-// Stop scan when leaving page
-window.addEventListener("beforeunload", stopScan);
 </script>
+
 </body>
 </html>
