@@ -3,15 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Espace Pharmacie</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
   --blue:#123c8a;
   --blue-dark:#0b2c66;
+  --green:#2e7d32;
+  --red:#b00020;
+  --orange:#ef6c00;
+  --gray:#6b7a90;
   --bg:#f4f7fb;
-  --card:#ffffff;
-  --muted:#6b7a90;
   --radius:18px;
 }
 *{box-sizing:border-box}
@@ -21,7 +27,7 @@ body{
   background:var(--bg);
 }
 .app{
-  max-width:1000px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   display:flex;
@@ -31,11 +37,24 @@ header{
   background:linear-gradient(90deg,var(--blue),var(--blue-dark));
   color:white;
   padding:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-header h1{margin:0;font-size:18px}
-header small{opacity:.9}
+.header-left h1{margin:0;font-size:18px}
+.header-left small{opacity:.9}
+.logout{
+  background:white;
+  color:var(--blue-dark);
+  border:none;
+  padding:8px 14px;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
 .content{padding:20px}
 
+/* KPI */
 .kpi-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
@@ -47,9 +66,10 @@ header small{opacity:.9}
   padding:16px;
   border-radius:var(--radius);
   box-shadow:0 10px 25px rgba(0,0,0,.05);
+  text-align:center;
 }
-.kpi h3{margin:0;font-size:18px}
-.kpi small{color:var(--muted)}
+.kpi h3{margin:0;font-size:20px}
+.kpi small{color:var(--gray)}
 
 .card{
   background:white;
@@ -81,31 +101,19 @@ button.secondary{
   color:var(--blue);
 }
 button.danger{
-  background:#b00020;
+  background:var(--red);
 }
-.muted{color:var(--muted);font-size:13px}
-.success{color:green;font-weight:600}
-.error{color:#b00020;font-weight:600}
+
+.muted{color:var(--gray);font-size:13px}
+.success{color:var(--green);font-weight:600}
+.error{color:var(--red);font-weight:600}
+
 .footer{
   margin-top:auto;
   text-align:center;
   padding:18px;
   font-size:12px;
   color:#777;
-}
-video{
-  width:100%;
-  border-radius:14px;
-  margin-top:10px;
-}
-.badge{
-  display:inline-block;
-  padding:4px 10px;
-  border-radius:12px;
-  font-size:12px;
-  background:white;
-  color:var(--blue);
-  margin-top:6px;
 }
 </style>
 </head>
@@ -114,9 +122,12 @@ video{
 <div class="app">
 
 <header>
-<h1 id="pharmacyName">Pharmacie</h1>
-<small id="pharmacyAddress"></small><br>
-<span class="badge" id="pharmacyCountry"></span>
+<div class="header-left">
+  <h1 id="pharmacyName">Pharmacie</h1>
+  <small id="pharmacyAddress"></small><br>
+  <small id="pharmacyCountry"></small>
+</div>
+<button class="logout" id="logoutBtn">Déconnexion</button>
 </header>
 
 <div class="content">
@@ -140,6 +151,10 @@ video{
     <small>Indisponible</small>
   </div>
   <div class="kpi">
+    <h3 id="kpiTotal">0</h3>
+    <small>Total traitées</small>
+  </div>
+  <div class="kpi">
     <h3 id="kpiRate">0%</h3>
     <small>Taux validation</small>
   </div>
@@ -148,17 +163,12 @@ video{
 <!-- SCAN -->
 <div class="card">
 <h3>Scanner ordonnance</h3>
-
 <input id="manualCode" placeholder="Scanner ou entrer code RX">
 <button id="validateBtn">Valider ordonnance</button>
-
 <div id="result"></div>
-
-<video id="preview" hidden playsinline></video>
-<button id="startScan">Scanner avec caméra</button>
 </div>
 
-<!-- PENDING LIST -->
+<!-- PENDING -->
 <div class="card">
 <h3>Ordonnances en attente</h3>
 <div id="pendingList"></div>
@@ -174,7 +184,7 @@ video{
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged }
+import { onAuthStateChanged, signOut }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
 collection, query, where, onSnapshot,
@@ -182,6 +192,7 @@ doc, getDoc, updateDoc, serverTimestamp, getDocs
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const logoutBtn = document.getElementById("logoutBtn");
 const pharmacyNameEl = document.getElementById("pharmacyName");
 const pharmacyAddressEl = document.getElementById("pharmacyAddress");
 const pharmacyCountryEl = document.getElementById("pharmacyCountry");
@@ -192,6 +203,12 @@ const result = document.getElementById("result");
 const pendingList = document.getElementById("pendingList");
 
 let currentUser;
+
+/* 🔐 LOGOUT */
+logoutBtn.onclick = async()=>{
+  await signOut(auth);
+  location.href="login.html";
+};
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="login.html";
@@ -213,6 +230,7 @@ onAuthStateChanged(auth, async(user)=>{
   listenPending();
 });
 
+/* KPI */
 function loadKPI(){
   const q = query(
     collection(db,"prescriptions"),
@@ -230,17 +248,25 @@ function loadKPI(){
       if(s==="unavailable") unavailable++;
     });
 
+    const totalTreated = dispensed+rejected+unavailable;
+    const totalAll = pending+totalTreated;
+    const rate = totalAll>0 ? Math.round((dispensed/totalAll)*100) : 0;
+
     document.getElementById("kpiPending").innerText = pending;
     document.getElementById("kpiDispensed").innerText = dispensed;
     document.getElementById("kpiRejected").innerText = rejected;
     document.getElementById("kpiUnavailable").innerText = unavailable;
-
-    const total = pending+dispensed+rejected+unavailable;
-    const rate = total>0 ? Math.round((dispensed/total)*100) : 0;
+    document.getElementById("kpiTotal").innerText = totalTreated;
     document.getElementById("kpiRate").innerText = rate+"%";
+
+    const rateEl = document.getElementById("kpiRate");
+    if(rate >= 70) rateEl.style.color = "#2e7d32";
+    else if(rate >= 40) rateEl.style.color = "#ef6c00";
+    else rateEl.style.color = "#b00020";
   });
 }
 
+/* LISTEN PENDING */
 function listenPending(){
   const q = query(
     collection(db,"prescriptions"),
@@ -268,6 +294,7 @@ function listenPending(){
   });
 }
 
+/* VALIDATION */
 validateBtn.onclick = async()=>{
   const code = manualCode.value.trim().toUpperCase();
   if(!code) return;
@@ -290,7 +317,7 @@ validateBtn.onclick = async()=>{
   const data = docu.data();
 
   let medsHTML="";
-  data.medications.forEach(m=>{
+  (data.medications || []).forEach(m=>{
     medsHTML += `<b>${m.name}</b><br>${m.dosage} — ${m.posology} — ${m.duration}<br><br>`;
   });
 
@@ -299,7 +326,7 @@ validateBtn.onclick = async()=>{
     ${medsHTML}
     <button id="dispenseBtn">Confirmer délivrance</button>
     <button id="rejectBtn" class="danger">Refuser</button>
-    <button id="unavailableBtn" class="secondary">Médicament indisponible</button>
+    <button id="unavailableBtn" class="secondary">Indisponible</button>
   `;
 
   document.getElementById("dispenseBtn").onclick = async()=>{
