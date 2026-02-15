@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Rapport médical</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="theme-color" content="#0b2c66">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{
+  --primary:#0b2c66;
+  --primary-soft:#eef3fb;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:20px;
+  --line:#e7edf7;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;
+  background:linear-gradient(180deg,#f4f7fb,#eef3fa);
+  color:var(--text);
+}
+.app{
+  max-width:920px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.header{
+  padding:18px 20px;
+  background:linear-gradient(90deg,#0b2c66,#123c8a);
+  color:#fff;
+}
+.header h1{margin:0;font-size:18px}
+.header small{opacity:.85;font-size:12px}
+.content{padding:20px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:0 12px 32px rgba(0,0,0,.06);
+  margin-bottom:18px;
+  border:1px solid var(--line);
+}
+.card h3{margin:0 0 14px;font-size:15px}
+label{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
+textarea, select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #dbe4f2;
+  font-family:inherit;
+  font-size:14px;
+  margin-bottom:14px;
+}
+textarea{resize:vertical;min-height:90px}
+.med-block{
+  background:#f9fbff;
+  border:1px solid #e5ecf9;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.actions{display:flex;gap:12px;margin-top:16px}
+.btn{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-weight:700;
+  cursor:pointer;
+  font-size:14px;
+}
+.primary{
+  background:linear-gradient(135deg,#0b2c66,#123c8a);
+  color:#fff;
+}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.footer{
+  margin-top:auto;
+  padding:22px;
+  text-align:center;
+  font-size:12px;
+  color:#8a95a8;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="header">
+  <h1>Rapport médical</h1>
+  <small>Compte rendu officiel CizaHealth+</small>
+</div>
+
+<div class="content">
+
+<div class="card">
+<h3>Informations consultation</h3>
+
+<label>Motif</label>
+<textarea id="motif"></textarea>
+
+<label>Diagnostic</label>
+<textarea id="diagnostic"></textarea>
+
+<label>Traitement global</label>
+<textarea id="traitement"></textarea>
+
+<label>Suivi recommandé</label>
+<select id="suivi">
+  <option value="aucun">Aucun</option>
+  <option value="teleconsultation">Téléconsultation</option>
+  <option value="presentiel">Présentiel</option>
+</select>
+
+<label>
+<input type="checkbox" id="needRx">
+ Ordonnance nécessaire
+</label>
+</div>
+
+<div class="card" id="rxSection" style="display:none">
+<h3>Prescription détaillée</h3>
+<div id="medicationsContainer"></div>
+<button type="button" class="btn primary" onclick="addMedication()">
++ Ajouter médicament
+</button>
+</div>
+
+<div class="actions">
+<button class="btn primary" id="submitBtn">
+Envoyer rapport
+</button>
+</div>
+
+</div>
+
+<div class="footer">
+© 2026 CizaHealth+ — CIZA GROUP
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  doc, setDoc, getDoc, updateDoc, serverTimestamp,
+  collection, query, where, limit, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const requestId = params.get("requestId");
+
+const needRx = document.getElementById("needRx");
+const rxSection = document.getElementById("rxSection");
+const submitBtn = document.getElementById("submitBtn");
+
+let medications = [];
+
+needRx.onchange = ()=>{
+  rxSection.style.display = needRx.checked ? "block" : "none";
+};
+
+window.addMedication = function(){
+  const container = document.getElementById("medicationsContainer");
+  const index = medications.length;
+
+  medications.push({ name:"", dosage:"", posology:"", duration:"" });
+
+  const div = document.createElement("div");
+  div.className="med-block";
+  div.innerHTML=`
+    <h4>Médicament ${index+1}</h4>
+    <input placeholder="Nom">
+    <input placeholder="Dosage">
+    <input placeholder="Posologie">
+    <input placeholder="Durée">
+  `;
+
+  const inputs = div.querySelectorAll("input");
+  inputs[0].oninput=e=>medications[index].name=e.target.value;
+  inputs[1].oninput=e=>medications[index].dosage=e.target.value;
+  inputs[2].oninput=e=>medications[index].posology=e.target.value;
+  inputs[3].oninput=e=>medications[index].duration=e.target.value;
+
+  container.appendChild(div);
+};
+
+submitBtn.onclick = async()=>{
+
+  const user = auth.currentUser;
+  if(!user) return alert("Non connecté");
+  if(!requestId) return alert("Request invalide");
+
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Envoi…";
+
+  try{
+
+    const reqSnap = await getDoc(doc(db,"requests",requestId));
+    if(!reqSnap.exists()) throw new Error("Request introuvable");
+
+    const reqData = reqSnap.data();
+
+    const proSnap = await getDoc(doc(db,"users",user.uid));
+    const proData = proSnap.exists() ? proSnap.data() : {};
+
+    await setDoc(doc(db,"reports",requestId),{
+      requestId,
+      patientUid: reqData.patientUid,
+      proUid: user.uid,
+      proName: proData.fullName || "",
+      proSpeciality: proData.speciality || "",
+      proProvince: proData.province || "",
+      proPhoto: proData.photoURL || "",
+      motif: motif.value,
+      diagnostic: diagnostic.value,
+      traitement: traitement.value,
+      suivi: suivi.value,
+      ordonnance: needRx.checked,
+      medications,
+      status:"completed",
+      submittedAt: serverTimestamp()
+    });
+
+    await updateDoc(doc(db,"requests",requestId),{
+      status:"completed",
+      completedAt: serverTimestamp()
+    });
+
+    if(needRx.checked){
+
+      const rxCode = "RX-"+Math.random().toString(36).substring(2,8).toUpperCase();
+
+      const pharmacyQuery = query(
+        collection(db,"users"),
+        where("role","==","pharmacy"),
+        where("isPartner","==",true),
+        where("active","==",true),
+        limit(1)
+      );
+
+      const pharmacySnap = await getDocs(pharmacyQuery);
+
+      let assignedPharmacyUid = null;
+      let assignedPharmacyName = null;
+
+      if(!pharmacySnap.empty){
+        const pharmacyDoc = pharmacySnap.docs[0];
+        assignedPharmacyUid = pharmacyDoc.id;
+        assignedPharmacyName = pharmacyDoc.data().pharmacyName || "";
+      }
+
+      await setDoc(doc(db,"prescriptions",requestId),{
+        requestId,
+        patientUid: reqData.patientUid,
+        proUid: user.uid,
+        medications,
+        code: rxCode,
+        assignedPharmacyUid,
+        assignedPharmacyName,
+        used:false,
+        status:"sent",
+        createdAt: serverTimestamp()
+      });
+    }
+
+    location.href="dashboard-pro.html";
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur lors de l’envoi");
+    submitBtn.disabled=false;
+    submitBtn.innerText="Envoyer rapport";
+  }
+};
+</script>
+
+</body>
+</html>
