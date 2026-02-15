@@ -94,7 +94,7 @@ video{
 
 <div id="result"></div>
 
-<video id="preview" hidden></video>
+<video id="preview" hidden playsinline></video>
 <button id="startScan">Scanner avec caméra</button>
 
 </div>
@@ -129,13 +129,24 @@ const validateBtn = document.getElementById("validateBtn");
 const result = document.getElementById("result");
 const pendingList = document.getElementById("pendingList");
 
+const preview = document.getElementById("preview");
+const startScanBtn = document.getElementById("startScan");
+
 let currentUser;
+let scanStream = null;
+let scanTimer = null;
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user) return location.href="login.html";
   currentUser = user;
 
   const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()){
+    alert("Profil introuvable");
+    location.href="login.html";
+    return;
+  }
+
   const data = snap.data();
 
   if(data.role !== "pharmacy"){
@@ -144,7 +155,8 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  pharmacyNameEl.innerText = data.pharmacyName || "Pharmacie";
+  // ✅ IMPORTANT : Firestore utilise fullName (pas pharmacyName)
+  pharmacyNameEl.innerText = data.fullName || "Pharmacie partenaire";
 
   listenPending();
 });
@@ -168,8 +180,8 @@ function listenPending(){
       const div = document.createElement("div");
       div.className="card";
       div.innerHTML=`
-        <b>Code :</b> ${r.code}<br>
-        <b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}
+        <b>Code :</b> ${r.code || "—"}<br>
+        <b>Date :</b> ${r.createdAt?.toDate?.().toLocaleString?.() || "—"}
       `;
       pendingList.appendChild(div);
     });
@@ -199,15 +211,21 @@ validateBtn.onclick = async()=>{
   const docu = snap.docs[0];
   const data = docu.data();
 
+  const meds = Array.isArray(data.medications) ? data.medications : [];
+
   let medsHTML="";
-  data.medications.forEach(m=>{
-    medsHTML += `
-      <div>
-        <b>${m.name}</b><br>
-        ${m.dosage} — ${m.posology} — ${m.duration}
-      </div><br>
-    `;
-  });
+  if(meds.length === 0){
+    medsHTML = "<div class='muted'>Aucun médicament listé.</div><br>";
+  }else{
+    meds.forEach(m=>{
+      medsHTML += `
+        <div>
+          <b>${(m && m.name) ? m.name : "—"}</b><br>
+          ${(m && m.dosage) ? m.dosage : "—"} — ${(m && m.posology) ? m.posology : "—"} — ${(m && m.duration) ? m.duration : "—"}
+        </div><br>
+      `;
+    });
+  }
 
   result.innerHTML=`
     <div class='success'>Ordonnance valide</div><br>
@@ -227,6 +245,82 @@ validateBtn.onclick = async()=>{
   };
 };
 
+/* =========================
+   📷 SCAN QR CAMERA (sans données sensibles)
+   - Le QR contient seulement un texte (ex: RX-XXXXXX)
+   - On remplit manualCode puis tu valides
+   ========================= */
+
+async function stopScan(){
+  try{
+    if(scanTimer){
+      clearInterval(scanTimer);
+      scanTimer = null;
+    }
+    if(scanStream){
+      scanStream.getTracks().forEach(t=>t.stop());
+      scanStream = null;
+    }
+    preview.hidden = true;
+  }catch(e){}
+}
+
+async function startScan(){
+  result.innerHTML = "<div class='muted'>Ouverture caméra…</div>";
+
+  // BarcodeDetector: Chrome/Android OK. Sinon fallback manuel.
+  if(!("BarcodeDetector" in window)){
+    result.innerHTML = "<div class='error'>Scan caméra non supporté ici. Utilise la saisie/scanner manuel.</div>";
+    return;
+  }
+
+  const detector = new BarcodeDetector({ formats: ["qr_code"] });
+
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false
+    });
+
+    preview.srcObject = scanStream;
+    preview.hidden = false;
+    await preview.play();
+
+    result.innerHTML = "<div class='muted'>Scannez le QR…</div>";
+
+    scanTimer = setInterval(async ()=>{
+      try{
+        const barcodes = await detector.detect(preview);
+        if(barcodes && barcodes.length){
+          const raw = (barcodes[0].rawValue || "").trim();
+          if(raw){
+            manualCode.value = raw.toUpperCase();
+            await stopScan();
+            result.innerHTML = "<div class='success'>QR détecté. Cliquez sur “Valider ordonnance”.</div>";
+          }
+        }
+      }catch(e){}
+    }, 350);
+
+  }catch(err){
+    console.error(err);
+    result.innerHTML = "<div class='error'>Accès caméra refusé ou indisponible.</div>";
+    await stopScan();
+  }
+}
+
+startScanBtn.onclick = async()=>{
+  // toggle simple
+  if(scanStream){
+    await stopScan();
+    result.innerHTML = "<div class='muted'>Scan arrêté.</div>";
+    return;
+  }
+  await startScan();
+};
+
+// Stop scan when leaving page
+window.addEventListener("beforeunload", stopScan);
 </script>
 </body>
 </html>
