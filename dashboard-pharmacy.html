@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Pharmacie Partenaire</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+margin:0;
+font-family:Inter,Arial;
+background:#f4f7fb;
+}
+.header{
+background:linear-gradient(90deg,#123c8a,#0b2c66);
+color:white;
+padding:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.container{
+padding:20px;
+max-width:1000px;
+margin:auto;
+}
+.card{
+background:white;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.06);
+margin-bottom:20px;
+}
+.profile{
+width:90px;
+height:90px;
+border-radius:50%;
+object-fit:cover;
+}
+.success{color:#1b8f4d;font-weight:600;}
+.error{color:#c62828;font-weight:600;}
+.btn{
+padding:10px 16px;
+border:none;
+border-radius:12px;
+background:linear-gradient(135deg,#123c8a,#1b4fa3);
+color:white;
+cursor:pointer;
+margin-top:10px;
+}
+.historyCard{
+border:1px solid #e7edf7;
+padding:14px;
+border-radius:12px;
+margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<div>Pharmacie Partenaire</div>
+<button onclick="logout()">Déconnexion</button>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Scanner QR Ordonnance</h3>
+<textarea id="qrData" placeholder="Collez ici le JSON du QR sécurisé" style="width:100%;height:100px;"></textarea>
+<button class="btn" onclick="verifyQR()">Vérifier</button>
+<div id="status"></div>
+</div>
+
+<div id="result"></div>
+
+<div class="card">
+<h3>Historique des ordonnances traitées</h3>
+<div id="history"></div>
+</div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+doc, getDoc, updateDoc,
+collection, query, where, orderBy, onSnapshot
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const SECRET="CIZA_HEALTH_SECURE_2026";
+
+/* SHA256 */
+async function sha256(message){
+const msgBuffer=new TextEncoder().encode(message);
+const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+return Array.from(new Uint8Array(hashBuffer))
+.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* AUTH CHECK */
+onAuthStateChanged(auth, async(user)=>{
+if(!user){location.href="login.html";return;}
+
+const snap=await getDoc(doc(db,"users",user.uid));
+if(!snap.exists() || snap.data().role!=="pharmacy"){
+alert("Accès refusé");
+location.href="login.html";
+return;
+}
+
+loadHistory(user.uid);
+});
+
+/* LOGOUT */
+window.logout=async()=>{
+await signOut(auth);
+location.href="login.html";
+};
+
+/* VERIFY QR */
+window.verifyQR=async()=>{
+const text=document.getElementById("qrData").value;
+if(!text) return;
+
+try{
+const payload=JSON.parse(text);
+const {code,uid,ts,sig}=payload;
+
+const expected=await sha256(code+uid+ts+SECRET);
+
+if(expected!==sig){
+document.getElementById("status").innerHTML=
+"<div class='error'>QR invalide</div>";
+return;
+}
+
+document.getElementById("status").innerHTML=
+"<div class='success'>QR valide ✔</div>";
+
+const rxSnap=await getDoc(doc(db,"prescriptions",code));
+if(!rxSnap.exists()){
+document.getElementById("result").innerHTML=
+"<div class='error'>Ordonnance introuvable</div>";
+return;
+}
+
+const rx=rxSnap.data();
+const pSnap=await getDoc(doc(db,"patients",uid));
+const patient=pSnap.exists()?pSnap.data():{};
+
+let meds="";
+(rx.medications||[]).forEach(m=>{
+meds+=`
+<div style="margin-bottom:8px">
+<b>${m.name||""}</b><br>
+Dosage: ${m.dosage||""}<br>
+Posologie: ${m.posology||""}<br>
+Durée: ${m.duration||""}
+</div>`;
+});
+
+document.getElementById("result").innerHTML=`
+<div class="card">
+<img src="${patient.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="profile">
+<h3>${patient.fullName||""}</h3>
+<div>ID: ${patient.patientId||""}</div>
+<hr>
+${meds}
+<button class="btn" onclick="markUsed('${code}')">Marquer comme délivrée</button>
+</div>
+`;
+
+}catch{
+document.getElementById("status").innerHTML=
+"<div class='error'>Erreur QR</div>";
+}
+};
+
+/* MARK USED */
+window.markUsed=async(code)=>{
+await updateDoc(doc(db,"prescriptions",code),{
+used:true
+});
+alert("Ordonnance marquée comme délivrée");
+document.getElementById("result").innerHTML="";
+};
+
+/* HISTORY */
+function loadHistory(uid){
+
+const q=query(
+collection(db,"prescriptions"),
+where("used","==",true),
+orderBy("createdAt","desc")
+);
+
+onSnapshot(q,(snap)=>{
+const container=document.getElementById("history");
+container.innerHTML="";
+snap.forEach(docu=>{
+const r=docu.data();
+const div=document.createElement("div");
+div.className="historyCard";
+div.innerHTML=`
+<b>Code:</b> ${r.code}<br>
+<b>Date:</b> ${r.createdAt?.toDate()?.toLocaleString()||""}
+`;
+container.appendChild(div);
+});
+});
+
+}
+
+</script>
+
+</body>
+</html>
