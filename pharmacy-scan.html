@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Pharmacie Partenaire</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+margin:0;
+font-family:Inter,Arial;
+background:#f4f7fb;
+}
+.header{
+background:linear-gradient(90deg,#123c8a,#0b2c66);
+color:white;
+padding:18px;
+text-align:center;
+font-weight:600;
+}
+.container{
+padding:20px;
+max-width:900px;
+margin:auto;
+}
+.card{
+background:white;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.06);
+margin-bottom:20px;
+}
+.success{color:#1b8f4d;font-weight:600;}
+.error{color:#c62828;font-weight:600;}
+.profile{
+width:90px;
+height:90px;
+border-radius:50%;
+object-fit:cover;
+margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+Pharmacie Partenaire CizaHealth+
+</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Scanner QR Ordonnance</h3>
+<input type="file" id="qrInput" accept="image/*">
+<div id="status"></div>
+</div>
+
+<div id="result"></div>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+import {
+doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔐 SECRET IDENTIQUE */
+const SECRET="CIZA_HEALTH_SECURE_2026";
+
+/* SHA256 */
+async function sha256(message){
+const msgBuffer=new TextEncoder().encode(message);
+const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+return Array.from(new Uint8Array(hashBuffer))
+.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* Simulation scan QR (JSON direct) */
+document.getElementById("qrInput").onchange=async(e)=>{
+const file=e.target.files[0];
+if(!file) return;
+
+const text=prompt("Collez ici le JSON décodé du QR");
+
+if(!text) return;
+
+try{
+
+const payload=JSON.parse(text);
+const {code,uid,ts,sig}=payload;
+
+const expectedSig=await sha256(code+uid+ts+SECRET);
+
+if(expectedSig!==sig){
+document.getElementById("status").innerHTML=
+"<div class='error'>QR invalide ou falsifié</div>";
+return;
+}
+
+document.getElementById("status").innerHTML=
+"<div class='success'>QR valide ✔</div>";
+
+/* Lire ordonnance */
+const rxSnap=await getDoc(doc(db,"prescriptions",code));
+
+if(!rxSnap.exists()){
+document.getElementById("result").innerHTML=
+"<div class='error'>Ordonnance introuvable</div>";
+return;
+}
+
+const rx=rxSnap.data();
+
+/* Lire patient */
+const pSnap=await getDoc(doc(db,"patients",uid));
+const patient=pSnap.exists()?pSnap.data():{};
+
+let medsHTML="";
+(rx.medications||[]).forEach(m=>{
+medsHTML+=`
+<div style="margin-bottom:8px">
+<b>${m.name||""}</b><br>
+Dosage: ${m.dosage||""}<br>
+Posologie: ${m.posology||""}<br>
+Durée: ${m.duration||""}
+</div>`;
+});
+
+document.getElementById("result").innerHTML=`
+<div class="card">
+<img src="${patient.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}"
+class="profile">
+<h3>${patient.fullName||""}</h3>
+<div>ID: ${patient.patientId||""}</div>
+<hr>
+<h4>Médicaments prescrits</h4>
+${medsHTML}
+</div>
+`;
+
+}catch(err){
+document.getElementById("status").innerHTML=
+"<div class='error'>Erreur lecture QR</div>";
+}
+
+};
+
+</script>
+
+</body>
+</html>
