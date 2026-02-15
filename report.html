@@ -210,7 +210,6 @@ submitBtn.onclick = async()=>{
 
     const reqSnap = await getDoc(doc(db,"requests",requestId));
     if(!reqSnap.exists()) throw new Error("Request introuvable");
-
     const reqData = reqSnap.data();
 
     const proSnap = await getDoc(doc(db,"users",user.uid));
