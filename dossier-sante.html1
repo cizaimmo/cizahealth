@@ -1,3 +1,4 @@
+<!-- DOSSIER SANTÉ PREMIUM VERSION A COMPATIBLE -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,8 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <meta name="theme-color" content="#0b2c66">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 
 <style>
 :root{
@@ -26,7 +25,7 @@ body{
   background:linear-gradient(180deg,#f4f7fb,#eef3fa);
 }
 .app{
-  max-width:1000px;
+  max-width:1100px;
   margin:auto;
   min-height:100vh;
   display:flex;
@@ -49,7 +48,8 @@ header a{color:#fff;text-decoration:none;font-size:13px}
   padding:4px;
   display:flex;
   width:95%;
-  max-width:750px;
+  max-width:950px;
+  flex-wrap:wrap;
 }
 .segment button{
   flex:1;
@@ -86,18 +86,21 @@ header a{color:#fff;text-decoration:none;font-size:13px}
   border:4px solid #eef3fb;
   cursor:pointer;
 }
-.qrWrap{text-align:center;margin-top:12px}
-.qrWrap img{
-  width:200px;
-  background:white;
-  padding:12px;
-  border-radius:18px;
-}
 .footer{
   text-align:center;
   font-size:12px;
   color:#8a95a8;
   padding:22px;
+}
+.btn{
+  padding:10px 16px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--blue),#1b4fa3);
+  color:white;
+  cursor:pointer;
+  font-weight:600;
+  margin-top:10px;
 }
 </style>
 </head>
@@ -114,6 +117,7 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 <button class="active" data-tab="identity">Identité</button>
 <button data-tab="reports">Rapports</button>
 <button data-tab="rx">Ordonnances</button>
+<button data-tab="appointments">Rendez-vous</button>
 <button data-tab="card">Carte</button>
 </div>
 
@@ -128,7 +132,6 @@ src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
 class="profile">
 <div class="muted">Touchez la photo pour modifier</div>
 </div>
-
 <div class="card">
 <h3>Informations patient</h3>
 <div id="identityData" class="kv">Chargement…</div>
@@ -145,21 +148,25 @@ class="profile">
 <div id="rxList"></div>
 </div>
 
+<!-- APPOINTMENTS -->
+<div id="appointments" class="tab hidden">
+<div id="appointmentsList"></div>
+</div>
+
 <!-- CARD -->
 <div id="card" class="tab hidden">
 <div class="card">
-<h3>Carte médicale sécurisée</h3>
+<h3>Carte médicale CizaHealth</h3>
 <div id="cardNumber"></div>
-<div class="qrWrap">
-<img id="qrImg">
-</div>
+<img id="qrImg" width="200">
 </div>
 </div>
 
 </div>
 
 <div class="footer">
-© 2026 CizaHealth+ — CIZA GROUP
+Document médical confidentiel – CizaHealth+<br>
+© 2026 CIZA GROUP
 </div>
 
 </div>
@@ -178,7 +185,7 @@ ref, uploadBytes, getDownloadURL
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* SEGMENT */
+/* TAB SWITCH */
 document.querySelectorAll(".segment button").forEach(btn=>{
 btn.onclick=()=>{
 document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
@@ -212,7 +219,6 @@ document.getElementById("profilePhoto").src=p.photoURL;
 document.getElementById("profilePhoto").onclick=()=>{
 document.getElementById("photoInput").click();
 };
-
 document.getElementById("photoInput").onchange=async(e)=>{
 const file=e.target.files[0];
 if(!file) return;
@@ -223,13 +229,12 @@ await updateDoc(doc(db,"patients",user.uid),{photoURL:url});
 document.getElementById("profilePhoto").src=url;
 };
 
-/* REPORTS CONNECTÉ À VERSION A */
+/* REPORTS */
 const qReports=query(
 collection(db,"reports"),
 where("patientUid","==",user.uid),
 orderBy("submittedAt","desc")
 );
-
 onSnapshot(qReports,(snap)=>{
 const container=document.getElementById("reportsList");
 container.innerHTML="";
@@ -245,11 +250,10 @@ div.innerHTML=`
 <h3>Consultation</h3>
 <div class="kv">
 <b>Médecin :</b> Dr ${r.proName || "—"}<br>
-<b>Spécialité :</b> ${r.proSpeciality || "—"}<br>
-<b>Province :</b> ${r.proProvince || "—"}<br><br>
-<b>Diagnostic :</b><br>${r.diagnostic || "—"}<br><br>
+<b>Diagnostic :</b><br>${r.diagnostic || "—"}<br>
 <b>Traitement :</b><br>${r.traitement || "—"}<br>
 <div class="muted">Date : ${r.submittedAt?.toDate()?.toLocaleString() || "—"}</div>
+<button class="btn" onclick="window.print()">Télécharger PDF</button>
 </div>
 `;
 container.appendChild(div);
@@ -262,7 +266,6 @@ collection(db,"prescriptions"),
 where("patientUid","==",user.uid),
 orderBy("createdAt","desc")
 );
-
 onSnapshot(qRx,(snap)=>{
 const container=document.getElementById("rxList");
 container.innerHTML="";
@@ -271,15 +274,41 @@ container.innerHTML="<div class='card'><div class='muted'>Aucune ordonnance</div
 return;
 }
 snap.forEach(docu=>{
-const p=docu.data();
+const r=docu.data();
 const div=document.createElement("div");
 div.className="card";
 div.innerHTML=`
 <h3>Ordonnance</h3>
-<div class="kv">
-<b>Code :</b> ${p.code}<br>
-<b>Statut :</b> ${p.used ? "Utilisée" : "Active"}
-</div>
+<b>Code :</b> ${r.code}<br>
+<b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}<br>
+<b>Statut :</b> ${r.used ? "Utilisée" : "Active"}<br>
+<img width="160" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${r.code}">
+`;
+container.appendChild(div);
+});
+});
+
+/* APPOINTMENTS */
+const qApp=query(
+collection(db,"appointments"),
+where("patientUid","==",user.uid),
+orderBy("date","desc")
+);
+onSnapshot(qApp,(snap)=>{
+const container=document.getElementById("appointmentsList");
+container.innerHTML="";
+if(snap.empty){
+container.innerHTML="<div class='card'><div class='muted'>Aucun rendez-vous</div></div>";
+return;
+}
+snap.forEach(docu=>{
+const a=docu.data();
+const div=document.createElement("div");
+div.className="card";
+div.innerHTML=`
+<b>Date :</b> ${new Date(a.date).toLocaleString()}<br>
+<b>Médecin :</b> ${a.proName || "—"}<br>
+<b>Statut :</b> ${a.status || "Planifié"}
 `;
 container.appendChild(div);
 });
