@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Connexion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0a2a5e;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+.header{
+  text-align:center;
+  padding:42px 20px 14px;
+}
+.header img{height:120px}
+.header h1{font-size:20px;margin:14px 0 6px}
+.header p{font-size:14px;opacity:.8}
+
+.back-link{
+  text-align:center;
+  margin-top:10px;
+  font-size:13px;
+}
+.back-link a{
+  color:var(--blue);
+  text-decoration:none;
+  font-weight:600;
+}
+
+.content{padding:26px 20px}
+label{
+  display:block;
+  margin-top:18px;
+  font-size:14px;
+  font-weight:600;
+}
+input{
+  width:100%;
+  margin-top:8px;
+  padding:15px;
+  border-radius:16px;
+  border:1.8px solid #e6ebf5;
+  font-size:14px;
+}
+input:focus{
+  outline:none;
+  border-color:var(--blue);
+}
+.cta{
+  margin-top:30px;
+}
+.cta button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+.error{
+  margin-top:14px;
+  font-size:13px;
+  color:#8a1f1f;
+  display:none;
+}
+.signup-link{
+  margin-top:18px;
+  text-align:center;
+  font-size:13.5px;
+}
+.signup-link a{
+  color:var(--blue);
+  font-weight:600;
+  text-decoration:none;
+}
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  opacity:.6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <h1>Connexion</h1>
+    <p>Accéder à votre espace santé sécurisé</p>
+
+    <!-- ✅ BOUTON RETOUR -->
+    <div class="back-link">
+      <a href="index.html">← Retour à l'accueil</a>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <label>Email</label>
+    <input id="email" type="email" placeholder="exemple@email.com">
+
+    <label>Mot de passe</label>
+    <input id="password" type="password" placeholder="••••••••">
+
+    <div class="cta">
+      <button id="loginBtn">Se connecter</button>
+    </div>
+
+    <div class="error" id="errorMsg"></div>
+
+    <div class="signup-link">
+      Vous n’avez pas de compte ?
+      <a href="signup.html">Créer un compte</a>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 CizaHealth+ — CIZA GROUP
+  </div>
+
+</div>
+
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import {
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  import { doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const btn = document.getElementById("loginBtn");
+  const errorMsg = document.getElementById("errorMsg");
+
+  async function redirectByRole(user){
+
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists()){
+      window.location.href="dashboard-client.html";
+      return;
+    }
+
+    const userData = snap.data();
+
+    if(userData.role === "admin"){
+      window.location.href = "dashboard-admin.html";
+    }
+    else if(userData.role === "doctor" || userData.role === "infirmier"){
+      window.location.href = "dashboard-pro.html";
+    }
+    else if(userData.role === "pharmacy"){
+      window.location.href = "dashboard-pharmacy.html";
+    }
+    else{
+      window.location.href = "dashboard-client.html";
+    }
+  }
+
+  btn.addEventListener("click", async () => {
+    errorMsg.style.display = "none";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+      errorMsg.innerText = "Veuillez remplir tous les champs.";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem("sessionActive","true");
+      await redirectByRole(cred.user);
+    } catch (e) {
+      errorMsg.innerText = "Email ou mot de passe incorrect.";
+      errorMsg.style.display = "block";
+    }
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      await redirectByRole(user);
+    }
+  });
+</script>
+
+</body>
+</html>
