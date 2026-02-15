@@ -1,10 +1,10 @@
-<!-- DOSSIER SANTÉ PREMIUM VERSION A COMPATIBLE -->
+<!-- DOSSIER SANTÉ PREMIUM VERSION A SECURISÉ -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Dossier médical</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <meta name="theme-color" content="#0b2c66">
 
@@ -39,8 +39,6 @@ header{
   justify-content:space-between;
   align-items:center;
 }
-header strong{font-size:16px}
-header a{color:#fff;text-decoration:none;font-size:13px}
 .segment{
   margin:20px auto;
   background:#eaf0fb;
@@ -110,7 +108,7 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 
 <header>
 <strong>Dossier médical</strong>
-<a href="dashboard-client.html">← Retour</a>
+<a href="dashboard-client.html" style="color:white;text-decoration:none;">← Retour</a>
 </header>
 
 <div class="segment">
@@ -123,7 +121,6 @@ header a{color:#fff;text-decoration:none;font-size:13px}
 
 <div class="content">
 
-<!-- IDENTITE -->
 <div id="identity" class="tab">
 <div class="card" style="text-align:center">
 <input type="file" id="photoInput" hidden accept="image/*">
@@ -138,22 +135,18 @@ class="profile">
 </div>
 </div>
 
-<!-- REPORTS -->
 <div id="reports" class="tab hidden">
 <div id="reportsList"></div>
 </div>
 
-<!-- RX -->
 <div id="rx" class="tab hidden">
 <div id="rxList"></div>
 </div>
 
-<!-- APPOINTMENTS -->
 <div id="appointments" class="tab hidden">
 <div id="appointmentsList"></div>
 </div>
 
-<!-- CARD -->
 <div id="card" class="tab hidden">
 <div class="card">
 <h3>Carte médicale CizaHealth</h3>
@@ -165,7 +158,7 @@ class="profile">
 </div>
 
 <div class="footer">
-Document médical confidentiel – CizaHealth+<br>
+Document médical strictement confidentiel – CizaHealth+<br>
 © 2026 CIZA GROUP
 </div>
 
@@ -185,7 +178,18 @@ ref, uploadBytes, getDownloadURL
 }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* TAB SWITCH */
+/* SECRET INTERNE */
+const SECRET="CIZA_HEALTH_SECURE_2026";
+
+/* SHA256 */
+async function sha256(message){
+const msgBuffer=new TextEncoder().encode(message);
+const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+return Array.from(new Uint8Array(hashBuffer))
+.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* TAB */
 document.querySelectorAll(".segment button").forEach(btn=>{
 btn.onclick=()=>{
 document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
@@ -235,7 +239,7 @@ collection(db,"reports"),
 where("patientUid","==",user.uid),
 orderBy("submittedAt","desc")
 );
-onSnapshot(qReports,(snap)=>{
+onSnapshot(qReports,async(snap)=>{
 const container=document.getElementById("reportsList");
 container.innerHTML="";
 if(snap.empty){
@@ -253,28 +257,36 @@ div.innerHTML=`
 <b>Diagnostic :</b><br>${r.diagnostic || "—"}<br>
 <b>Traitement :</b><br>${r.traitement || "—"}<br>
 <div class="muted">Date : ${r.submittedAt?.toDate()?.toLocaleString() || "—"}</div>
-<button class="btn" onclick="window.print()">Télécharger PDF</button>
+<button class="btn" onclick="generatePDF('${r.proName}','${r.diagnostic}','${r.traitement}')">Télécharger PDF</button>
 </div>
 `;
 container.appendChild(div);
 });
 });
 
-/* RX */
+/* RX SECURISÉ */
 const qRx=query(
 collection(db,"prescriptions"),
 where("patientUid","==",user.uid),
 orderBy("createdAt","desc")
 );
-onSnapshot(qRx,(snap)=>{
+onSnapshot(qRx,async(snap)=>{
 const container=document.getElementById("rxList");
 container.innerHTML="";
 if(snap.empty){
 container.innerHTML="<div class='card'><div class='muted'>Aucune ordonnance</div></div>";
 return;
 }
-snap.forEach(docu=>{
+for(const docu of snap.docs){
 const r=docu.data();
+const ts=Date.now();
+const signature=await sha256(r.code+user.uid+ts+SECRET);
+const payload=encodeURIComponent(JSON.stringify({
+code:r.code,
+uid:user.uid,
+ts,
+sig:signature
+}));
 const div=document.createElement("div");
 div.className="card";
 div.innerHTML=`
@@ -282,13 +294,13 @@ div.innerHTML=`
 <b>Code :</b> ${r.code}<br>
 <b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}<br>
 <b>Statut :</b> ${r.used ? "Utilisée" : "Active"}<br>
-<img width="160" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${r.code}">
+<img width="160" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${payload}">
 `;
 container.appendChild(div);
-});
+}
 });
 
-/* APPOINTMENTS */
+/* APPOINTMENTS (intact) */
 const qApp=query(
 collection(db,"appointments"),
 where("patientUid","==",user.uid),
@@ -314,13 +326,52 @@ container.appendChild(div);
 });
 });
 
-/* CARTE */
+/* CARTE SECURISÉE */
 const cardNumber="CZ-H-"+user.uid.slice(0,4).toUpperCase();
 document.getElementById("cardNumber").innerText=cardNumber;
+const ts=Date.now();
+const sig=await sha256(user.uid+cardNumber+ts+SECRET);
+const cardPayload=encodeURIComponent(JSON.stringify({
+uid:user.uid,
+card:cardNumber,
+ts,
+sig
+}));
 document.getElementById("qrImg").src=
-`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${user.uid}`;
+`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${cardPayload}`;
 
 });
+
+/* PDF PREMIUM */
+window.generatePDF=function(pro,diag,trait){
+const w=window.open();
+w.document.write(`
+<html>
+<head>
+<title>Rapport médical</title>
+<style>
+body{font-family:Arial;padding:40px;}
+h1{color:#123c8a}
+.footer{margin-top:40px;font-size:12px;color:#777;}
+</style>
+</head>
+<body>
+<h1>CizaHealth+ Rapport médical</h1>
+<p><b>Médecin :</b> Dr ${pro}</p>
+<p><b>Diagnostic :</b><br>${diag}</p>
+<p><b>Traitement :</b><br>${trait}</p>
+<hr>
+<p>Signature électronique : CIZAHEALTH VERIFIED</p>
+<div class="footer">
+Document confidentiel – Toute reproduction interdite.<br>
+© 2026 CIZA GROUP
+</div>
+</body>
+</html>
+`);
+w.document.close();
+w.print();
+}
 </script>
 
 </body>
