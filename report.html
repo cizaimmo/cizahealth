@@ -197,85 +197,80 @@ window.addMedication = function(){
   container.appendChild(div);
 };
 
-submitBtn.onclick = async()=>{
+const user = auth.currentUser;
 
-  const user = auth.currentUser;
-  if(!user) return alert("Non connecté");
-  if(!requestId) return alert("Request invalide");
+console.log("AUTH UID:", auth.currentUser?.uid);
+console.log("USER UID:", user?.uid);
+console.log("REQUEST ID:", requestId);
+
+if(!user) return alert("Non connecté");
+if(!requestId) return alert("Request invalide");
 
   submitBtn.disabled = true;
   submitBtn.innerText = "Envoi…";
 
-  try{
+ try{
 
-    const reqSnap = await getDoc(doc(db,"requests",requestId));
-    if(!reqSnap.exists()) throw new Error("Request introuvable");
-    const reqData = reqSnap.data();
+  console.log("STEP 1 : lecture request");
 
-    const proSnap = await getDoc(doc(db,"users",user.uid));
-    const proData = proSnap.exists() ? proSnap.data() : {};
+  const reqSnap = await getDoc(doc(db,"requests",requestId));
+  if(!reqSnap.exists()) throw new Error("Request introuvable");
 
-    await setDoc(doc(db,"reports",requestId),{
+  const reqData = reqSnap.data();
+
+  console.log("STEP 2 : création report");
+
+  await setDoc(doc(db,"reports",requestId),{
+    requestId,
+    patientUid: reqData.patientUid,
+    proUid: user.uid,
+    proName: proData.fullName || "",
+    proSpeciality: proData.speciality || "",
+    proProvince: proData.province || "",
+    proPhoto: proData.photoURL || "",
+    motif: motif.value,
+    diagnostic: diagnostic.value,
+    traitement: traitement.value,
+    suivi: suivi.value,
+    ordonnance: needRx.checked,
+    medications,
+    status:"completed",
+    submittedAt: serverTimestamp()
+  });
+
+  console.log("REPORT OK");
+
+  console.log("STEP 3 : update request");
+
+  await updateDoc(doc(db,"requests",requestId),{
+    status:"completed",
+    completedAt: serverTimestamp()
+  });
+
+  console.log("REQUEST UPDATED");
+
+  if(needRx.checked){
+
+    console.log("STEP 4 : création prescription");
+
+    await setDoc(doc(db,"prescriptions",requestId),{
       requestId,
       patientUid: reqData.patientUid,
       proUid: user.uid,
-      proName: proData.fullName || "",
-      proSpeciality: proData.speciality || "",
-      proProvince: proData.province || "",
-      proPhoto: proData.photoURL || "",
-      motif: motif.value,
-      diagnostic: diagnostic.value,
-      traitement: traitement.value,
-      suivi: suivi.value,
-      ordonnance: needRx.checked,
       medications,
-      status:"completed",
-      submittedAt: serverTimestamp()
+      code: rxCode,
+      assignedPharmacyUid,
+      assignedPharmacyName,
+      used:false,
+      status:"sent",
+      createdAt: serverTimestamp()
     });
 
-    await updateDoc(doc(db,"requests",requestId),{
-      status:"completed",
-      completedAt: serverTimestamp()
-    });
+    console.log("PRESCRIPTION CREATED");
 
-    if(needRx.checked){
+  }
 
-      const rxCode = "RX-"+Math.random().toString(36).substring(2,8).toUpperCase();
-
-      const pharmacyQuery = query(
-        collection(db,"users"),
-        where("role","==","pharmacy"),
-        where("isPartner","==",true),
-        where("active","==",true),
-        limit(1)
-      );
-
-      const pharmacySnap = await getDocs(pharmacyQuery);
-
-      let assignedPharmacyUid = null;
-      let assignedPharmacyName = null;
-
-      if(!pharmacySnap.empty){
-        const pharmacyDoc = pharmacySnap.docs[0];
-        assignedPharmacyUid = pharmacyDoc.id;
-        assignedPharmacyName = pharmacyDoc.data().pharmacyName || "";
-      }
-
-      await setDoc(doc(db,"prescriptions",requestId),{
-        requestId,
-        patientUid: reqData.patientUid,
-        proUid: user.uid,
-        medications,
-        code: rxCode,
-        assignedPharmacyUid,
-        assignedPharmacyName,
-        used:false,
-        status:"sent",
-        createdAt: serverTimestamp()
-      });
-    }
-
-    location.href="dashboard-pro.html";
+  location.href="dashboard-pro.html";
 
   }catch(err){
     console.error(err);
