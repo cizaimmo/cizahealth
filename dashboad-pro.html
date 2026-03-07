@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Dashboard Professionnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#123c8a;
+  --green:#1b6b3a;
+  --red:#c0392b;
+  --orange:#e67e22;
+  --bg:#f4f7fb;
+  --text:#0a1a2f;
+  --muted:#6b7a90;
+  --radius:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter;background:var(--bg);color:var(--text)}
+.app{max-width:1200px;margin:auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(90deg,#123c8a,#0b2c66);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:38px}
+.brand .meta span{font-size:12px;opacity:.85}
+.topRight{display:flex;align-items:center;gap:12px}
+.badge{background:#e74c3c;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;margin-left:4px}
+.logout{border:none;background:none;color:#fff;font-weight:700;cursor:pointer}
+.content{padding:24px;display:grid;gap:24px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:0 10px 28px rgba(10,42,94,.08)}
+.card h3{margin:0 0 8px}
+.big{font-size:28px;font-weight:800}
+.request{border:1px solid #eef1f6;border-radius:16px;padding:16px;margin-bottom:14px}
+.request.pending{border-left:6px solid var(--orange)}
+.request.assigned{border-left:6px solid var(--green)}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.actions button{padding:12px;border:none;border-radius:14px;font-weight:800;color:#fff;cursor:pointer}
+.accept{background:var(--green)}
+.refuse{background:var(--red)}
+.chat{background:#123c8a}
+.call{background:#6c5ce7}
+.report{background:#0b2c66}
+.empty{color:var(--muted);font-size:14px}
+footer{margin-top:auto;padding:18px;border-top:1px solid #eef1f6;text-align:center;font-size:12px;color:#6b7a90}
+
+/* Header status */
+.statusWrap{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:999px}
+.dot{width:10px;height:10px;border-radius:50%;background:#bdc3c7}
+.dot.online{background:#2ecc71}
+.dot.offline{background:#e74c3c}
+.notifBtn{background:#fff;border:none;border-radius:12px;padding:8px 10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+
+@media(max-width:600px){
+  .topRight{gap:8px}
+  .logout{font-size:12px}
+  .grid4{grid-template-columns:1fr;gap:12px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+    <div class="meta">
+      <strong id="proName">—</strong><br>
+      <span id="proMeta">—</span>
+    </div>
+  </div>
+  <div class="topRight">
+    <div class="statusWrap">
+      <span id="onlineDot" class="dot offline"></span>
+      <span id="onlineText">Hors ligne</span>
+    </div>
+    <button class="notifBtn" id="notifBtn">🔔 <span id="notifCount" class="badge">0</span></button>
+    <button class="logout" id="logoutBtn">Déconnexion</button>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- STATS + GAIN -->
+  <div class="grid4">
+    <div class="card"><h3>🟢 Acceptées</h3><div id="countAccepted" class="big">0</div></div>
+    <div class="card"><h3>🔴 Refusées</h3><div id="countRefused" class="big">0</div></div>
+    <div class="card"><h3>🔵 Consultations</h3><div id="countConsultations" class="big">0</div></div>
+    <div class="card"><h3>💰 Gains</h3><div id="totalGains" class="big">0</div><div class="empty">BIF (avec rapport)</div></div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="card">
+    <h3>🟡 Requêtes en attente</h3>
+    <div id="pendingList" class="empty">Chargement…</div>
+  </div>
+
+  <!-- ASSIGNED -->
+  <div class="card">
+    <h3>🟢 Requêtes acceptées</h3>
+    <div id="assignedList" class="empty">Aucune demande</div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="card">
+    <h3>🔔 Notifications</h3>
+    <div id="notificationsList" class="empty">Aucune notification</div>
+  </div>
+
+</div>
+
+<footer>© 2026 <strong>CizaHealth+</strong></footer>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, onSnapshot,
+  doc, setDoc, updateDoc, serverTimestamp, getDoc, orderBy, addDoc
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* DOM */
+const proName = document.getElementById("proName");
+const proMeta = document.getElementById("proMeta");
+const onlineDot = document.getElementById("onlineDot");
+const onlineText = document.getElementById("onlineText");
+const notifBtn = document.getElementById("notifBtn");
+const notifCount = document.getElementById("notifCount");
+const logoutBtn = document.getElementById("logoutBtn");
+const countAccepted = document.getElementById("countAccepted");
+const countRefused = document.getElementById("countRefused");
+const countConsultations = document.getElementById("countConsultations");
+const totalGains = document.getElementById("totalGains");
+const pendingList = document.getElementById("pendingList");
+const assignedList = document.getElementById("assignedList");
+const notificationsList = document.getElementById("notificationsList");
+
+let heartbeat=null;
+const CONSULT_FEE = 10000; // BIF
+
+logoutBtn.onclick=async()=>{
+  if(heartbeat) clearInterval(heartbeat);
+  await signOut(auth);
+  location.href="/cizahealth/index.html";
+};
+
+notifBtn.onclick=()=>notificationsList.scrollIntoView({behavior:"smooth"});
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return location.href="/cizahealth/index.html";
+
+  /* PRO INFO */
+  const proSnap = await getDoc(doc(db,"users",user.uid));
+  if(proSnap.exists()){
+    const p = proSnap.data();
+    proName.textContent = p.fullName || "—";
+    proMeta.textContent = `${p.role||"—"} • ${p.speciality||"—"} • ${p.service||"—"} • ${p.province||"—"}`;
+  }
+
+  /* ONLINE HEARTBEAT (FIABLE) */
+  await setDoc(doc(db,"users",user.uid),{ lastOnlineAt: serverTimestamp() },{merge:true});
+  heartbeat = setInterval(()=>{
+    setDoc(doc(db,"users",user.uid),{ lastOnlineAt: serverTimestamp() },{merge:true});
+  },15000);
+
+  onSnapshot(doc(db,"users",user.uid),(s)=>{
+    const last=s.data()?.lastOnlineAt?.toMillis?.();
+    if(last && Date.now()-last<=30000){
+      onlineDot.className="dot online"; onlineText.textContent="En ligne";
+    }else{
+      onlineDot.className="dot offline"; onlineText.textContent="Hors ligne";
+    }
+  });
+
+  /* NOTIFICATIONS (ADMIN → PRO) */
+  onSnapshot(
+    query(collection(db,"notifications"), where("target","==","pro"), orderBy("createdAt","desc")),
+    (snap)=>{
+      notifCount.textContent = snap.docs.filter(d=>!d.data().read).length;
+      notificationsList.innerHTML="";
+      if(snap.empty){ notificationsList.innerHTML='<div class="empty">Aucune notification</div>'; return; }
+      snap.forEach(d=>{
+        const n=d.data();
+        const div=document.createElement("div");
+        div.className="request";
+        div.innerHTML=`<strong>${n.title||"Notification"}</strong><br><span class="empty">${n.body||""}</span>`;
+        notificationsList.appendChild(div);
+      });
+    }
+  );
+
+  /* STATS */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid),
+    where("status","==","assigned")
+  ),snap=>{
+    countAccepted.textContent = snap.size;
+    countConsultations.textContent = snap.size;
+  });
+
+  onSnapshot(query(collection(db,"requests"),
+    where("refusedBy","==",user.uid),
+    where("status","==","refused")
+  ),snap=> countRefused.textContent = snap.size);
+
+  /* GAINS = consultations AVEC rapport */
+  onSnapshot(query(collection(db,"reports"), where("proUid","==",user.uid)), snap=>{
+    totalGains.textContent = snap.size * CONSULT_FEE;
+  });
+
+  /* PENDING */
+  onSnapshot(query(collection(db,"requests"), where("status","==","pending")), snap=>{
+    pendingList.innerHTML="";
+    if(snap.empty){ pendingList.innerHTML='<div class="empty">Aucune requête</div>'; return; }
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request pending";
+      div.innerHTML=`
+<strong>${r.serviceType||"Service médical"}</strong>
+<div class="empty">👤 ${r.patientName||"—"} • ${r.patientAge??"—"} ans • ${r.patientProvince||"—"}</div>
+<div class="empty">🩺 ${r.symptoms||"—"}</div>
+<div class="empty">📝 ${r.description||"—"}</div>
+<div class="empty">🕒 ${r.createdAt?.toDate?.().toLocaleString()||"—"}</div>
+<div class="actions">
+  <button class="accept">Accepter</button>
+  <button class="refuse">Refuser</button>
+  <button class="chat" disabled>Chat</button>
+</div>`;
+      div.querySelector(".accept").onclick=async()=>{
+        div.remove();
+        await updateDoc(doc(db,"requests",d.id),{
+          status:"assigned", assignedProUid:user.uid, assignedAt:serverTimestamp()
+        });
+        await addDoc(collection(db,"notifications"),{
+          receiverId:r.patientUid, title:"Demande acceptée",
+          body:"Votre consultation a été acceptée", read:false, createdAt:serverTimestamp()
+        });
+      };
+      div.querySelector(".refuse").onclick=async()=>{
+        div.remove();
+        await updateDoc(doc(db,"requests",d.id),{
+          status:"refused", refusedBy:user.uid, refusedAt:serverTimestamp()
+        });
+        await addDoc(collection(db,"notifications"),{
+          receiverId:r.patientUid, title:"Demande refusée",
+          body:"Votre consultation a été refusée", read:false, createdAt:serverTimestamp()
+        });
+      };
+      pendingList.appendChild(div);
+    });
+  });
+
+  /* ASSIGNED */
+  onSnapshot(query(collection(db,"requests"),
+    where("assignedProUid","==",user.uid),
+    where("status","==","assigned")
+  ), snap=>{
+    assignedList.innerHTML="";
+    if(snap.empty){ assignedList.innerHTML='<div class="empty">Aucune demande</div>'; return; }
+    snap.forEach(d=>{
+      const r=d.data();
+      const div=document.createElement("div");
+      div.className="request assigned";
+      div.innerHTML=`
+<strong>${r.serviceType||"Service médical"}</strong>
+<div class="actions">
+  <button class="call">📞 Appeler</button>
+  <button class="chat">💬 Chat</button>
+  <button class="report">📝 Rapport</button>
+</div>`;
+      div.querySelector(".call").onclick=async()=>{
+        await setDoc(doc(db,"callSessions",d.id),{requestId:d.id,proUid:user.uid,status:"ringing",createdAt:serverTimestamp()},{merge:true});
+        location.href=`/cizahealth/call.html?requestId=${d.id}&role=pro`;
+      };
+      div.querySelector(".chat").onclick=async()=>{
+        await setDoc(doc(db,"chats",d.id),{requestId:d.id,createdAt:serverTimestamp()},{merge:true});
+        location.href=`/cizahealth/chat.html?requestId=${d.id}&role=pro`;
+      };
+      div.querySelector(".report").onclick=async()=>{
+        const diagnosis = prompt("Diagnostic");
+        if(!diagnosis) return;
+        await addDoc(collection(db,"reports"),{
+          requestId:d.id, proUid:user.uid, diagnosis, createdAt:serverTimestamp()
+        });
+        alert("Rapport enregistré. Paiement autorisé.");
+      };
+      assignedList.appendChild(div);
+    });
+  });
+
+});
+</script>
+
+</body>
+</html>
