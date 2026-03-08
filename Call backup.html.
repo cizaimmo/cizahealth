@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CizaHealth+ | Consultation</title>
+
+<style>
+:root{
+  --primary:#123C8A;
+  --primary-dark:#0B2C66;
+  --success:#2ecc71;
+  --danger:#C0392B;
+  --bg:#0A1A2F;
+  --card:#0e1d3a;
+  --text:#ffffff;
+  --muted:#cfd7ea;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+}
+.app{height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+header{
+  padding:16px 20px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+header img{height:36px}
+.header-text{flex:1;min-width:0}
+.header-text strong{
+  display:block;
+  font-size:16px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.header-text span{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* VIDEOS */
+.videos{flex:1;position:relative}
+video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  background:#000;
+}
+#localVideo{
+  position:absolute;
+  width:130px;
+  height:180px;
+  bottom:18px;
+  right:18px;
+  border-radius:16px;
+  border:2px solid #fff;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);
+  z-index:10;
+}
+
+/* STATUS */
+.status{
+  padding:12px 18px;
+  background:var(--card);
+  font-size:13px;
+  text-align:center;
+}
+
+/* CONTROLS */
+.controls{
+  padding:18px;
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  background:var(--card);
+  flex-wrap:wrap;
+}
+.controls button{
+  border:none;
+  border-radius:999px;
+  padding:14px 24px;
+  font-weight:900;
+  cursor:pointer;
+  min-width:180px;
+}
+.start{background:var(--success);color:#fff}
+.end{background:var(--danger);color:#fff}
+.mute{background:#34495e;color:#fff}
+.video{background:#7f8c8d;color:#fff}
+.cancel{background:#95a5a6;color:#fff}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <img src="https://raw.githubusercontent.com/cizaimmo/cizahealth/main/9008F813-82B0-4A0C-8B18-00CA519A77CF.png">
+  <div class="header-text">
+    <strong id="titleLine">Consultation</strong>
+    <span id="subLine">Initialisation…</span>
+  </div>
+</header>
+
+<div class="videos">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+</div>
+
+<div class="status" id="statusText">Préparation de l’appel…</div>
+<div class="controls" id="controls"></div>
+
+</div>
+
+<audio id="ringtone" loop preload="auto">
+  <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg">
+</audio>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const MAX_CALL_MINUTES = 20;
+
+const params=new URLSearchParams(location.search);
+const requestId=params.get("requestId");
+
+const remoteVideo=document.getElementById("remoteVideo");
+const localVideo=document.getElementById("localVideo");
+const controls=document.getElementById("controls");
+const statusText=document.getElementById("statusText");
+const titleLine=document.getElementById("titleLine");
+const subLine=document.getElementById("subLine");
+const ringtone=document.getElementById("ringtone");
+
+const rtcConfig={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+let pc=null,localStream=null,role=null,callRef=null;
+let muted=false,videoOff=false,callTimer=null;
+
+function stopRingtone(){
+  try{ ringtone.pause(); ringtone.currentTime=0; }catch(e){}
+}
+function cleanup(){
+  stopRingtone();
+  if(callTimer) clearTimeout(callTimer);
+  if(pc){pc.close();pc=null;}
+  if(localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+    localStream=null;
+  }
+}
+
+onAuthStateChanged(auth,async(user)=>{
+  if(!user||!requestId) return location.href="index.html";
+
+  const reqSnap=await getDoc(doc(db,"requests",requestId));
+  const r=reqSnap.data();
+
+  role = user.uid===r.patientUid ? "patient" :
+         user.uid===r.assignedProUid ? "pro" : null;
+  if(!role) return alert("Accès refusé");
+
+  titleLine.textContent = role==="pro"
+    ? `Consultation avec ${r.patientName||"Patient"}`
+    : `Consultation avec Dr ${r.assignedProName||"Professionnel"}`;
+
+  subLine.textContent = role==="pro" ? "Professionnel de santé" : "Patient";
+
+  callRef=doc(db,"callSessions",requestId);
+  await setDoc(callRef,{status:"idle"}, {merge:true});
+
+  pc=new RTCPeerConnection(rtcConfig);
+  localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+  localVideo.srcObject=localStream;
+  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+
+  pc.ontrack=e=>{
+    remoteVideo.srcObject=e.streams[0];
+    remoteVideo.play().catch(()=>{});
+  };
+
+  pc.onicecandidate=e=>{
+    if(e.candidate){
+      updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
+    }
+  };
+
+  /* PRO UI */
+  if(role==="pro"){
+    statusText.textContent="Prêt à appeler le patient";
+    controls.innerHTML=`
+      <button class="start" id="startBtn">📞 Démarrer</button>
+      <button class="cancel" id="cancelBtn">❌ Annuler</button>
+    `;
+
+    document.getElementById("startBtn").onclick=async()=>{
+      statusText.textContent="📡 Appel en cours…";
+      await updateDoc(callRef,{status:"calling",startedAt:serverTimestamp()});
+      const offer=await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await updateDoc(callRef,{offer:JSON.stringify(offer)});
+    };
+
+    document.getElementById("cancelBtn").onclick=async()=>{
+      await updateDoc(callRef,{status:"ended",endedReason:"cancelled"});
+    };
+  }
+
+  onSnapshot(callRef,async snap=>{
+    if(!snap.exists()) return;
+    const d=snap.data();
+
+    /* PATIENT – APPEL ENTRANT */
+    if(role==="patient" && d.status==="calling" && d.offer && !pc.currentRemoteDescription){
+      statusText.textContent="📞 Appel entrant";
+      ringtone.play().catch(()=>{});
+      navigator.vibrate?.([400,300,400]);
+
+      controls.innerHTML=`
+        <button class="start" id="answerBtn">📞 Répondre</button>
+        <button class="end" id="rejectBtn">❌ Refuser</button>
+      `;
+
+      document.getElementById("answerBtn").onclick=async()=>{
+        stopRingtone();
+        await pc.setRemoteDescription(JSON.parse(d.offer));
+        const answer=await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(callRef,{answer:JSON.stringify(answer),status:"connected"});
+      };
+
+      document.getElementById("rejectBtn").onclick=async()=>{
+        stopRingtone();
+        await updateDoc(callRef,{status:"ended",endedReason:"rejected"});
+      };
+    }
+
+    if(role==="pro" && d.answer && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(JSON.parse(d.answer));
+    }
+
+    if(d.iceCandidate){
+      try{await pc.addIceCandidate(JSON.parse(d.iceCandidate));}catch(e){}
+    }
+
+    /* CONNECTED */
+    if(d.status==="connected"){
+      stopRingtone();
+      statusText.textContent="✅ Appel connecté";
+
+      callTimer = setTimeout(async()=>{
+        await updateDoc(callRef,{status:"ended",endedReason:"timeout"});
+      }, MAX_CALL_MINUTES * 60 * 1000);
+
+      controls.innerHTML=`
+        <button class="mute" id="muteBtn">🎙️ Micro</button>
+        <button class="video" id="videoBtn">📹 Vidéo</button>
+        <button class="end" id="endBtn">⛔ Terminer</button>
+      `;
+
+      document.getElementById("muteBtn").onclick=()=>{
+        muted=!muted;
+        localStream.getAudioTracks().forEach(t=>t.enabled=!muted);
+      };
+
+      document.getElementById("videoBtn").onclick=()=>{
+        videoOff=!videoOff;
+        localStream.getVideoTracks().forEach(t=>t.enabled=!videoOff);
+      };
+
+      document.getElementById("endBtn").onclick=async()=>{
+        await updateDoc(callRef,{status:"ended",endedAt:serverTimestamp()});
+      };
+    }
+
+    /* FIN */
+    if(d.status==="ended"){
+      cleanup();
+      statusText.textContent="Appel terminé";
+      setTimeout(()=>{
+        if(role==="pro"){
+          location.href=`report.html?requestId=${requestId}`;
+        }else{
+          location.href="dashboard-client.html";
+        }
+      },800);
+    }
+  });
+});
+</script>
+</body>
+</html>
