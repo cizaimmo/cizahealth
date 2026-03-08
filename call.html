@@ -190,12 +190,14 @@ onAuthStateChanged(auth,async(user)=>{
     remoteVideo.play().catch(()=>{});
   };
 
-  pc.onicecandidate=e=>{
-    if(e.candidate){
-      updateDoc(callRef,{iceCandidate:JSON.stringify(e.candidate)});
-    }
-  };
-
+pc.onicecandidate = e => {
+  if (e.candidate) {
+    updateDoc(callRef,{
+      candidates: arrayUnion(JSON.stringify(e.candidate))
+    });
+  }
+};
+  
   /* PRO UI */
   if(role==="pro"){
     statusText.textContent="Prêt à appeler le patient";
@@ -250,9 +252,13 @@ onAuthStateChanged(auth,async(user)=>{
       await pc.setRemoteDescription(JSON.parse(d.answer));
     }
 
-    if(d.iceCandidate){
-      try{await pc.addIceCandidate(JSON.parse(d.iceCandidate));}catch(e){}
-    }
+    if(d.candidates){
+  for(const c of d.candidates){
+    try{
+      await pc.addIceCandidate(JSON.parse(c));
+    }catch(e){}
+  }
+}
 
     /* CONNECTED */
     if(d.status==="connected"){
