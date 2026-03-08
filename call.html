@@ -129,9 +129,8 @@ video{
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 const MAX_CALL_MINUTES = 20;
 
 const params=new URLSearchParams(location.search);
