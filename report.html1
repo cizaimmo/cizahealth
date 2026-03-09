@@ -275,18 +275,32 @@ submitBtn.onclick = async()=>{
       completedAt: serverTimestamp()
     });
 
+    
     // ✅ Si ordonnance activée
-    if(needRx.checked){
-      await setDoc(doc(db,"prescriptions",requestId),{
-        requestId,
-        patientUid: reqData.patientUid,
-        proUid: user.uid,
-        medications,
-        code:"RX-"+Math.random().toString(36).substring(2,8).toUpperCase(),
-        used:false,
-        createdAt:serverTimestamp()
-      });
-    }
+if(needRx.checked){
+
+  const rxCode = "RX-"+Math.random().toString(36).substring(2,8).toUpperCase();
+
+  const assignedPharmacyUid = reqData.assignedPharmacyUid || null;
+  const assignedPharmacyName = reqData.assignedPharmacyName || "";
+
+  await setDoc(doc(db,"prescriptions",requestId),{
+    requestId,
+    patientUid: reqData.patientUid,
+    proUid: user.uid,
+    medications,
+
+    code: rxCode,
+
+    assignedPharmacyUid,
+    assignedPharmacyName,
+
+    used:false,
+    status:"sent",
+    createdAt:serverTimestamp()
+  });
+
+}
 
     location.href="dashboard-pro.html";
 
