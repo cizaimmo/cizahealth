@@ -241,9 +241,10 @@ async function loadPharmacies(){
 
 const select=document.getElementById("pharmacySelect");
 
-const q=query(
+const q = query(
 collection(db,"users"),
-where("role","==","pharmacy")
+where("role","==","pharmacy"),
+where("pharmacyApproved","==",true)
 );
 
 const snap=await getDocs(q);
