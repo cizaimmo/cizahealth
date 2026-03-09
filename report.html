@@ -243,8 +243,7 @@ const select=document.getElementById("pharmacySelect");
 
 const q = query(
 collection(db,"users"),
-where("role","==","pharmacy"),
-where("pharmacyApproved","==",true)
+where("role","==","pharmacy")
 );
 
 const snap=await getDocs(q);
