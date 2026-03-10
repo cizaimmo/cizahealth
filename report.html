@@ -265,7 +265,10 @@ select.appendChild(option);
 loadPharmacies();
 
 submitBtn.onclick=async()=>{
-
+  
+console.log("USER:", auth.currentUser);
+console.log("UID:", auth.currentUser?.uid);
+  
 const user=auth.currentUser;
 if(!user) return alert("Non connecté");
 if(!requestId) return alert("Request invalide");
