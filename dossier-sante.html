@@ -235,9 +235,8 @@ document.getElementById("profilePhoto").src=url;
 
 /* REPORTS */
 const qReports=query(
-collection(db,"reports"),
-where("patientUid","==",user.uid),
-orderBy("submittedAt","desc")
+collection(db,"medical_records",user.uid,"reports"),
+orderBy("createdAt","desc")
 );
 onSnapshot(qReports,async(snap)=>{
 const container=document.getElementById("reportsList");
@@ -266,8 +265,7 @@ container.appendChild(div);
 
 /* RX SECURISÉ */
 const qRx=query(
-collection(db,"prescriptions"),
-where("patientUid","==",user.uid),
+collection(db,"medical_records",user.uid,"prescriptions"),
 orderBy("createdAt","desc")
 );
 onSnapshot(qRx,async(snap)=>{
