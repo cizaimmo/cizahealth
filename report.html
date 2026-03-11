@@ -307,6 +307,16 @@ submittedAt:serverTimestamp()
 
 });
 
+await setDoc(
+doc(db,"medical_records",reqData.patientUid,"reports",requestId),
+{
+requestId,
+proUid:user.uid,
+proName:proData.fullName || "",
+createdAt:serverTimestamp(),
+status:"completed"
+}
+);
 await updateDoc(doc(db,"requests",requestId),{
 status:"completed",
 completedAt:serverTimestamp()
@@ -330,6 +340,7 @@ const rxCode="RX-"+Math.random().toString(36).substring(2,8).toUpperCase();
 
 const prescriptionRef=await addDoc(collection(db,"prescriptions"),{
 
+  
 requestId,
 
 patientUid:reqData.patientUid,
@@ -352,6 +363,25 @@ createdAt:serverTimestamp()
 
 });
 
+await setDoc(
+doc(
+db,
+"medical_records",
+reqData.patientUid,
+"prescriptions",
+prescriptionRef.id
+),
+{
+prescriptionId: prescriptionRef.id,
+requestId: requestId,
+code: rxCode,
+proUid: user.uid,
+pharmacyUid: pharmacyUid,
+createdAt: serverTimestamp(),
+status: "sent"
+}
+);
+  
 new QRCode(document.getElementById("qrPreview"),{
 text:prescriptionRef.id,
 width:150,
