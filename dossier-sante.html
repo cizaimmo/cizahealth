@@ -452,18 +452,18 @@ container.appendChild(div);
 
 });
   
-/* CARTE SECURISÉE */
+/* CARTE MEDICALE */
+
 const cardNumber = p.patientId || "";
-document.getElementById("cardNumber").innerText=cardNumber;
-const ts=Date.now();
-const sig=await sha256(user.uid+cardNumber+ts+SECRET);
 
-);
+document.getElementById("cardNumber").innerText = cardNumber;
+document.getElementById("cardName").innerText = p.fullName || "";
+document.getElementById("cardProvince").innerText = p.province || "";
 
-});
+/* QR simple et stable */
 
 const cardPayload =
-"https://cizaimmo.github.io/cizahealth/card.html?id=" + cardNumber;
+"https://cizaimmo.github.io/cizahealth/dossier-sante.html?id=" + cardNumber;
 
 document.getElementById("qrImg").src =
 "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=" +
