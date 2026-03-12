@@ -458,18 +458,15 @@ document.getElementById("cardNumber").innerText=cardNumber;
 const ts=Date.now();
 const sig=await sha256(user.uid+cardNumber+ts+SECRET);
 
-const cardPayload = "CIZA-CARD:" + JSON.stringify({
-uid:user.uid,
-card:cardNumber,
-ts,
-sig
+);
+
 });
+  
+const cardPayload = "https://cizahealth.app/card/" + cardNumber;
+
 document.getElementById("qrImg").src =
 "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=" +
 encodeURIComponent(cardPayload);
-
-});
-
 /* PDF PREMIUM */
 window.generatePDF=function(pro,diag,trait){
 const w=window.open();
