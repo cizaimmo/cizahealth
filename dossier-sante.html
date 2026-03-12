@@ -238,92 +238,48 @@ const qReports=query(
 collection(db,"medical_records",user.uid,"reports"),
 orderBy("createdAt","desc")
 );
-onSnapshot(qReports,async(snap)=>{
+
+onSnapshot(qReports, async(snap)=>{
+
 const container=document.getElementById("reportsList");
 container.innerHTML="";
+
 if(snap.empty){
 container.innerHTML="<div class='card'><div class='muted'>Aucun rapport</div></div>";
 return;
 }
-snap.forEach(docu=>{
-const r=docu.data();
+
+for(const docu of snap.docs){
+
+const record=docu.data();
+const requestId=record.requestId;
+
+/* lire le vrai rapport */
+const reportSnap=await getDoc(doc(db,"reports",requestId));
+const report=reportSnap.data();
+
+if(!report) continue;
+
 const div=document.createElement("div");
 div.className="card";
+
 div.innerHTML=`
 <h3>Consultation</h3>
 <div class="kv">
-<b>Médecin :</b> Dr ${r.proName || "—"}<br>
-<b>Diagnostic :</b><br>${r.diagnostic || "—"}<br>
-<b>Traitement :</b><br>${r.traitement || "—"}<br>
-<div class="muted">Date : ${r.submittedAt?.toDate()?.toLocaleString() || "—"}</div>
-<button class="btn" onclick="generatePDF('${r.proName}','${r.diagnostic}','${r.traitement}')">Télécharger PDF</button>
+<b>Médecin :</b> Dr ${report.proName || "—"}<br>
+<b>Diagnostic :</b><br>${report.diagnostic || "—"}<br>
+<b>Traitement :</b><br>${report.traitement || "—"}<br>
+<div class="muted">Date : ${report.submittedAt?.toDate()?.toLocaleString() || "—"}</div>
+<button class="btn" onclick="generatePDF('${report.proName}','${report.diagnostic}','${report.traitement}')">Télécharger PDF</button>
 </div>
 `;
-container.appendChild(div);
-});
-});
 
-/* RX SECURISÉ */
-const qRx=query(
-collection(db,"medical_records",user.uid,"prescriptions"),
-orderBy("createdAt","desc")
-);
-onSnapshot(qRx,async(snap)=>{
-const container=document.getElementById("rxList");
-container.innerHTML="";
-if(snap.empty){
-container.innerHTML="<div class='card'><div class='muted'>Aucune ordonnance</div></div>";
-return;
-}
-for(const docu of snap.docs){
-const r=docu.data();
-const ts=Date.now();
-const signature=await sha256(r.code+user.uid+ts+SECRET);
-const payload=encodeURIComponent(JSON.stringify({
-code:r.code,
-uid:user.uid,
-ts,
-sig:signature
-}));
-const div=document.createElement("div");
-div.className="card";
-div.innerHTML=`
-<h3>Ordonnance</h3>
-<b>Code :</b> ${r.code}<br>
-<b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}<br>
-<b>Statut :</b> ${r.used ? "Utilisée" : "Active"}<br>
-<img width="160" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${payload}">
-`;
 container.appendChild(div);
-}
-});
 
-/* APPOINTMENTS (intact) */
-const qApp=query(
-collection(db,"appointments"),
-where("patientUid","==",user.uid),
-orderBy("date","desc")
-);
-onSnapshot(qApp,(snap)=>{
-const container=document.getElementById("appointmentsList");
-container.innerHTML="";
-if(snap.empty){
-container.innerHTML="<div class='card'><div class='muted'>Aucun rendez-vous</div></div>";
-return;
 }
-snap.forEach(docu=>{
-const a=docu.data();
-const div=document.createElement("div");
-div.className="card";
-div.innerHTML=`
-<b>Date :</b> ${new Date(a.date).toLocaleString()}<br>
-<b>Médecin :</b> ${a.proName || "—"}<br>
-<b>Statut :</b> ${a.status || "Planifié"}
-`;
-container.appendChild(div);
-});
-});
 
+});
+  
 /* CARTE SECURISÉE */
 const cardNumber="CZ-H-"+user.uid.slice(0,4).toUpperCase();
 document.getElementById("cardNumber").innerText=cardNumber;
