@@ -242,12 +242,13 @@ document.getElementById("profilePhoto").src=url;
 };
 
 /* REPORTS */
+
 const qReports=query(
 collection(db,"medical_records",user.uid,"reports"),
 orderBy("createdAt","desc")
 );
 
-onSnapshot(qReports, async(snap)=>{
+onSnapshot(qReports,(snap)=>{
 
 const container=document.getElementById("reportsList");
 container.innerHTML="";
@@ -257,16 +258,18 @@ container.innerHTML="<div class='card'><div class='muted'>Aucun rapport</div></d
 return;
 }
 
-for(const docu of snap.docs){
+snap.forEach(async(docu)=>{
 
 const record=docu.data();
 const requestId=record.requestId;
 
 /* lire le vrai rapport */
-const reportSnap=await getDoc(doc(db,"reports",requestId));
-const report=reportSnap.data();
 
-if(!report) continue;
+const reportSnap=await getDoc(doc(db,"reports",requestId));
+
+if(!reportSnap.exists()) return;
+
+const report=reportSnap.data();
 
 const div=document.createElement("div");
 div.className="card";
@@ -284,7 +287,7 @@ div.innerHTML=`
 
 container.appendChild(div);
 
-}
+});
 
 });
   
