@@ -100,6 +100,51 @@ header{
   font-weight:600;
   margin-top:10px;
 }
+
+ .medical-card{
+background:linear-gradient(135deg,#123c8a,#0b2c66);
+color:white;
+border-radius:22px;
+padding:24px;
+max-width:420px;
+box-shadow:0 10px 35px rgba(0,0,0,0.2);
+}
+
+.card-header{
+font-size:20px;
+font-weight:700;
+margin-bottom:15px;
+}
+
+.card-body{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.patient-name{
+font-size:18px;
+font-weight:700;
+margin-bottom:8px;
+}
+
+.patient-info{
+font-size:14px;
+opacity:0.9;
+}
+
+.card-right img{
+width:110px;
+background:white;
+padding:8px;
+border-radius:10px;
+}
+
+.card-footer{
+margin-top:15px;
+font-size:12px;
+opacity:0.8;
+} 
 </style>
 </head>
 
@@ -129,10 +174,35 @@ src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
 class="profile">
 <div class="muted">Touchez la photo pour modifier</div>
 </div>
-<div class="card">
-<h3>Informations patient</h3>
-<div id="identityData" class="kv">Chargement…</div>
+<div class="medical-card">
+
+<div class="card-header">
+CizaHealth+
 </div>
+
+<div class="card-body">
+
+<div class="card-left">
+
+<div class="patient-name" id="cardName"></div>
+
+<div class="patient-info">
+ID : <span id="cardNumber"></span><br>
+Province : <span id="cardProvince"></span>
+</div>
+
+</div>
+
+<div class="card-right">
+<img id="qrImg">
+</div>
+
+</div>
+
+<div class="card-footer">
+Carte médicale sécurisée
+</div>
+
 </div>
 
 <div id="reports" class="tab hidden">
