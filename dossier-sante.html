@@ -199,6 +199,11 @@ class="profile">
 <div class="muted">Touchez la photo pour modifier</div>
 </div>
 
+<div class="card">
+<div id="identityData" class="kv"></div>
+</div>
+
+
 <!-- CARTE MEDICALE -->
 <div class="medical-card">
 
@@ -311,7 +316,11 @@ if(!user){location.href="login.html";return;}
 const pSnap=await getDoc(doc(db,"patients",user.uid));
 if(!pSnap.exists()) return;
 const p=pSnap.data();
+  
+document.getElementById("cardName").innerText = p.fullName || "";
+document.getElementById("cardProvince").innerText = p.province || "";
 
+  
 /* IDENTITE */
 document.getElementById("identityData").innerHTML=`
 <b>Nom :</b> ${p.fullName || "—"}<br>
