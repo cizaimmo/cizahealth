@@ -461,12 +461,14 @@ const sig=await sha256(user.uid+cardNumber+ts+SECRET);
 );
 
 });
-  
-const cardPayload = "https://cizahealth.app/card/" + cardNumber;
+
+const cardPayload =
+"https://cizaimmo.github.io/cizahealth/card.html?id=" + cardNumber;
 
 document.getElementById("qrImg").src =
 "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=" +
 encodeURIComponent(cardPayload);
+
 /* PDF PREMIUM */
 window.generatePDF=function(pro,diag,trait){
 const w=window.open();
@@ -475,7 +477,8 @@ w.document.write(`
 <head>
 <title>Rapport médical</title>
 <style>
-body{font-family:Arial;padding:40px;}
+body{font
+family:Arial;padding:40px;}
 h1{color:#123c8a}
 .footer{margin-top:40px;font-size:12px;color:#777;}
 </style>
