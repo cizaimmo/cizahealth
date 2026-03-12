@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CizaHealth+ | Carte médicale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:#f4f7fb;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
+
+.card{
+background:linear-gradient(135deg,#123c8a,#0b2c66);
+color:white;
+border-radius:22px;
+padding:24px;
+width:380px;
+box-shadow:0 10px 35px rgba(0,0,0,0.2);
+}
+
+.header{
+font-size:20px;
+font-weight:700;
+margin-bottom:20px;
+}
+
+.row{
+margin-bottom:10px;
+font-size:16px;
+}
+
+.footer{
+margin-top:20px;
+font-size:12px;
+opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="header">
+CizaHealth+
+</div>
+
+<div class="row">
+<b>ID :</b> <span id="cardId"></span>
+</div>
+
+<div class="row">
+Carte médicale sécurisée
+</div>
+
+<div class="footer">
+© 2026 CIZA GROUP
+</div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+document.getElementById("cardId").innerText = id || "ID inconnu";
+
+</script>
+
+</body>
+</html>
