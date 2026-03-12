@@ -290,6 +290,60 @@ container.appendChild(div);
 });
 
 });
+
+
+/* RX SECURISÉ */
+
+const qRx=query(
+collection(db,"medical_records",user.uid,"prescriptions"),
+orderBy("createdAt","desc")
+);
+
+onSnapshot(qRx,async(snap)=>{
+
+const container=document.getElementById("rxList");
+container.innerHTML="";
+
+if(snap.empty){
+container.innerHTML="<div class='card'><div class='muted'>Aucune ordonnance</div></div>";
+return;
+}
+
+for(const docu of snap.docs){
+
+const r=docu.data();
+
+const ts=Date.now();
+const signature=await sha256(r.code+user.uid+ts+SECRET);
+
+const payload=encodeURIComponent(JSON.stringify({
+code:r.code,
+uid:user.uid,
+ts,
+sig:signature
+}));
+
+const div=document.createElement("div");
+div.className="card";
+
+div.innerHTML=`
+<h3>Ordonnance</h3>
+
+<b>Code :</b> ${r.code}<br>
+
+<b>Date :</b> ${r.createdAt?.toDate()?.toLocaleString() || "—"}<br>
+
+<b>Statut :</b> ${r.status || "Active"}<br>
+
+<img width="160"
+src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${payload}">
+`;
+
+container.appendChild(div);
+
+}
+
+});
   
 /* CARTE SECURISÉE */
 const cardNumber="CZ-H-"+user.uid.slice(0,4).toUpperCase();
