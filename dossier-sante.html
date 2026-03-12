@@ -453,7 +453,7 @@ container.appendChild(div);
 });
   
 /* CARTE SECURISÉE */
-const cardNumber="CZ-H-"+user.uid.slice(0,4).toUpperCase();
+const cardNumber = p.patientId || "";
 document.getElementById("cardNumber").innerText=cardNumber;
 const ts=Date.now();
 const sig=await sha256(user.uid+cardNumber+ts+SECRET);
