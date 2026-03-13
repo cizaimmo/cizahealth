@@ -822,19 +822,19 @@ onAuthStateChanged(auth, async(user)=>{
           }
         }catch(e){}
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.patientName || "Patient"}</td>
-          <td>${r.submittedAt?.toDate?.().toLocaleString() || ""}</td>
-          <td>${r.diagnostic || "—"}</td>
-          <td>${rxCode}</td>
-          <td>${pharmacyName}</td>
-          <td>
-            <span class="statusPill ${rxCode !== "—" ? "statusRx" : "statusDone"}">
-              ${rxCode !== "—" ? "Ordonnance envoyée" : "Rapport enregistré"}
-            </span>
-          </td>
-        `;
+     const tr = document.createElement("tr");
+tr.innerHTML = `
+<td>${r.patientName || r.fullName || "Patient"}</td>
+<td>${r.submittedAt?.toDate?.().toLocaleString() || ""}</td>
+<td>${r.diagnostic || "—"}</td>
+<td>${rxCode}</td>
+<td>${pharmacyName}</td>
+<td>
+<span class="statusPill ${rxCode !== "—" ? "statusRx" : "statusDone"}">
+${rxCode !== "—" ? "Ordonnance envoyée" : "Rapport enregistré"}
+</span>
+</td>
+`;
         historyBody.appendChild(tr);
       }
     }
