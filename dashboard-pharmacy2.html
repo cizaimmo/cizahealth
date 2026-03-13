@@ -34,10 +34,12 @@ display:flex;
 flex-direction:column;
 }
 
+/* HEADER */
+
 header{
 background:linear-gradient(90deg,var(--blue),var(--blue-dark));
 color:white;
-padding:20px;
+padding:18px;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -46,19 +48,21 @@ align-items:center;
 .header-left{
 display:flex;
 align-items:center;
-gap:15px;
+gap:14px;
 }
 
-.header-left img{
-height:42px;
+.logo{
+font-size:22px;
+font-weight:700;
 }
 
-.pharmacy-info{
-margin-top:20px;
-padding:20px;
-background:white;
-border-radius:var(--radius);
-box-shadow:0 8px 25px rgba(0,0,0,.05);
+.logo span{
+color:#3ccf91;
+}
+
+.erp-title{
+font-weight:500;
+opacity:.9;
 }
 
 .logout{
@@ -69,6 +73,16 @@ padding:8px 14px;
 border-radius:12px;
 font-weight:600;
 cursor:pointer;
+}
+
+/* PHARMACY INFO */
+
+.pharmacy-info{
+background:white;
+padding:20px;
+border-radius:var(--radius);
+margin-bottom:20px;
+box-shadow:0 8px 25px rgba(0,0,0,.05);
 }
 
 .content{
@@ -102,7 +116,7 @@ font-size:20px;
 color:var(--gray);
 }
 
-/* cards */
+/* CARDS */
 
 .card{
 background:white;
@@ -162,23 +176,29 @@ color:#777;
 
 <div class="header-left">
 
-<img src="https://cizaimmo.github.io/cizahealth/logo-cizahealth.png">
+<div class="logo">
+CizaHealth<span>+</span>
+</div>
 
-<div>
-<strong>CizaHealth+ | Pharmacy ERP</strong>
+<div class="erp-title">
+Pharmacy ERP
 </div>
 
 </div>
 
-<button class="logout" id="logoutBtn">Déconnexion</button>
+<button class="logout" id="logoutBtn">
+Déconnexion
+</button>
 
 </header>
 
 <div class="content">
 
 <div class="pharmacy-info">
+
 <h2 id="pharmacyName">Pharmacie</h2>
 <div id="pharmacyCountry"></div>
+
 </div>
 
 <div class="kpi-grid">
