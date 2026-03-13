@@ -824,7 +824,7 @@ onAuthStateChanged(auth, async(user)=>{
 
      const tr = document.createElement("tr");
 tr.innerHTML = `
-<td>${r.patientName || r.fullName || "Patient"}</td>
+<td>${r.patientName || r.fullName || r.patient || "Patient"}</td>
 <td>${r.submittedAt?.toDate?.().toLocaleString() || ""}</td>
 <td>${r.diagnostic || "—"}</td>
 <td>${rxCode}</td>
