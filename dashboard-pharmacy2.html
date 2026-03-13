@@ -3,475 +3,939 @@
 <head>
 <meta charset="UTF-8">
 <title>CizaHealth+ | Pharmacy ERP</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
 <style>
-
 :root{
---blue:#123c8a;
---blue-dark:#0b2c66;
---green:#2e7d32;
---red:#c62828;
---orange:#ef6c00;
---bg:#f4f7fb;
---radius:16px;
---shadow:0 10px 25px rgba(0,0,0,.08);
+  --blue:#123c8a;
+  --blue-dark:#0b2c66;
+  --green:#2e7d32;
+  --red:#c62828;
+  --orange:#ef6c00;
+  --gold:#f4b63f;
+  --gray:#6b7a90;
+  --bg:#eef2f8;
+  --panel:#ffffff;
+  --line:#dfe6f1;
+  --radius:16px;
+  --shadow:0 10px 28px rgba(0,0,0,.08);
 }
 
 *{box-sizing:border-box}
 
 body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:var(--bg);
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  background:var(--bg);
+  color:#12223b;
+}
+
+.app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
 /* HEADER */
-
 header{
-background:linear-gradient(90deg,var(--blue),var(--blue-dark));
-color:white;
-padding:18px 25px;
-display:flex;
-align-items:center;
-justify-content:space-between;
+  background:linear-gradient(90deg,var(--blue),#2459c0);
+  color:#fff;
+  padding:18px 26px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);
 }
 
 .header-left{
-display:flex;
-align-items:center;
-gap:16px;
-font-size:20px;
-font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+
+.logo{
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.logo span{
+  color:#56d49a;
+}
+
+.sep{
+  width:1px;
+  height:42px;
+  background:rgba(255,255,255,.35);
+}
+
+.erp-title{
+  font-size:22px;
+  font-weight:600;
 }
 
 .logout{
-background:white;
-border:none;
-padding:10px 16px;
-border-radius:10px;
-cursor:pointer;
-font-weight:600;
+  background:#fff;
+  color:var(--blue-dark);
+  border:none;
+  padding:12px 20px;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.10);
+}
+
+/* PHARMACY INFO */
+.pharmacy-strip{
+  margin:18px 20px 0;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:20px 24px;
+}
+
+.pharmacy-name{
+  font-size:18px;
+  font-weight:800;
+  margin:0 0 6px;
+}
+.pharmacy-meta{
+  color:var(--gray);
+  font-size:14px;
+  line-height:1.5;
 }
 
 /* KPI */
-
 .kpi-grid{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:12px;
-padding:20px;
+  display:grid;
+  grid-template-columns:repeat(7,minmax(120px,1fr));
+  gap:12px;
+  padding:18px 20px;
 }
 
 .kpi{
-background:white;
-padding:14px;
-border-radius:12px;
-box-shadow:var(--shadow);
-text-align:center;
+  border-radius:14px;
+  color:#fff;
+  padding:16px 14px;
+  box-shadow:var(--shadow);
+  min-height:92px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
 }
-
-.kpi h3{
-margin:0;
-font-size:22px;
+.kpi.blue{background:linear-gradient(135deg,#1f66d8,#0d47a1)}
+.kpi.teal{background:linear-gradient(135deg,#0c9b9b,#00796b)}
+.kpi.red{background:linear-gradient(135deg,#ef5350,#c62828)}
+.kpi.orange{background:linear-gradient(135deg,#ff7a45,#ef6c00)}
+.kpi.gold{background:linear-gradient(135deg,#ffc95c,#f4a400); color:#2b2410}
+.kpi.slate{background:linear-gradient(135deg,#7b8aa5,#5f708f)}
+.kpi .label{
+  font-size:13px;
+  font-weight:700;
+  opacity:.95;
 }
-
-.kpi small{
-color:#666;
+.kpi .value{
+  font-size:26px;
+  font-weight:900;
+  line-height:1;
+  margin-top:6px;
 }
 
 /* LAYOUT */
-
 .main{
-display:grid;
-grid-template-columns:260px 1fr 320px;
-gap:18px;
-padding:20px;
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:16px;
+  padding:0 20px 20px;
 }
 
-/* LISTE RX */
-
-.list{
-background:white;
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-overflow:hidden;
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
 }
 
-.list h3{
-margin:0;
-padding:14px;
-background:#eef3fb;
+.panel-title{
+  margin:0;
+  padding:16px 18px;
+  font-size:20px;
+  font-weight:800;
+  color:#243a69;
+  background:linear-gradient(180deg,#f8fbff,#eef3fb);
+  border-bottom:1px solid var(--line);
 }
 
-.rx{
-padding:12px;
-border-bottom:1px solid #eee;
-cursor:pointer;
+/* LEFT LIST */
+.rx-list{
+  padding:14px;
+  min-height:620px;
 }
 
-.rx:hover{
-background:#f5f8ff;
+.rx-item{
+  padding:14px 16px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  background:#fff;
+  transition:.15s ease;
 }
 
-/* SCAN */
-
-.scan{
-background:white;
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:20px;
+.rx-item:hover{
+  background:#f6f9ff;
 }
 
-.scan input{
-width:100%;
-padding:12px;
-border-radius:10px;
-border:1px solid #ddd;
-margin-top:10px;
+.rx-item.active{
+  background:linear-gradient(135deg,#1f66d8,#2459c0);
+  color:#fff;
+  border-color:#1f66d8;
+}
+
+.rx-code{
+  font-size:16px;
+  font-weight:800;
+}
+.rx-time{
+  font-size:13px;
+  opacity:.9;
+  margin-top:4px;
+}
+.empty{
+  color:var(--gray);
+  font-size:14px;
+  padding:10px 4px;
+}
+
+/* RIGHT GRID */
+.right-wrap{
+  display:grid;
+  grid-template-columns:1.4fr .9fr;
+  gap:16px;
+}
+
+.scan-panel,
+.details-panel,
+.archive-panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.inner{
+  padding:16px;
+}
+
+.input-row{
+  display:grid;
+  grid-template-columns:180px 1fr 190px;
+  gap:12px;
+  margin-bottom:14px;
 }
 
 button{
-padding:12px 14px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-font-weight:600;
+  border:none;
+  border-radius:12px;
+  padding:14px 16px;
+  font-weight:800;
+  cursor:pointer;
+  font-size:15px;
 }
 
-.btn-blue{
-background:#2c5bd3;
-color:white;
+.btn-blue{background:#1f66d8;color:#fff}
+.btn-green{background:#43a047;color:#fff}
+.btn-red{background:#d32f2f;color:#fff}
+.btn-orange{background:#f39c12;color:#fff}
+.btn-light{background:#eef3fb;color:#18408f}
+
+input{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px 16px;
+  font-size:16px;
+  outline:none;
+  background:#fff;
 }
 
-.btn-green{
-background:#2e7d32;
-color:white;
+#reader{
+  width:100%;
+  min-height:240px;
+  border:1px dashed #cdd8ea;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--gray);
+  background:#fbfcff;
+  overflow:hidden;
 }
 
-.btn-red{
-background:#c62828;
-color:white;
+.scan-actions{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+  flex-wrap:wrap;
 }
 
-.btn-gray{
-background:#eaeef7;
+.result-box{
+  margin-top:14px;
+  min-height:24px;
+  font-size:14px;
 }
+.success{color:var(--green);font-weight:700}
+.error{color:var(--red);font-weight:700}
+.muted{color:var(--gray);font-size:13px}
 
 /* DETAILS */
-
-.details{
-background:white;
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:18px;
+.detail-block{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  padding:14px 16px;
+  margin-bottom:12px;
 }
 
-.details h3{
-margin-top:0;
+.detail-label{
+  font-size:13px;
+  color:var(--gray);
+  margin-bottom:6px;
 }
 
-.med{
-border-bottom:1px solid #eee;
-padding:6px 0;
+.detail-value{
+  font-size:16px;
+  font-weight:700;
+  color:#20365f;
 }
 
+.med-line{
+  border-bottom:1px solid #edf1f7;
+  padding:10px 0;
+}
+.med-line:last-child{border-bottom:none}
+
+.actions-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+/* ARCHIVE */
+.archive-list{
+  padding:14px 16px;
+  max-height:280px;
+  overflow:auto;
+}
+
+.archive-item{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  cursor:pointer;
+  background:#fff;
+}
+.archive-item:hover{background:#f8fbff}
+
+.footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:12px;
+  color:#7f8aa0;
+}
+
+@media (max-width:1200px){
+  .kpi-grid{
+    grid-template-columns:repeat(4,minmax(120px,1fr));
+  }
+  .right-wrap{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:900px){
+  .main{
+    grid-template-columns:1fr;
+  }
+  .kpi-grid{
+    grid-template-columns:repeat(2,minmax(120px,1fr));
+  }
+  .input-row{
+    grid-template-columns:1fr;
+  }
+}
 </style>
 </head>
-
 <body>
 
+<div class="app">
+
 <header>
-
-<div class="header-left">
-CizaHealth+ | Pharmacy ERP
-</div>
-
-<button class="logout" id="logoutBtn">
-Déconnexion
-</button>
-
+  <div class="header-left">
+    <div class="logo">CizaHealth<span>+</span></div>
+    <div class="sep"></div>
+    <div class="erp-title">Pharmacy ERP</div>
+  </div>
+  <button class="logout" id="logoutBtn">Déconnexion</button>
 </header>
 
-<!-- KPI -->
+<div class="pharmacy-strip">
+  <h2 class="pharmacy-name" id="pharmacyName">Pharmacie</h2>
+  <div class="pharmacy-meta">
+    <span id="pharmacyAddress"></span>
+    <span id="pharmacyCountry"></span>
+  </div>
+</div>
 
 <div class="kpi-grid">
-
-<div class="kpi">
-<h3 id="kpiPending">0</h3>
-<small>En attente</small>
+  <div class="kpi blue">
+    <div class="label">En attente</div>
+    <div class="value" id="kpiPending">0</div>
+  </div>
+  <div class="kpi teal">
+    <div class="label">Délivrées</div>
+    <div class="value" id="kpiDispensed">0</div>
+  </div>
+  <div class="kpi red">
+    <div class="label">Refusées</div>
+    <div class="value" id="kpiRejected">0</div>
+  </div>
+  <div class="kpi orange">
+    <div class="label">Indisponibles</div>
+    <div class="value" id="kpiUnavailable">0</div>
+  </div>
+  <div class="kpi gold">
+    <div class="label">Total traitées</div>
+    <div class="value" id="kpiTotal">0</div>
+  </div>
+  <div class="kpi gold">
+    <div class="label">Taux validation</div>
+    <div class="value" id="kpiRate">0%</div>
+  </div>
+  <div class="kpi slate">
+    <div class="label">Délai moyen</div>
+    <div class="value" id="kpiDelay">0m</div>
+  </div>
 </div>
-
-<div class="kpi">
-<h3 id="kpiDispensed">0</h3>
-<small>Délivrées</small>
-</div>
-
-<div class="kpi">
-<h3 id="kpiRejected">0</h3>
-<small>Refusées</small>
-</div>
-
-<div class="kpi">
-<h3 id="kpiUnavailable">0</h3>
-<small>Indisponibles</small>
-</div>
-
-<div class="kpi">
-<h3 id="kpiTotal">0</h3>
-<small>Total traitées</small>
-</div>
-
-<div class="kpi">
-<h3 id="kpiRate">0%</h3>
-<small>Taux validation</small>
-</div>
-
-<div class="kpi">
-<h3 id="kpiDelay">0m</h3>
-<small>Délai moyen</small>
-</div>
-
-</div>
-
-<!-- MAIN -->
 
 <div class="main">
 
-<!-- LISTE -->
+  <!-- LEFT -->
+  <div class="panel">
+    <h3 class="panel-title">Ordonnances en attente</h3>
+    <div class="rx-list" id="rxList">
+      <div class="empty">Chargement…</div>
+    </div>
+  </div>
 
-<div class="list">
+  <!-- RIGHT -->
+  <div class="right-wrap">
 
-<h3>Ordonnances en attente</h3>
+    <div class="scan-panel">
+      <h3 class="panel-title">Scanner ordonnance</h3>
+      <div class="inner">
 
-<div id="rxList"></div>
+        <div class="input-row">
+          <button class="btn-blue" id="scanBtn">Scanner QR</button>
+          <input id="manualCode" placeholder="Entrer code ordonnance">
+          <button class="btn-green" id="validateBtn">Valider ordonnance</button>
+        </div>
+
+        <div id="reader">Début scanner...</div>
+
+        <div class="scan-actions">
+          <button class="btn-light" id="stopScanBtn" style="display:none">Arrêter scanner</button>
+          <button class="btn-light" id="showArchiveBtn">Consulter archives</button>
+        </div>
+
+        <div class="result-box" id="result"></div>
+
+      </div>
+    </div>
+
+    <div class="details-panel">
+      <h3 class="panel-title">Détails de l’ordonnance</h3>
+      <div class="inner" id="detailsContent">
+        <div class="muted">Sélectionner une ordonnance pour consulter les détails.</div>
+      </div>
+    </div>
+
+    <div class="archive-panel" style="grid-column:1 / -1; display:none" id="archivePanel">
+      <h3 class="panel-title">Archives pharmacie</h3>
+      <div class="archive-list" id="archiveList">
+        <div class="empty">Aucune archive</div>
+      </div>
+    </div>
+
+  </div>
 
 </div>
 
-<!-- SCAN -->
-
-<div class="scan">
-
-<h3>Scanner ordonnance</h3>
-
-<button class="btn-blue" id="scanBtn">
-Scanner QR
-</button>
-
-<input id="manualCode" placeholder="Entrer code ordonnance">
-
-<button class="btn-green" id="validateBtn">
-Valider ordonnance
-</button>
-
-<div id="scanArea" style="margin-top:20px;color:#777">
-Début scanner...
+<div class="footer">
+  © 2026 CizaHealth+ — Système hospitalier partenaire
 </div>
 
 </div>
 
-<!-- DETAILS -->
-
-<div class="details">
-
-<h3>Détails de l’ordonnance</h3>
-
-<div id="detailsContent">
-Sélectionner une ordonnance
-</div>
-
-</div>
-
-</div>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script type="module">
-
 import { auth, db } from "./firebase.js";
-
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-onAuthStateChanged,
-signOut
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  collection, query, where, onSnapshot, doc, getDoc, getDocs,
+  updateDoc, serverTimestamp, setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import {
-collection,
-query,
-where,
-onSnapshot,
-doc,
-updateDoc,
-getDocs,
-serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const logoutBtn = document.getElementById("logoutBtn");
+const rxList = document.getElementById("rxList");
+const detailsContent = document.getElementById("detailsContent");
+const result = document.getElementById("result");
+const manualCode = document.getElementById("manualCode");
+const scanBtn = document.getElementById("scanBtn");
+const stopScanBtn = document.getElementById("stopScanBtn");
+const showArchiveBtn = document.getElementById("showArchiveBtn");
+const archivePanel = document.getElementById("archivePanel");
+const archiveList = document.getElementById("archiveList");
 
-let currentUser;
-let currentPrescription;
+let currentUser = null;
+let currentRxId = null;
+let currentRxData = null;
+let qrScanner = null;
+let lastPendingMap = new Map();
 
-/* LOGIN */
-
-onAuthStateChanged(auth,user=>{
-
-if(!user){
-location.href="login.html";
-return;
-}
-
-currentUser=user;
-
-listenPrescriptions();
-
-});
-
-/* LOGOUT */
-
-document.getElementById("logoutBtn").onclick=()=>{
-signOut(auth);
-location.href="login.html";
+logoutBtn.onclick = async()=>{
+  await signOut(auth);
+  location.href = "login.html";
 };
 
-/* LISTEN RX */
-
-function listenPrescriptions(){
-
-const q=query(
-collection(db,"prescriptions"),
-where("assignedPharmacyUid","==",auth.currentUser.uid),
-where("status","==","sent")
-);
-
-onSnapshot(q,snap=>{
-
-const list=document.getElementById("rxList");
-list.innerHTML="";
-
-snap.forEach(docu=>{
-
-const d=docu.data();
-
-const div=document.createElement("div");
-
-div.className="rx";
-
-div.innerHTML=
-`<b>${d.code}</b> - ${d.createdAt?.toDate().toLocaleTimeString()}`;
-
-div.onclick=()=>{
-showDetails(docu.id,d);
+showArchiveBtn.onclick = ()=>{
+  archivePanel.style.display = archivePanel.style.display === "none" ? "block" : "none";
 };
 
-list.appendChild(div);
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
 
+  currentUser = user;
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()){
+    location.href = "login.html";
+    return;
+  }
+
+  const data = snap.data();
+
+  document.getElementById("pharmacyName").innerText = data.fullName || "Pharmacie";
+  document.getElementById("pharmacyAddress").innerText = data.address ? data.address + " — " : "";
+  document.getElementById("pharmacyCountry").innerText =
+    data.country === "Rwanda" ? "🇷🇼 Rwanda" : "🇧🇮 Burundi";
+
+  loadKPI();
+  listenPending();
+  listenArchives();
 });
 
-});
+/* =========================
+   KPI
+========================= */
+function loadKPI(){
+  const q = query(
+    collection(db,"prescriptions"),
+    where("assignedPharmacyUid","==",currentUser.uid)
+  );
 
+  onSnapshot(q,(snap)=>{
+    let pending=0, dispensed=0, rejected=0, unavailable=0;
+    let totalDelay=0, delayCount=0;
+
+    snap.forEach(docu=>{
+      const d = docu.data();
+      const status = d.status || "";
+
+      if(status==="sent") pending++;
+      if(status==="dispensed"){
+        dispensed++;
+        if(d.createdAt && d.dispensedAt){
+          const delay = (d.dispensedAt.toDate() - d.createdAt.toDate()) / 60000;
+          if(delay >= 0){
+            totalDelay += delay;
+            delayCount++;
+          }
+        }
+      }
+      if(status==="rejected") rejected++;
+      if(status==="unavailable") unavailable++;
+    });
+
+    const totalTreated = dispensed + rejected + unavailable;
+    const totalAll = pending + totalTreated;
+    const rate = totalAll > 0 ? Math.round((dispensed / totalAll) * 100) : 0;
+    const avgDelay = delayCount > 0 ? Math.round(totalDelay / delayCount) : 0;
+
+    document.getElementById("kpiPending").innerText = pending;
+    document.getElementById("kpiDispensed").innerText = dispensed;
+    document.getElementById("kpiRejected").innerText = rejected;
+    document.getElementById("kpiUnavailable").innerText = unavailable;
+    document.getElementById("kpiTotal").innerText = totalTreated;
+    document.getElementById("kpiRate").innerText = rate + "%";
+    document.getElementById("kpiDelay").innerText = avgDelay + "m";
+  });
 }
 
-/* SHOW DETAILS */
+/* =========================
+   LISTE PENDING
+========================= */
+function listenPending(){
+  const q = query(
+    collection(db,"prescriptions"),
+    where("assignedPharmacyUid","==",currentUser.uid),
+    where("status","==","sent")
+  );
 
-function showDetails(id,data){
+  onSnapshot(q,(snap)=>{
+    rxList.innerHTML = "";
 
-currentPrescription=id;
+    if(snap.empty){
+      rxList.innerHTML = `<div class="empty">Aucune ordonnance en attente</div>`;
+      detailsContent.innerHTML = `<div class="muted">Aucune ordonnance sélectionnée.</div>`;
+      currentRxId = null;
+      currentRxData = null;
+      return;
+    }
 
-let meds="";
+    snap.forEach(docu=>{
+      const d = docu.data();
+      const item = document.createElement("div");
+      item.className = "rx-item" + (currentRxId===docu.id ? " active" : "");
 
-(data.medications||[]).forEach(m=>{
+      item.innerHTML = `
+        <div class="rx-code">${d.code || "RX"}</div>
+        <div class="rx-time">${d.createdAt?.toDate()?.toLocaleString() || ""}</div>
+      `;
 
-meds+=`
-<div class="med">
-<b>${m.name}</b><br>
-${m.dosage} — ${m.posology} — ${m.duration}
-</div>
-`;
+      item.onclick = ()=>{
+        currentRxId = docu.id;
+        currentRxData = d;
+        renderDetails(docu.id, d);
+        document.querySelectorAll(".rx-item").forEach(el=>el.classList.remove("active"));
+        item.classList.add("active");
+      };
 
-});
+      rxList.appendChild(item);
 
-document.getElementById("detailsContent").innerHTML=`
-
-<b>Code :</b> ${data.code}<br><br>
-
-<b>Patient :</b><br>
-${data.patientName || ""}<br><br>
-
-<b>Médecin :</b><br>
-Dr ${data.doctorName || ""}<br><br>
-
-<b>Prescription</b><br>
-${meds}
-
-<br>
-
-<button class="btn-green" id="dispenseBtn">
-Délivrer
-</button>
-
-<button class="btn-red" id="rejectBtn">
-Refuser
-</button>
-
-<button class="btn-gray" id="unavailableBtn">
-Indisponible
-</button>
-
-`;
-
-document.getElementById("dispenseBtn").onclick=()=>dispense();
-document.getElementById("rejectBtn").onclick=()=>reject();
-document.getElementById("unavailableBtn").onclick=()=>unavailable();
-
+      /* auto-open first item if nothing selected */
+      if(!currentRxId){
+        currentRxId = docu.id;
+        currentRxData = d;
+        renderDetails(docu.id, d);
+        item.classList.add("active");
+      }
+    });
+  });
 }
 
-/* ACTIONS */
+/* =========================
+   DETAILS
+========================= */
+function renderDetails(id, data){
+  currentRxId = id;
+  currentRxData = data;
 
-async function dispense(){
+  let medsHTML = "";
+  (data.medications || []).forEach(m=>{
+    medsHTML += `
+      <div class="med-line">
+        <div class="detail-value">${m.name || ""}</div>
+        <div class="muted">${m.dosage || ""} — ${m.posology || ""} — ${m.duration || ""}</div>
+      </div>
+    `;
+  });
 
-await updateDoc(
-doc(db,"prescriptions",currentPrescription),
-{
-status:"dispensed",
-dispensedAt:serverTimestamp(),
-used:true
-});
+  detailsContent.innerHTML = `
+    <div class="detail-block">
+      <div class="detail-label">Code ordonnance</div>
+      <div class="detail-value">${data.code || ""}</div>
+    </div>
 
-archive();
+    <div class="detail-block">
+      <div class="detail-label">Date</div>
+      <div class="detail-value">${data.createdAt?.toDate()?.toLocaleString() || ""}</div>
+    </div>
 
+    <div class="detail-block">
+      <div class="detail-label">Patient</div>
+      <div class="detail-value">${data.patientName || "Patient non renseigné"}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Médecin</div>
+      <div class="detail-value">Dr ${data.proName || data.doctorName || "Médecin non renseigné"}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Médicaments prescrits</div>
+      ${medsHTML || `<div class="muted">Aucun médicament</div>`}
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-green" id="dispenseBtn">Délivrer</button>
+      <button class="btn-red" id="rejectBtn">Refuser</button>
+      <button class="btn-orange" id="unavailableBtn">Indisponible</button>
+    </div>
+  `;
+
+  document.getElementById("dispenseBtn").onclick = ()=>processRx("dispensed");
+  document.getElementById("rejectBtn").onclick = ()=>processRx("rejected");
+  document.getElementById("unavailableBtn").onclick = ()=>processRx("unavailable");
 }
 
-async function reject(){
+/* =========================
+   VALIDATION MANUELLE
+========================= */
+document.getElementById("validateBtn").onclick = async()=>{
+  const code = extractRxCode(manualCode.value.trim());
+  if(!code){
+    result.innerHTML = `<div class="error">Code ordonnance invalide</div>`;
+    return;
+  }
 
-await updateDoc(
-doc(db,"prescriptions",currentPrescription),
-{
-status:"rejected"
-});
+  const q = query(
+    collection(db,"prescriptions"),
+    where("code","==",code),
+    where("assignedPharmacyUid","==",currentUser.uid),
+    where("status","==","sent")
+  );
 
-archive();
+  const snap = await getDocs(q);
 
+  if(snap.empty){
+    result.innerHTML = `<div class="error">Ordonnance invalide ou déjà traitée</div>`;
+    return;
+  }
+
+  const docu = snap.docs[0];
+  currentRxId = docu.id;
+  currentRxData = docu.data();
+  renderDetails(docu.id, docu.data());
+  result.innerHTML = `<div class="success">Ordonnance valide</div>`;
+};
+
+/* =========================
+   SCAN QR
+========================= */
+scanBtn.onclick = async()=>{
+  try{
+    if(qrScanner) return;
+
+    qrScanner = new Html5Qrcode("reader");
+    stopScanBtn.style.display = "inline-block";
+    result.innerHTML = `<div class="muted">Scanner actif…</div>`;
+
+    await qrScanner.start(
+      { facingMode: "environment" },
+      { fps:10, qrbox:220 },
+      async(decodedText)=>{
+        const code = extractRxCode(decodedText);
+
+        if(!code){
+          result.innerHTML = `<div class="error">QR reconnu mais code RX introuvable</div>`;
+          return;
+        }
+
+        manualCode.value = code;
+        result.innerHTML = `<div class="success">Code scanné : ${code}</div>`;
+
+        try{
+          await qrScanner.stop();
+        }catch(e){}
+        qrScanner = null;
+        stopScanBtn.style.display = "none";
+      },
+      ()=>{}
+    );
+  }catch(err){
+    result.innerHTML = `<div class="error">Impossible d’ouvrir la caméra</div>`;
+    qrScanner = null;
+    stopScanBtn.style.display = "none";
+  }
+};
+
+stopScanBtn.onclick = async()=>{
+  if(!qrScanner) return;
+  try{
+    await qrScanner.stop();
+  }catch(e){}
+  qrScanner = null;
+  stopScanBtn.style.display = "none";
+  document.getElementById("reader").innerHTML = "Début scanner...";
+};
+
+/* =========================
+   EXTRACTION CODE RX
+========================= */
+function extractRxCode(raw){
+  if(!raw) return "";
+
+  /* direct RX123 or RX-123 */
+  const match1 = raw.match(/RX[-]?[A-Z0-9]+/i);
+  if(match1) return match1[0].toUpperCase();
+
+  /* URL-encoded JSON */
+  try{
+    const dec = decodeURIComponent(raw);
+    const obj = JSON.parse(dec);
+    if(obj.code) return String(obj.code).toUpperCase();
+  }catch(e){}
+
+  /* plain JSON */
+  try{
+    const obj = JSON.parse(raw);
+    if(obj.code) return String(obj.code).toUpperCase();
+  }catch(e){}
+
+  /* prefixed JSON like CIZA-RX:... */
+  if(raw.startsWith("CIZA-RX:")){
+    try{
+      const obj = JSON.parse(raw.replace("CIZA-RX:",""));
+      if(obj.code) return String(obj.code).toUpperCase();
+    }catch(e){}
+  }
+
+  /* URL with ?code= */
+  try{
+    const url = new URL(raw);
+    const qCode = url.searchParams.get("code");
+    if(qCode) return qCode.toUpperCase();
+  }catch(e){}
+
+  return "";
 }
 
-async function unavailable(){
+/* =========================
+   TRAITEMENT + ARCHIVE
+========================= */
+async function processRx(status){
+  if(!currentRxId || !currentRxData) return;
 
-await updateDoc(
-doc(db,"prescriptions",currentPrescription),
-{
-status:"unavailable"
-});
+  const payload = {};
+  if(status==="dispensed"){
+    payload.status = "dispensed";
+    payload.used = true;
+    payload.dispensedAt = serverTimestamp();
+  }else if(status==="rejected"){
+    payload.status = "rejected";
+    payload.rejectedAt = serverTimestamp();
+  }else if(status==="unavailable"){
+    payload.status = "unavailable";
+    payload.unavailableAt = serverTimestamp();
+  }
 
-archive();
+  await updateDoc(doc(db,"prescriptions",currentRxId), payload);
 
+  await setDoc(
+    doc(db,"pharmacyArchives",currentUser.uid,"records",currentRxId),
+    {
+      ...currentRxData,
+      ...payload,
+      archivedStatus: status,
+      archivedAt: serverTimestamp(),
+      pharmacyUid: currentUser.uid
+    }
+  );
+
+  result.innerHTML = `<div class="success">Ordonnance traitée : ${status}</div>`;
+  detailsContent.innerHTML = `<div class="success">Ordonnance traitée et archivée automatiquement.</div>`;
+  currentRxId = null;
+  currentRxData = null;
 }
 
-/* ARCHIVE AUTO */
+/* =========================
+   ARCHIVES
+========================= */
+function listenArchives(){
+  const q = collection(db,"pharmacyArchives",currentUser.uid,"records");
 
-function archive(){
+  onSnapshot(q,(snap)=>{
+    archiveList.innerHTML = "";
 
-document.getElementById("detailsContent").innerHTML=
-"Ordonnance traitée";
+    if(snap.empty){
+      archiveList.innerHTML = `<div class="empty">Aucune archive</div>`;
+      return;
+    }
 
+    snap.forEach(docu=>{
+      const d = docu.data();
+      const item = document.createElement("div");
+      item.className = "archive-item";
+
+      item.innerHTML = `
+        <div class="rx-code">${d.code || "RX"}</div>
+        <div class="muted">
+          ${d.patientName || ""} — Dr ${d.proName || d.doctorName || ""}<br>
+          ${d.archivedStatus || d.status || ""} — ${d.archivedAt?.toDate?.().toLocaleString?.() || ""}
+        </div>
+      `;
+
+      item.onclick = ()=>{
+        renderArchiveDetails(d);
+      };
+
+      archiveList.appendChild(item);
+    });
+  });
 }
 
+function renderArchiveDetails(data){
+  let medsHTML = "";
+  (data.medications || []).forEach(m=>{
+    medsHTML += `
+      <div class="med-line">
+        <div class="detail-value">${m.name || ""}</div>
+        <div class="muted">${m.dosage || ""} — ${m.posology || ""} — ${m.duration || ""}</div>
+      </div>
+    `;
+  });
+
+  detailsContent.innerHTML = `
+    <div class="detail-block">
+      <div class="detail-label">Archive ordonnance</div>
+      <div class="detail-value">${data.code || ""}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Patient</div>
+      <div class="detail-value">${data.patientName || ""}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Médecin</div>
+      <div class="detail-value">Dr ${data.proName || data.doctorName || ""}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Statut</div>
+      <div class="detail-value">${data.archivedStatus || data.status || ""}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Médicaments</div>
+      ${medsHTML || `<div class="muted">Aucun médicament</div>`}
+    </div>
+  `;
+}
 </script>
 
 </body>
