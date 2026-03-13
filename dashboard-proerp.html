@@ -808,22 +808,37 @@ onAuthStateChanged(auth, async(user)=>{
           const bt = b.submittedAt?.toMillis?.() || 0;
           return bt - at;
         });
+      
+for(const r of reports){
 
-      for(const r of reports){
-        let rxCode = "—";
-        let pharmacyName = "—";
+  let rxCode = "—";
+  let pharmacyName = "—";
 
-        try{
-          const rxSnap = await getDocs(query(collection(db,"prescriptions"), where("requestId","==",r.requestId)));
-          if(!rxSnap.empty){
-            const rx = rxSnap.docs[0].data();
-            rxCode = rx.code || "—";
-            pharmacyName = rx.assignedPharmacyName || "—";
-          }
-        }catch(e){}
+  try{
 
-     const tr = document.createElement("tr");
-tr.innerHTML = `
+    const rxSnap = await getDocs(
+      query(
+        collection(db,"prescriptions"),
+        where("requestId","==", r.requestId || r.id)
+      )
+    );
+
+    if(!rxSnap.empty){
+
+      const rx = rxSnap.docs[0].data();
+
+      rxCode = rx.code || "—";
+      pharmacyName = rx.assignedPharmacyName || "—";
+
+    }
+
+  }catch(e){
+    console.log("Prescription lookup error", e);
+  }
+
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
 <td>${r.patientName || r.fullName || r.patient || "Patient"}</td>
 <td>${r.submittedAt?.toDate?.().toLocaleString() || ""}</td>
 <td>${r.diagnostic || "—"}</td>
@@ -835,8 +850,12 @@ ${rxCode !== "—" ? "Ordonnance envoyée" : "Rapport enregistré"}
 </span>
 </td>
 `;
-        historyBody.appendChild(tr);
-      }
+
+  historyBody.appendChild(tr);
+
+}
+
+      
     }
   );
 
