@@ -317,12 +317,12 @@ patientName:reqData.patientName || reqData.fullName || "",
 proUid:user.uid,
 proName:proData.fullName || "",
 
-diagnostic:diagnostic,   // ✅ ajout du diagnostic
+diagnostic:diagnostic.value,   // ✔ correction
 
 createdAt:serverTimestamp(),
 status:"completed"
 }
-);  
+);
 
 await updateDoc(doc(db,"requests",requestId),{
 status:"completed",
