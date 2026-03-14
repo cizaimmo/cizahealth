@@ -308,15 +308,22 @@ submittedAt:serverTimestamp()
 });
 
 await setDoc(
-doc(db,"medical_records",reqData.patientUid,"reports",requestId),
+doc(db,"medical_records", reqData.patientUid, "reports", requestId),
 {
 requestId,
+patientUid:reqData.patientUid,
+patientName:reqData.patientName || reqData.fullName || "",
+
 proUid:user.uid,
 proName:proData.fullName || "",
+
+diagnostic:diagnostic,   // ✅ ajout du diagnostic
+
 createdAt:serverTimestamp(),
 status:"completed"
 }
-);
+);  
+
 await updateDoc(doc(db,"requests",requestId),{
 status:"completed",
 completedAt:serverTimestamp()
